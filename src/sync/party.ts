@@ -6,6 +6,8 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Media } from '../types';
 
+import { t } from '../lib/i18n';
+
 export const MAX_VOTES = 3;
 
 export interface Room {
@@ -44,7 +46,7 @@ const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem 0/O e 1/I
 const newCode = () => Array.from(crypto.getRandomValues(new Uint32Array(6)), (n) => ALPHABET[n % ALPHABET.length]).join('');
 
 const sb = () => {
-  if (!supabase) throw new Error('A watch party precisa da conta Shiori configurada (Supabase).');
+  if (!supabase) throw new Error(t('A watch party precisa da conta Shiori configurada (Supabase).'));
   return supabase;
 };
 
@@ -53,7 +55,9 @@ export async function ensureSession() {
   const { data } = await sb().auth.getSession();
   if (data.session) return data.session.user;
   const { data: anon, error } = await sb().auth.signInAnonymously();
-  if (error) throw new Error('Não deu pra entrar como convidado. Ative "Anonymous sign-ins" no Supabase ou entre com sua conta em Sync.');
+  if (error) throw new Error(t(
+    'Não deu pra entrar como convidado. Ative "Anonymous sign-ins" no Supabase ou entre com sua conta em Sync.'
+  ));
   return anon.user!;
 }
 
@@ -67,7 +71,7 @@ export async function createRoom(name: string, myName: string) {
     await joinRoom(code, myName);
     return code;
   }
-  throw new Error('Não deu pra criar a sala, tente de novo.');
+  throw new Error(t('Não deu pra criar a sala, tente de novo.'));
 }
 
 export async function joinRoom(code: string, myName: string) {
@@ -75,7 +79,7 @@ export async function joinRoom(code: string, myName: string) {
   const c = code.trim().toUpperCase();
   const { data: room, error } = await sb().from('party_rooms').select('code').eq('code', c).maybeSingle();
   if (error) throw error;
-  if (!room) throw new Error(`Sala ${c} não existe.`);
+  if (!room) throw new Error(t('Sala {0} não existe.', c));
   const { error: e2 } = await sb().from('party_members').upsert({ code: c, user_id: user.id, name: myName.trim().slice(0, 24) || 'Otaku' });
   if (e2) throw e2;
   return c;
@@ -89,7 +93,7 @@ export async function loadParty(code: string): Promise<PartyState> {
     sb().from('party_votes').select('*').eq('code', code),
   ]);
   for (const r of [room, members, items, votes]) if (r.error) throw r.error;
-  if (!room.data) throw new Error(`Sala ${code} não existe.`);
+  if (!room.data) throw new Error(t('Sala {0} não existe.', code));
   return { room: room.data as Room, members: (members.data ?? []) as Member[], items: (items.data ?? []) as Item[], votes: (votes.data ?? []) as Vote[] };
 }
 
@@ -113,7 +117,7 @@ const slim = (m: Media): Media => ({
 export async function addItem(code: string, media: Media, myName: string) {
   const user = await ensureSession();
   const { error } = await sb().from('party_items').insert({ code, media_id: media.id, media: slim(media), added_by: user.id, added_name: myName });
-  if (error?.code === '23505') throw new Error('Esse anime já está na votação.');
+  if (error?.code === '23505') throw new Error(t('Esse anime já está na votação.'));
   if (error) throw error;
 }
 
@@ -142,7 +146,7 @@ export function tally(items: Item[], votes: Vote[]) {
 
 export async function closeVoting(state: PartyState) {
   const ranked = tally(state.items, state.votes);
-  if (!ranked.length) throw new Error('Adicione pelo menos um anime antes de encerrar.');
+  if (!ranked.length) throw new Error(t('Adicione pelo menos um anime antes de encerrar.'));
   const top = ranked.filter((r) => r.votes === ranked[0].votes);
   const winner = top[Math.floor(Math.random() * top.length)].item.media;
   const { error } = await sb().from('party_rooms').update({ status: 'done', winner }).eq('code', state.room.code);

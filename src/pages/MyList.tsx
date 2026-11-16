@@ -10,6 +10,8 @@ import { entryToMedia, pickTitle } from '../lib/format';
 import { FORMAT_LABEL, genrePt } from '../lib/labels';
 import type { ListEntry, ListStatus } from '../types';
 
+import { t, locale } from '../lib/i18n';
+
 type Sort = 'updated' | 'score' | 'title' | 'year' | 'added';
 
 export default function MyList() {
@@ -65,25 +67,25 @@ export default function MyList() {
   if (!all.length)
     return (
       <>
-        <SectionTitle title="Minha lista" jp="マイリスト" />
-        <EmptyState jp="空" title="Sua lista está vazia">
-          Vá em <Link to="/" className="font-bold text-pink">Descobrir</Link>, use o{' '}
-          <Link to="/swipe" className="font-bold text-pink">modo rápido</Link> ou{' '}
-          <Link to="/sync" className="font-bold text-pink">importe do MAL/AniList</Link>.
+        <SectionTitle title={t('Minha lista')} jp="マイリスト" />
+        <EmptyState jp="空" title={t('Sua lista está vazia')}>
+          {t('Vá em')}{' '}<Link to="/" className="font-bold text-pink">{t('Descobrir')}</Link>{t(', use o')}{' '}
+          <Link to="/swipe" className="font-bold text-pink">{t('modo rápido')}</Link>{' '}{t('ou')}{' '}
+          <Link to="/sync" className="font-bold text-pink">{t('importe do MAL/AniList')}</Link>.
         </EmptyState>
       </>
     );
 
   return (
     <>
-      <SectionTitle title="Minha lista" jp="マイリスト" />
+      <SectionTitle title={t('Minha lista')} jp="マイリスト" />
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { k: 'Animes', v: stats.total, c: 'text-pink' },
-          { k: 'Episódios vistos', v: stats.eps.toLocaleString('pt-BR'), c: 'text-cyan' },
-          { k: 'Nota média', v: stats.mean, c: 'text-yellow' },
-          { k: 'Gêneros favoritos', v: stats.topGenres.map(([g]) => genrePt(g)).join(', ') || '—', c: 'text-ink !text-base' },
+          { k: t('Animes'), v: stats.total, c: 'text-pink' },
+          { k: t('Episódios vistos'), v: stats.eps.toLocaleString(locale()), c: 'text-cyan' },
+          { k: t('Nota média'), v: stats.mean, c: 'text-yellow' },
+          { k: t('Gêneros favoritos'), v: stats.topGenres.map(([g]) => genrePt(g)).join(', ') || '—', c: 'text-ink !text-base' },
         ].map((s) => (
           <div key={s.k} className="panel p-4">
             <div className={`truncate font-display text-2xl ${s.c}`}>{s.v}</div>
@@ -94,10 +96,10 @@ export default function MyList() {
 
       <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <button className={`chip ${tab === 'ALL' ? 'on' : ''}`} onClick={() => setTab('ALL')}>
-          Todos <span className="opacity-70">{stats.total}</span>
+          {t('Todos')}{' '}<span className="opacity-70">{stats.total}</span>
         </button>
         <button className={`chip ${tab === 'FAV' ? 'on' : ''}`} onClick={() => setTab('FAV')}>
-          ♥ Favoritos <span className="opacity-70">{all.filter((e) => e.favorite).length}</span>
+          {t('♥ Favoritos')}{' '}<span className="opacity-70">{all.filter((e) => e.favorite).length}</span>
         </button>
         {STATUS_ORDER.map((s) => (
           <button
@@ -113,7 +115,7 @@ export default function MyList() {
 
       {/* Listas personalizadas */}
       <div className="no-scrollbar -mx-4 mb-4 flex items-center gap-2 overflow-x-auto px-4 pb-1">
-        <span className="shrink-0 text-xs font-black uppercase tracking-wider text-muted">Listas</span>
+        <span className="shrink-0 text-xs font-black uppercase tracking-wider text-muted">{t('Listas')}</span>
         {lists.map((l) => (
           <button key={l.id} className={`chip ${tab === `L:${l.id}` ? 'on' : ''}`} onClick={() => setTab(`L:${l.id}`)}>
             {l.emoji} {l.name} <span className="opacity-70">{l.mediaIds.filter((id) => entries[id]).length}</span>
@@ -121,7 +123,7 @@ export default function MyList() {
         ))}
         {newList === null ? (
           <button className="chip !border-dashed" onClick={() => setNewList('')}>
-            <FolderPlus size={14} /> Nova lista
+            <FolderPlus size={14} />{' '}{t('Nova lista')}
           </button>
         ) : (
           <form
@@ -139,11 +141,11 @@ export default function MyList() {
               value={newList}
               onChange={(ev) => setNewList(ev.target.value)}
               onBlur={() => !newList.trim() && setNewList(null)}
-              placeholder="Ex.: Pra ver com a namorada"
+              placeholder={t('Ex.: Pra ver com a namorada')}
               maxLength={30}
               className="field !w-56 !py-1.5 text-sm"
             />
-            <button className="manga-btn !py-1.5">Criar</button>
+            <button className="manga-btn !py-1.5">{t('Criar')}</button>
           </form>
         )}
       </div>
@@ -152,7 +154,7 @@ export default function MyList() {
         <div className="panel mb-5 flex flex-wrap items-center gap-3 p-3">
           <button
             className="grid h-10 w-10 place-items-center rounded-xl border-2 border-black bg-panel-2 text-xl"
-            title="Trocar emoji"
+            title={t('Trocar emoji')}
             onClick={() => updateList(custom.id, { emoji: LIST_EMOJIS[(LIST_EMOJIS.indexOf(custom.emoji) + 1) % LIST_EMOJIS.length] })}
           >
             {custom.emoji}
@@ -164,34 +166,34 @@ export default function MyList() {
             className="min-w-0 flex-1 bg-transparent font-display text-xl outline-none focus:text-pink"
             maxLength={30}
           />
-          <span className="text-xs font-bold text-muted">Adicione animes pelo botão + de qualquer card</span>
+          <span className="text-xs font-bold text-muted">{t('Adicione animes pelo botão + de qualquer card')}</span>
           <ConfirmButton
             className="manga-btn ghost !py-1.5 !text-red-400"
-            confirmText="Apagar mesmo?"
+            confirmText={t('Apagar mesmo?')}
             onConfirm={() => {
               deleteList(custom.id);
               setTab('ALL');
             }}
           >
-            Apagar lista
+            {t('Apagar lista')}
           </ConfirmButton>
         </div>
       )}
 
       <div className="mb-5 flex flex-wrap gap-2">
-        <input className="field min-w-[12rem] flex-1" placeholder="Filtrar na lista…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input className="field min-w-[12rem] flex-1" placeholder={t('Filtrar na lista…')} value={query} onChange={(e) => setQuery(e.target.value)} />
         <select className="field !w-auto" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-          <option value="updated">Atualizados</option>
-          <option value="added">Adicionados</option>
-          <option value="score">Minha nota</option>
-          <option value="title">Título</option>
-          <option value="year">Ano</option>
+          <option value="updated">{t('Atualizados')}</option>
+          <option value="added">{t('Adicionados')}</option>
+          <option value="score">{t('Minha nota')}</option>
+          <option value="title">{t('Título')}</option>
+          <option value="year">{t('Ano')}</option>
         </select>
         <div className="flex rounded-xl border-2 border-line">
-          <button className={`p-2.5 ${view === 'rows' ? 'text-pink' : 'text-muted'}`} onClick={() => setView('rows')} aria-label="Lista">
+          <button className={`p-2.5 ${view === 'rows' ? 'text-pink' : 'text-muted'}`} onClick={() => setView('rows')} aria-label={t('Lista')}>
             <Rows3 size={18} />
           </button>
-          <button className={`p-2.5 ${view === 'grid' ? 'text-pink' : 'text-muted'}`} onClick={() => setView('grid')} aria-label="Grade">
+          <button className={`p-2.5 ${view === 'grid' ? 'text-pink' : 'text-muted'}`} onClick={() => setView('grid')} aria-label={t('Grade')}>
             <LayoutGrid size={18} />
           </button>
         </div>
@@ -200,7 +202,7 @@ export default function MyList() {
       {view === 'grid' ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {list.map((e) => (
-            <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? `Sua nota: ★ ${e.score}` : undefined} />
+            <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? t('Sua nota: ★ {0}', e.score) : undefined} />
           ))}
         </div>
       ) : (
@@ -226,7 +228,7 @@ export default function MyList() {
                 {e.notes && <p className="mt-1.5 line-clamp-2 text-xs italic text-muted">📝 {e.notes}</p>}
                 {custom && (
                   <button className="mt-1.5 inline-flex items-center gap-1 text-xs font-bold text-muted hover:text-pink" onClick={() => toggleInList(custom.id, entryToMedia(e))}>
-                    <FolderMinus size={12} /> Tirar de {custom.emoji} {custom.name}
+                    <FolderMinus size={12} />{' '}{t('Tirar de')}{' '}{custom.emoji} {custom.name}
                   </button>
                 )}
               </div>

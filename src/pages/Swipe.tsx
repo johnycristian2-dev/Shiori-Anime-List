@@ -10,16 +10,55 @@ import { stripHtml, useTitle } from '../lib/format';
 import { useList } from '../store/list';
 import type { BrowseFilters, ListEntry, Media } from '../types';
 
+import { t } from '../lib/i18n';
+import Synopsis from '../components/Synopsis';
+
 type Decision = 'PLANNING' | 'COMPLETED' | 'SKIP';
 type Source = 'trending' | 'top' | 'popular' | 'season' | 'genre' | 'decade';
 
 const SOURCES: { id: Source; label: string }[] = [
-  { id: 'popular', label: 'Populares' },
-  { id: 'top', label: 'Melhor nota' },
-  { id: 'trending', label: 'Em alta' },
-  { id: 'season', label: 'Temporada atual' },
-  { id: 'genre', label: 'Gênero' },
-  { id: 'decade', label: 'Década' },
+  {
+    id: 'popular',
+
+    get label() {
+      return t('Populares');
+    }
+  },
+  {
+    id: 'top',
+
+    get label() {
+      return t('Melhor nota');
+    }
+  },
+  {
+    id: 'trending',
+
+    get label() {
+      return t('Em alta');
+    }
+  },
+  {
+    id: 'season',
+
+    get label() {
+      return t('Temporada atual');
+    }
+  },
+  {
+    id: 'genre',
+
+    get label() {
+      return t('Gênero');
+    }
+  },
+  {
+    id: 'decade',
+
+    get label() {
+      return t('Década');
+    }
+  },
 ];
 
 function buildFilters(src: Source, genre: string, decade: number): BrowseFilters {
@@ -92,13 +131,13 @@ function SwipeCard({ media, onDecide, decision }: { media: Media; onDecide: (d: 
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />
 
         <motion.div style={{ opacity: likeOp }} className="absolute left-5 top-6 -rotate-12 rounded-xl border-4 border-yellow px-3 py-1 font-display text-2xl text-yellow">
-          QUERO VER
+          {t('QUERO VER')}
         </motion.div>
         <motion.div style={{ opacity: nopeOp }} className="absolute right-5 top-6 rotate-12 rounded-xl border-4 border-red-400 px-3 py-1 font-display text-2xl text-red-400">
-          PULAR
+          {t('PULAR')}
         </motion.div>
         <motion.div style={{ opacity: seenOp }} className="absolute inset-x-0 top-1/3 mx-auto w-fit rounded-xl border-4 border-[#7cff8a] px-3 py-1 font-display text-2xl text-[#7cff8a]">
-          JÁ VI! 完了
+          {t('JÁ VI! 完了')}
         </motion.div>
 
         <div className="absolute inset-x-0 bottom-0 p-5 text-white">
@@ -116,7 +155,11 @@ function SwipeCard({ media, onDecide, decision }: { media: Media; onDecide: (d: 
               </span>
             ))}
           </div>
-          {media.description && <p className="mt-2 line-clamp-2 text-xs text-white/70">{stripHtml(media.description)}</p>}
+          {media.description && (
+            <div className="mt-2">
+              <Synopsis id={media.id} text={media.description} showBadge={false} className="line-clamp-2 text-xs text-white/70" />
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -187,7 +230,7 @@ export default function Swipe() {
 
   return (
     <div className="mx-auto max-w-md">
-      <SectionTitle title="Modo rápido" jp="速攻モード" />
+      <SectionTitle title={t('Modo rápido')} jp="速攻モード" />
 
       <div className="no-scrollbar -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
         {SOURCES.map((s) => (
@@ -209,16 +252,16 @@ export default function Swipe() {
         <select className="field mb-3" value={decade} onChange={(e) => setDecade(Number(e.target.value))}>
           {DECADES.map((d) => (
             <option key={d} value={d}>
-              Anos {String(d).slice(2)} ({d}–{d + 9})
+              {t('Anos')}{' '}{String(d).slice(2)} ({d}–{d + 9})
             </option>
           ))}
         </select>
       )}
 
       <div className="mb-3 grid grid-cols-3 gap-2 text-center text-[11px] font-black">
-        <div className="panel py-1.5"><span className="text-pink">♥</span> {stats.PLANNING} quero ver</div>
-        <div className="panel py-1.5"><span className="text-cyan">✓</span> {stats.COMPLETED} já vi</div>
-        <div className="panel py-1.5 text-muted">✕ {stats.SKIP} pulados</div>
+        <div className="panel py-1.5"><span className="text-pink">♥</span> {stats.PLANNING}{' '}{t('quero ver')}</div>
+        <div className="panel py-1.5"><span className="text-cyan">✓</span> {stats.COMPLETED}{' '}{t('já vi')}</div>
+        <div className="panel py-1.5 text-muted">✕ {stats.SKIP}{' '}{t('pulados')}</div>
       </div>
 
       <div className="relative mx-auto aspect-[2/3] h-[min(50dvh,600px)] max-w-full">
@@ -232,8 +275,8 @@ export default function Swipe() {
               <Spinner className="h-10 w-10 text-pink" />
             </div>
           ) : (
-            <EmptyState jp="完" title="Acabou essa fonte!">
-              Troque a fonte acima ou veja <Link to="/lista" className="font-bold text-pink">sua lista</Link>.
+            <EmptyState jp="完" title={t('Acabou essa fonte!')}>
+              {t('Troque a fonte acima ou veja')}{' '}<Link to="/lista" className="font-bold text-pink">{t('sua lista')}</Link>.
             </EmptyState>
           )
         ) : (
@@ -251,26 +294,26 @@ export default function Swipe() {
       </div>
 
       <div className="mt-5 flex items-center justify-center gap-3">
-        <button className="manga-btn ghost !h-12 !w-12 !rounded-full !p-0" onClick={undo} disabled={!history.length} aria-label="Desfazer">
+        <button className="manga-btn ghost !h-12 !w-12 !rounded-full !p-0" onClick={undo} disabled={!history.length} aria-label={t('Desfazer')}>
           <Undo2 size={18} />
         </button>
-        <button className="manga-btn !h-16 !w-16 !rounded-full !bg-red-400 !p-0 text-black" onClick={() => decide('SKIP')} disabled={!top} aria-label="Pular">
+        <button className="manga-btn !h-16 !w-16 !rounded-full !bg-red-400 !p-0 text-black" onClick={() => decide('SKIP')} disabled={!top} aria-label={t('Pular')}>
           <X size={28} strokeWidth={3} />
         </button>
-        <button className="manga-btn !h-16 !w-16 !rounded-full !bg-[#7cff8a] !p-0 text-black" onClick={() => decide('COMPLETED')} disabled={!top} aria-label="Já vi">
+        <button className="manga-btn !h-16 !w-16 !rounded-full !bg-[#7cff8a] !p-0 text-black" onClick={() => decide('COMPLETED')} disabled={!top} aria-label={t('Já vi')}>
           <Eye size={26} strokeWidth={3} />
         </button>
-        <button className="manga-btn yellow !h-16 !w-16 !rounded-full !p-0" onClick={() => decide('PLANNING')} disabled={!top} aria-label="Quero ver">
+        <button className="manga-btn yellow !h-16 !w-16 !rounded-full !p-0" onClick={() => decide('PLANNING')} disabled={!top} aria-label={t('Quero ver')}>
           <Heart size={26} strokeWidth={3} />
         </button>
         {top && (
-          <Link to={`/anime/${top.id}`} className="manga-btn ghost !h-12 !w-12 !rounded-full !p-0" aria-label="Detalhes">
+          <Link to={`/anime/${top.id}`} className="manga-btn ghost !h-12 !w-12 !rounded-full !p-0" aria-label={t('Detalhes')}>
             <ArrowUp size={18} className="rotate-45" />
           </Link>
         )}
       </div>
       <p className="mt-4 text-center text-xs font-bold text-muted">
-        Teclado: ← pular · ↑ já vi · → quero ver · Backspace desfaz
+        {t('Teclado: ← pular · ↑ já vi · → quero ver · Backspace desfaz')}
       </p>
     </div>
   );

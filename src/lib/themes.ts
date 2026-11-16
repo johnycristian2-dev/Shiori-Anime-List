@@ -1,3 +1,4 @@
+import { t } from './i18n';
 /**
  * Temas do Shiori. Cada tema é só um conjunto de cores (variáveis CSS) + um padrão de fundo.
  * Pra criar um tema novo, adicione um objeto em PRESETS — nada mais precisa mudar.
@@ -34,8 +35,23 @@ export interface Theme {
   pattern: Pattern;
   /** imagem de fundo bem suave (banner/capa do anime) */
   image?: string | null;
-  petals?: 'sakura' | 'embers' | 'snow' | 'none';
+  petals?: Particles;
+  /** Fonte dos títulos (Google Fonts) e, opcionalmente, do texto */
+  font?: { display: string; body?: string; weights?: string };
+  /** Cantos: 0 = reto, 22 = bem arredondado */
+  radius?: number;
+  /** Sombra de cards e botões */
+  shadow?: ShadowStyle;
+  /** Efeito nos títulos */
+  title?: TitleStyle;
+  /** Camada por cima da tela inteira */
+  overlay?: Overlay;
 }
+
+export type Particles = 'sakura' | 'embers' | 'snow' | 'leaves' | 'bubbles' | 'matrix' | 'squares' | 'sparks' | 'kanji' | 'ash' | 'none';
+export type ShadowStyle = 'manga' | 'glow' | 'soft' | 'none';
+export type TitleStyle = 'stroke' | 'glitch' | 'neon' | 'brush' | 'elegant' | 'pop3d' | 'plain';
+export type Overlay = 'none' | 'scanlines' | 'vignette' | 'paper' | 'hex' | 'film';
 
 const dark = (c: Partial<ThemeColors> & Pick<ThemeColors, 'bg' | 'pink' | 'cyan' | 'yellow'>): ThemeColors => ({
   bg2: mix(c.bg, '#ffffff', 0.04),
@@ -61,152 +77,312 @@ const light = (c: Partial<ThemeColors> & Pick<ThemeColors, 'bg' | 'pink' | 'cyan
 export const PRESETS: Theme[] = [
   {
     id: 'noite',
-    name: 'Noite',
+
+    get name() {
+      return t('Noite');
+    },
+
     jp: '夜',
     dark: true,
     pattern: 'halftone',
     petals: 'sakura',
-    colors: { bg: '#0c0a1d', bg2: '#141030', panel: '#1a1538', panel2: '#231c4a', ink: '#f5f1ff', muted: '#a59fca', line: '#2e2660', pink: '#ff4f9a', cyan: '#3de2ff', yellow: '#ffe14d', shadow: '#000000' },
+    colors: { bg: '#0c0a1d', bg2: '#141030', panel: '#1a1538', panel2: '#231c4a', ink: '#f5f1ff', muted: '#a59fca', line: '#2e2660', pink: '#ff4f9a', cyan: '#3de2ff', yellow: '#ffe14d', shadow: '#000000' }
   },
   {
     id: 'sakura',
-    name: 'Sakura',
+
+    get name() {
+      return t('Sakura');
+    },
+
     jp: '桜',
     dark: false,
     pattern: 'halftone',
     petals: 'sakura',
-    colors: { bg: '#fff4f8', bg2: '#ffe6ef', panel: '#ffffff', panel2: '#fff0f5', ink: '#1d1430', muted: '#6f6488', line: '#f2c2d5', pink: '#e2307a', cyan: '#0a9fc4', yellow: '#f5a800', shadow: '#1d1430' },
+    colors: { bg: '#fff4f8', bg2: '#ffe6ef', panel: '#ffffff', panel2: '#fff0f5', ink: '#1d1430', muted: '#6f6488', line: '#f2c2d5', pink: '#e2307a', cyan: '#0a9fc4', yellow: '#f5a800', shadow: '#1d1430' }
   },
   {
     id: 'cyberpunk',
-    name: 'Neon City',
+
+    get name() {
+      return t('Neon City');
+    },
+
     jp: '電脳',
-    inspired: 'Cyberpunk: Edgerunners',
+
+    get inspired() {
+      return t('Cyberpunk: Edgerunners');
+    },
+
     dark: true,
     pattern: 'scanlines',
     petals: 'none',
-    colors: dark({ bg: '#07070f', pink: '#ff2a6d', cyan: '#05d9e8', yellow: '#f9f871', line: '#2a1838' }),
+    colors: dark({ bg: '#07070f', pink: '#ff2a6d', cyan: '#05d9e8', yellow: '#f9f871', line: '#2a1838' })
   },
   {
     id: 'shadow-monarch',
-    name: 'Monarca das Sombras',
+
+    get name() {
+      return t('Monarca das Sombras');
+    },
+
     jp: '影',
-    inspired: 'Solo Leveling',
+
+    get inspired() {
+      return t('Solo Leveling');
+    },
+
     dark: true,
     pattern: 'grid',
     petals: 'none',
-    colors: dark({ bg: '#05070f', pink: '#8b5cf6', cyan: '#38bdf8', yellow: '#c4b5fd' }),
+    colors: dark({ bg: '#05070f', pink: '#8b5cf6', cyan: '#38bdf8', yellow: '#c4b5fd' })
   },
   {
     id: 'demon-hunter',
-    name: 'Caçador de Onis',
+
+    get name() {
+      return t('Caçador de Onis');
+    },
+
     jp: '炎',
-    inspired: 'Kimetsu no Yaiba',
+
+    get inspired() {
+      return t('Kimetsu no Yaiba');
+    },
+
     dark: true,
     pattern: 'checker',
     petals: 'embers',
-    colors: dark({ bg: '#0c1611', pink: '#f05a28', cyan: '#2fbf9a', yellow: '#f2c14e' }),
+    colors: dark({ bg: '#0c1611', pink: '#f05a28', cyan: '#2fbf9a', yellow: '#f2c14e' })
   },
   {
     id: 'cursed',
-    name: 'Expansão de Domínio',
+
+    get name() {
+      return t('Expansão de Domínio');
+    },
+
     jp: '呪',
-    inspired: 'Jujutsu Kaisen',
+
+    get inspired() {
+      return t('Jujutsu Kaisen');
+    },
+
     dark: true,
     pattern: 'stars',
     petals: 'none',
-    colors: dark({ bg: '#090b1c', pink: '#7c5cff', cyan: '#4fd1ff', yellow: '#ff3d6e' }),
+    colors: dark({ bg: '#090b1c', pink: '#7c5cff', cyan: '#4fd1ff', yellow: '#ff3d6e' })
   },
   {
     id: 'walls',
-    name: 'Além das Muralhas',
+
+    get name() {
+      return t('Além das Muralhas');
+    },
+
     jp: '壁',
-    inspired: 'Shingeki no Kyojin',
+
+    get inspired() {
+      return t('Shingeki no Kyojin');
+    },
+
     dark: true,
     pattern: 'grid',
     petals: 'embers',
-    colors: dark({ bg: '#15130f', pink: '#c0392b', cyan: '#6f9a7a', yellow: '#d6b16a', ink: '#f1ebe0' }),
+    colors: dark({ bg: '#15130f', pink: '#c0392b', cyan: '#6f9a7a', yellow: '#d6b16a', ink: '#f1ebe0' })
   },
   {
     id: 'grand-line',
-    name: 'Grand Line',
+
+    get name() {
+      return t('Grand Line');
+    },
+
     jp: '海',
-    inspired: 'One Piece',
+
+    get inspired() {
+      return t('One Piece');
+    },
+
     dark: true,
     pattern: 'waves',
     petals: 'none',
-    colors: dark({ bg: '#071d33', pink: '#e63946', cyan: '#4cc9f0', yellow: '#ffd166' }),
+    colors: dark({ bg: '#071d33', pink: '#e63946', cyan: '#4cc9f0', yellow: '#ffd166' })
   },
   {
     id: 'hidden-leaf',
-    name: 'Vila da Folha',
+
+    get name() {
+      return t('Vila da Folha');
+    },
+
     jp: '忍',
-    inspired: 'Naruto',
+
+    get inspired() {
+      return t('Naruto');
+    },
+
     dark: true,
     pattern: 'halftone',
     petals: 'sakura',
-    colors: dark({ bg: '#16110c', pink: '#ff7a1a', cyan: '#3a86ff', yellow: '#ffbe0b' }),
+    colors: dark({ bg: '#16110c', pink: '#ff7a1a', cyan: '#3a86ff', yellow: '#ffbe0b' })
   },
   {
     id: 'saiyan',
-    name: 'Poder Saiyajin',
+
+    get name() {
+      return t('Poder Saiyajin');
+    },
+
     jp: '気',
-    inspired: 'Dragon Ball',
+
+    get inspired() {
+      return t('Dragon Ball');
+    },
+
     dark: true,
     pattern: 'halftone',
     petals: 'embers',
-    colors: dark({ bg: '#120c06', pink: '#ff8c00', cyan: '#2f6fed', yellow: '#ffd60a' }),
+    colors: dark({ bg: '#120c06', pink: '#ff8c00', cyan: '#2f6fed', yellow: '#ffd60a' })
   },
   {
     id: 'notebook',
-    name: 'Caderno da Morte',
+
+    get name() {
+      return t('Caderno da Morte');
+    },
+
     jp: '死',
-    inspired: 'Death Note',
+
+    get inspired() {
+      return t('Death Note');
+    },
+
     dark: true,
     pattern: 'none',
     petals: 'none',
-    colors: dark({ bg: '#0b0b0b', pink: '#c1121f', cyan: '#bdbdbd', yellow: '#e9e9e9', ink: '#ececec' }),
+    colors: dark({ bg: '#0b0b0b', pink: '#c1121f', cyan: '#bdbdbd', yellow: '#e9e9e9', ink: '#ececec' })
   },
   {
     id: 'unit01',
-    name: 'Unidade 01',
+
+    get name() {
+      return t('Unidade 01');
+    },
+
     jp: '初号機',
-    inspired: 'Evangelion',
+
+    get inspired() {
+      return t('Evangelion');
+    },
+
     dark: true,
     pattern: 'scanlines',
     petals: 'none',
-    colors: dark({ bg: '#120a1f', pink: '#8b5cf6', cyan: '#84cc16', yellow: '#f97316' }),
+    colors: dark({ bg: '#120a1f', pink: '#8b5cf6', cyan: '#84cc16', yellow: '#f97316' })
   },
   {
     id: 'journey',
-    name: 'Jornada da Elfa',
+
+    get name() {
+      return t('Jornada da Elfa');
+    },
+
     jp: '旅',
-    inspired: 'Frieren',
+
+    get inspired() {
+      return t('Frieren');
+    },
+
     dark: false,
     pattern: 'stars',
     petals: 'snow',
-    colors: light({ bg: '#f2f5f1', ink: '#22313a', pink: '#5f8f73', cyan: '#6c9cc2', yellow: '#c49a4a' }),
+    colors: light({ bg: '#f2f5f1', ink: '#22313a', pink: '#5f8f73', cyan: '#6c9cc2', yellow: '#c49a4a' })
   },
   {
     id: 'forest',
-    name: 'Espírito da Floresta',
+
+    get name() {
+      return t('Espírito da Floresta');
+    },
+
     jp: '森',
-    inspired: 'Studio Ghibli',
+
+    get inspired() {
+      return t('Studio Ghibli');
+    },
+
     dark: false,
     pattern: 'waves',
     petals: 'sakura',
-    colors: light({ bg: '#eef4e6', ink: '#253b2a', pink: '#d9644a', cyan: '#5f9e86', yellow: '#e7b65c' }),
+    colors: light({ bg: '#eef4e6', ink: '#253b2a', pink: '#d9644a', cyan: '#5f9e86', yellow: '#e7b65c' })
   },
   {
     id: 'manga',
-    name: 'Mangá P&B',
+
+    get name() {
+      return t('Mangá P&B');
+    },
+
     jp: '漫画',
     dark: false,
     pattern: 'halftone',
     petals: 'none',
-    colors: { bg: '#f7f7f5', bg2: '#ececea', panel: '#ffffff', panel2: '#f2f2f0', ink: '#111111', muted: '#5a5a5a', line: '#cfcfcc', pink: '#111111', cyan: '#4a4a4a', yellow: '#d9d9d6', shadow: '#111111' },
+    colors: { bg: '#f7f7f5', bg2: '#ececea', panel: '#ffffff', panel2: '#f2f2f0', ink: '#111111', muted: '#5a5a5a', line: '#cfcfcc', pink: '#111111', cyan: '#4a4a4a', yellow: '#d9d9d6', shadow: '#111111' }
   },
 ];
+
+/**
+ * "Pele" de cada tema: fonte, cantos, sombra, efeito de título, camada e partículas.
+ * Fica separado das cores pra ficar fácil de ajustar.
+ */
+const SKINS: Record<string, Partial<Theme>> = {
+  noite: { radius: 18, shadow: 'manga', title: 'stroke', overlay: 'none' },
+  sakura: { radius: 22, shadow: 'manga', title: 'stroke', overlay: 'none' },
+  cyberpunk: { font: { display: 'Orbitron', body: 'Chakra Petch', weights: '500;700;900' }, radius: 2, shadow: 'glow', title: 'glitch', overlay: 'scanlines', petals: 'matrix' },
+  'shadow-monarch': { font: { display: 'Russo One', body: 'Rajdhani', weights: '500;700' }, radius: 4, shadow: 'glow', title: 'neon', overlay: 'vignette', petals: 'squares' },
+  'demon-hunter': { font: { display: 'Yuji Syuku' }, radius: 6, shadow: 'manga', title: 'brush', overlay: 'paper', petals: 'embers' },
+  cursed: { font: { display: 'Reggae One' }, radius: 10, shadow: 'glow', title: 'neon', overlay: 'vignette', petals: 'sparks' },
+  walls: { font: { display: 'Cinzel', weights: '700;900' }, radius: 3, shadow: 'soft', title: 'elegant', overlay: 'film', petals: 'ash' },
+  'grand-line': { font: { display: 'Pirata One' }, radius: 14, shadow: 'manga', title: 'pop3d', overlay: 'paper', petals: 'bubbles' },
+  'hidden-leaf': { font: { display: 'Permanent Marker' }, radius: 12, shadow: 'manga', title: 'pop3d', overlay: 'none', petals: 'leaves' },
+  saiyan: { font: { display: 'Bangers' }, radius: 8, shadow: 'manga', title: 'pop3d', overlay: 'none', petals: 'sparks' },
+  notebook: { font: { display: 'UnifrakturMaguntia', body: 'Special Elite' }, radius: 0, shadow: 'soft', title: 'elegant', overlay: 'film', petals: 'kanji' },
+  unit01: { font: { display: 'Shippori Mincho B1', weights: '800' }, radius: 0, shadow: 'glow', title: 'elegant', overlay: 'hex', petals: 'none' },
+  journey: { font: { display: 'Cormorant Garamond', body: 'Zen Maru Gothic', weights: '500;700' }, radius: 20, shadow: 'soft', title: 'elegant', overlay: 'none', petals: 'snow' },
+  forest: { font: { display: 'Kiwi Maru', weights: '500' }, radius: 26, shadow: 'soft', title: 'plain', overlay: 'paper', petals: 'leaves' },
+  manga: { font: { display: 'Bangers' }, radius: 4, shadow: 'manga', title: 'pop3d', overlay: 'paper', petals: 'none' },
+};
+// Object.assign mantém os nomes traduzíveis (getters) intactos
+PRESETS.forEach((p) => Object.assign(p, SKINS[p.id] ?? {}));
+
+/** Fontes que o editor oferece */
+export const FONT_CHOICES = [
+  'Dela Gothic One',
+  'Bangers',
+  'Orbitron',
+  'Russo One',
+  'Yuji Syuku',
+  'Reggae One',
+  'Cinzel',
+  'Pirata One',
+  'Permanent Marker',
+  'UnifrakturMaguntia',
+  'Shippori Mincho B1',
+  'Cormorant Garamond',
+  'Kiwi Maru',
+];
+
+const loadedFonts = new Set<string>(['Dela Gothic One', 'M PLUS Rounded 1c', 'Zen Kaku Gothic New']);
+/** Carrega uma fonte do Google Fonts sob demanda (só na primeira vez). */
+export function ensureFont(family?: string, weights?: string) {
+  if (!family || loadedFonts.has(family) || typeof document === 'undefined') return;
+  loadedFonts.add(family);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, '+')}${weights ? `:wght@${weights}` : ''}&display=swap`;
+  document.head.appendChild(link);
+}
 
 // ───────────── Cores ─────────────
 
@@ -319,9 +495,22 @@ export function applyTheme(t: Theme) {
     '--on-pink': contrast(c.pink, '#ffffff') >= contrast(c.pink, '#0c0a1d') ? '#ffffff' : '#0c0a1d',
     '--glow': t.dark ? `0 0 24px color-mix(in srgb, ${c.pink} 45%, transparent)` : '0 0 0 transparent',
   };
+  const display = t.font?.display;
+  const body = t.font?.body;
+  ensureFont(display, t.font?.weights);
+  ensureFont(body, '400;500;700');
+  vars['--font-display'] = display ? `'${display}', 'Dela Gothic One', 'Zen Kaku Gothic New', system-ui, sans-serif` : `'Dela Gothic One', 'Zen Kaku Gothic New', system-ui, sans-serif`;
+  vars['--font-sans'] = body ? `'${body}', 'M PLUS Rounded 1c', system-ui, sans-serif` : `'M PLUS Rounded 1c', system-ui, sans-serif`;
+  const r = t.radius ?? 18;
+  vars['--radius'] = `${r}px`;
+  vars['--radius-sm'] = `${Math.round(r * 0.66)}px`;
+  vars['--radius-card'] = `${Math.round(r * 0.7)}px`;
   Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
   root.style.colorScheme = t.dark ? 'dark' : 'light';
   root.dataset.pattern = t.pattern;
+  root.dataset.shadow = t.shadow ?? 'manga';
+  root.dataset.title = t.title ?? 'stroke';
+  root.dataset.overlay = t.overlay ?? 'none';
   root.dataset.theme = t.dark ? 'noite' : 'sakura';
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c.bg);
 }

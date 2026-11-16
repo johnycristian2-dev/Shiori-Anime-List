@@ -10,6 +10,8 @@ import { useList } from '../store/list';
 import { useUI } from '../store/ui';
 import type { ListEntry } from '../types';
 
+import { t } from '../lib/i18n';
+
 interface Aired {
   id: number;
   episode: number;
@@ -84,9 +86,9 @@ export function useNewEpisodes() {
 
 function ago(ts: number) {
   const s = Date.now() / 1000 - ts;
-  if (s < 3600) return `há ${Math.max(1, Math.floor(s / 60))}min`;
-  if (s < 86400) return `há ${Math.floor(s / 3600)}h`;
-  return `há ${Math.floor(s / 86400)}d`;
+  if (s < 3600) return t('há {0}min', Math.max(1, Math.floor(s / 60)));
+  if (s < 86400) return t('há {0}h', Math.floor(s / 3600));
+  return t('há {0}d', Math.floor(s / 86400));
 }
 
 /** Dispara notificação do navegador (via service worker do PWA quando disponível). */
@@ -124,13 +126,13 @@ export default function EpisodeBell() {
     if (!fresh.length) return;
     markNotified(fresh.map((i) => i.id));
     if (fresh.length > 3) {
-      showNotification('Shiori 栞', `${fresh.length} episódios novos da sua lista!`, 'shiori-batch');
+      showNotification(t('Shiori 栞'), t('{0} episódios novos da sua lista!', fresh.length), 'shiori-batch');
     } else {
       fresh.forEach((i) =>
         showNotification(
-          i.kind === 'estreia' ? `Estreou: ${name(i.entry)}` : `Ep ${i.episode} de ${name(i.entry)}`,
-          i.kind === 'estreia' ? 'Estava na sua lista "Quero ver" 🎉' : `Saiu ${ago(i.airingAt)} · você parou no ep ${i.entry.progress}`,
-          `shiori-${i.id}`,
+          i.kind === 'estreia' ? t('Estreou: {0}', name(i.entry)) : t('Ep {0} de {1}', i.episode, name(i.entry)),
+          i.kind === 'estreia' ? t('Estava na sua lista "Quero ver" 🎉') : t('Saiu {0} · você parou no ep {1}', ago(i.airingAt), i.entry.progress),
+          t('shiori-{0}', i.id),
           i.entry.cover,
         ),
       );
@@ -145,8 +147,8 @@ export default function EpisodeBell() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="manga-btn ghost relative !p-2"
-        aria-label={count ? `${count} episódios novos` : 'Novidades'}
-        title="Episódios novos"
+        aria-label={count ? t('{0} episódios novos', count) : t('Novidades')}
+        title={t('Episódios novos')}
       >
         {count ? <BellRing size={18} className="text-pink" /> : <Bell size={18} />}
         {count > 0 && (
@@ -161,17 +163,17 @@ export default function EpisodeBell() {
           <div className="pop-in panel fixed inset-x-3 top-16 z-50 max-h-[70vh] overflow-y-auto p-3 shadow-[6px_6px_0_var(--shadow)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-96">
             <div className="mb-2 flex items-center justify-between">
               <span className="font-display">
-                Novidades <span className="font-jp text-sm text-pink">新着</span>
+                {t('Novidades')}{' '}<span className="font-jp text-sm text-pink">新着</span>
               </span>
               {count > 0 && (
                 <button className="text-xs font-bold text-muted hover:text-pink" onClick={() => markSeen(items.map((i) => i.id))}>
-                  Dispensar tudo
+                  {t('Dispensar tudo')}
                 </button>
               )}
             </div>
             {count === 0 ? (
               <p className="py-6 text-center text-sm font-bold text-muted">
-                Nenhum episódio novo dos animes que você está assistindo. 🍵
+                {t('Nenhum episódio novo dos animes que você está assistindo. 🍵')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -184,10 +186,10 @@ export default function EpisodeBell() {
                       <div className="truncate text-sm font-extrabold">{name(i.entry)}</div>
                       <div className="text-xs font-bold text-muted">
                         {i.kind === 'estreia' ? (
-                          <span className="text-yellow">Estreou! · {ago(i.airingAt)}</span>
+                          <span className="text-yellow">{t('Estreou! ·')}{' '}{ago(i.airingAt)}</span>
                         ) : (
                           <>
-                            <span className="text-cyan">Ep {i.episode}</span> saiu {ago(i.airingAt)} · você está no {i.entry.progress}
+                            <span className="text-cyan">{t('Ep')}{' '}{i.episode}</span>{' '}{t('saiu')}{' '}{ago(i.airingAt)}{' '}{t('· você está no')}{' '}{i.entry.progress}
                           </>
                         )}
                       </div>
@@ -196,7 +198,7 @@ export default function EpisodeBell() {
                       <button
                         className="manga-btn cyan !rounded-lg !px-2 !py-1 !text-xs"
                         onClick={() => update(i.mediaId, { progress: i.entry.progress + 1 })}
-                        title="Marcar +1 episódio"
+                        title={t('Marcar +1 episódio')}
                       >
                         <Plus size={12} strokeWidth={3} /> 1
                       </button>
@@ -204,12 +206,12 @@ export default function EpisodeBell() {
                       <button
                         className="manga-btn yellow !rounded-lg !px-2 !py-1 !text-xs"
                         onClick={() => update(i.mediaId, { status: 'WATCHING' })}
-                        title="Começar a assistir"
+                        title={t('Começar a assistir')}
                       >
-                        Ver
+                        {t('Ver')}
                       </button>
                     )}
-                    <button className="p-1 text-muted hover:text-ink" onClick={() => markSeen([i.id])} aria-label="Dispensar">
+                    <button className="p-1 text-muted hover:text-ink" onClick={() => markSeen([i.id])} aria-label={t('Dispensar')}>
                       <Check size={16} />
                     </button>
                   </div>
@@ -217,7 +219,7 @@ export default function EpisodeBell() {
               </div>
             )}
             <Link to="/calendario" onClick={() => setOpen(false)} className="mt-3 block text-center text-xs font-extrabold text-cyan">
-              Ver calendário da semana →
+              {t('Ver calendário da semana →')}
             </Link>
           </div>
         </>

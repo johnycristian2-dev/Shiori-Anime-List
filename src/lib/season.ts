@@ -1,10 +1,36 @@
 import type { Season } from '../types';
 
+import { t } from './i18n';
+
 export const SEASON_LABEL: Record<Season, { pt: string; jp: string }> = {
-  WINTER: { pt: 'Inverno', jp: '冬' },
-  SPRING: { pt: 'Primavera', jp: '春' },
-  SUMMER: { pt: 'Verão', jp: '夏' },
-  FALL: { pt: 'Outono', jp: '秋' },
+  WINTER: {
+    get pt() {
+      return t('Inverno');
+    },
+
+    jp: '冬'
+  },
+  SPRING: {
+    get pt() {
+      return t('Primavera');
+    },
+
+    jp: '春'
+  },
+  SUMMER: {
+    get pt() {
+      return t('Verão');
+    },
+
+    jp: '夏'
+  },
+  FALL: {
+    get pt() {
+      return t('Outono');
+    },
+
+    jp: '秋'
+  },
 };
 
 export const SEASONS: Season[] = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];

@@ -7,6 +7,8 @@ import { ErrorBox, SectionTitle, Spinner } from '../components/ui';
 import { cleanAniListText, fuzzyDate } from '../lib/format';
 import { useList } from '../store/list';
 
+import { t, locale } from '../lib/i18n';
+
 export default function StaffPage() {
   const id = Number(useParams().id);
   const q = useStaff(id);
@@ -36,16 +38,16 @@ export default function StaffPage() {
         <Spinner className="h-10 w-10 text-pink" />
       </div>
     );
-  if (q.error || !s) return <ErrorBox error={q.error ?? new Error('Pessoa não encontrada')} onRetry={() => q.refetch()} />;
+  if (q.error || !s) return <ErrorBox error={q.error ?? new Error(t('Pessoa não encontrada'))} onRetry={() => q.refetch()} />;
 
   const desc = cleanAniListText(s.description);
   const mine = roles.filter((r) => entries[r.media.id]);
   const shown = roles.filter((r) => (!onlyMine || entries[r.media.id]) && (!mainOnly || r.main));
   const facts = [
-    s.languageV2 && { k: 'Idioma', v: s.languageV2 === 'Japanese' ? 'Japonês' : s.languageV2 },
-    fuzzyDate(s.dateOfBirth) && { k: 'Nascimento', v: fuzzyDate(s.dateOfBirth)! },
-    s.homeTown && { k: 'Cidade natal', v: s.homeTown },
-    s.yearsActive[0] && { k: 'Ativo desde', v: String(s.yearsActive[0]) },
+    s.languageV2 && { k: t('Idioma'), v: s.languageV2 === 'Japanese' ? t('Japonês') : s.languageV2 },
+    fuzzyDate(s.dateOfBirth) && { k: t('Nascimento'), v: fuzzyDate(s.dateOfBirth)! },
+    s.homeTown && { k: t('Cidade natal'), v: s.homeTown },
+    s.yearsActive[0] && { k: t('Ativo desde'), v: String(s.yearsActive[0]) },
   ].filter(Boolean) as { k: string; v: string }[];
 
   // Um exemplo de papel por anime da sua lista: "ah, é a voz da Fern!"
@@ -62,26 +64,26 @@ export default function StaffPage() {
           />
         )}
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-black uppercase tracking-wider text-cyan">Dublador(a) · 声優</div>
+          <div className="text-xs font-black uppercase tracking-wider text-cyan">{t('Dublador(a) · 声優')}</div>
           <h1 className="stroke-title mt-1 font-display text-3xl text-white sm:text-4xl">{s.name.full}</h1>
           {s.name.native && <div className="font-jp text-xl font-bold text-muted">{s.name.native}</div>}
           <div className="mt-4 flex flex-wrap gap-2">
             {s.favourites != null && (
               <span className="inline-flex items-center gap-1 rounded-lg border-2 border-black bg-pink px-2 py-1 text-sm font-black text-white">
-                <Heart size={14} fill="currentColor" /> {s.favourites.toLocaleString('pt-BR')} favoritos
+                <Heart size={14} fill="currentColor" /> {s.favourites.toLocaleString(locale())}{' '}{t('favoritos')}
               </span>
             )}
             <span className="rounded-lg border-2 border-black bg-yellow px-2 py-1 text-sm font-black text-black">
-              {s.characterMedia.pageInfo.total.toLocaleString('pt-BR')}
-              {s.characterMedia.pageInfo.total >= 500 ? '+' : ''} papéis
+              {s.characterMedia.pageInfo.total.toLocaleString(locale())}
+              {s.characterMedia.pageInfo.total >= 500 ? '+' : ''}{' '}{t('papéis')}
             </span>
           </div>
           {highlights.length > 0 && (
             <div className="panel mt-4 p-3 text-sm">
-              <div className="mb-1 font-extrabold text-cyan">Você já ouviu essa voz em:</div>
+              <div className="mb-1 font-extrabold text-cyan">{t('Você já ouviu essa voz em:')}</div>
               {highlights.map((r) => (
                 <div key={r.media.id} className="truncate">
-                  <b>{r.chars.join(', ')}</b> <span className="text-muted">em</span>{' '}
+                  <b>{r.chars.join(', ')}</b> <span className="text-muted">{t('em')}</span>{' '}
                   <Link to={`/anime/${r.media.id}`} className="font-bold hover:text-pink">
                     {r.media.title.romaji}
                   </Link>
@@ -104,7 +106,7 @@ export default function StaffPage() {
               <p className={`whitespace-pre-line text-sm leading-relaxed text-ink/85 ${more ? '' : 'line-clamp-4'}`}>{desc}</p>
               {desc.length > 300 && (
                 <button className="mt-1 text-xs font-extrabold text-cyan" onClick={() => setMore((v) => !v)}>
-                  {more ? 'Mostrar menos' : 'Ler mais'}
+                  {more ? t('Mostrar menos') : t('Ler mais')}
                 </button>
               )}
             </div>
@@ -112,13 +114,13 @@ export default function StaffPage() {
         </div>
       </div>
 
-      <SectionTitle title="Papéis em animes" jp="出演作品" action={<span className="text-muted">{roles.length} carregados</span>} />
+      <SectionTitle title={t('Papéis em animes')} jp="出演作品" action={<span className="text-muted">{roles.length}{' '}{t('carregados')}</span>} />
       <div className="mb-5 flex flex-wrap gap-2">
         <button className={`chip ${onlyMine ? 'on' : ''}`} onClick={() => setOnlyMine((v) => !v)}>
-          Só da minha lista ({mine.length})
+          {t('Só da minha lista (')}{mine.length})
         </button>
         <button className={`chip ${mainOnly ? 'on' : ''}`} onClick={() => setMainOnly((v) => !v)}>
-          Só papéis principais
+          {t('Só papéis principais')}
         </button>
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -129,7 +131,7 @@ export default function StaffPage() {
       {q.hasNextPage && (
         <div className="mt-8 text-center">
           <button className="manga-btn ghost" onClick={() => q.fetchNextPage()} disabled={q.isFetchingNextPage}>
-            {q.isFetchingNextPage ? <Spinner className="h-4 w-4" /> : 'Carregar mais papéis'}
+            {q.isFetchingNextPage ? <Spinner className="h-4 w-4" /> : t('Carregar mais papéis')}
           </button>
         </div>
       )}

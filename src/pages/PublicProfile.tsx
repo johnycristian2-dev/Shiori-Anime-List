@@ -10,6 +10,8 @@ import { STATUS_META, STATUS_ORDER } from '../store/list';
 import { getPublicProfile, snapshotEntries } from '../sync/profile';
 import type { ListStatus } from '../types';
 
+import { t, locale } from '../lib/i18n';
+
 export default function PublicProfile() {
   const { username = '' } = useParams();
   const q = useQuery({ queryKey: ['profile', username], queryFn: () => getPublicProfile(username), retry: false });
@@ -22,7 +24,7 @@ export default function PublicProfile() {
         <Spinner className="h-10 w-10 text-pink" />
       </div>
     );
-  if (q.error || !q.data) return <ErrorBox error={q.error ?? new Error('Perfil não encontrado')} />;
+  if (q.error || !q.data) return <ErrorBox error={q.error ?? new Error(t('Perfil não encontrado'))} />;
 
   const p = q.data;
   const snap = p.snapshot;
@@ -51,7 +53,7 @@ export default function PublicProfile() {
             )}
           </div>
           <Link to={`/comparar/shiori/${p.username}`} className="manga-btn">
-            <Users size={16} /> Comparar comigo
+            <Users size={16} />{' '}{t('Comparar comigo')}
           </Link>
         </div>
       </section>
@@ -59,11 +61,11 @@ export default function PublicProfile() {
       {snap.stats && (
         <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
-            { k: 'Animes', v: snap.stats.total, c: 'text-pink' },
-            { k: 'Completos', v: snap.stats.completed, c: 'text-[#7cff8a]' },
-            { k: 'Episódios', v: snap.stats.eps.toLocaleString('pt-BR'), c: 'text-cyan' },
-            { k: 'Horas (aprox.)', v: `≈${snap.stats.hours}h`, c: 'text-yellow' },
-            { k: 'Nota média', v: snap.stats.mean || '—', c: 'text-pink' },
+            { k: t('Animes'), v: snap.stats.total, c: 'text-pink' },
+            { k: t('Completos'), v: snap.stats.completed, c: 'text-[#7cff8a]' },
+            { k: t('Episódios'), v: snap.stats.eps.toLocaleString(locale()), c: 'text-cyan' },
+            { k: t('Horas (aprox.)'), v: `≈${snap.stats.hours}h`, c: 'text-yellow' },
+            { k: t('Nota média'), v: snap.stats.mean || '—', c: 'text-pink' },
           ].map((s) => (
             <div key={s.k} className="panel p-4">
               <div className={`font-display text-2xl ${s.c}`}>{s.v}</div>
@@ -83,10 +85,10 @@ export default function PublicProfile() {
         </div>
       )}
 
-      <SectionTitle title={`Lista de ${name}`} jp="リスト" />
+      <SectionTitle title={t('Lista de {0}', name)} jp="リスト" />
       <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1">
         <button className={`chip ${tab === 'FAV' ? 'on' : ''}`} onClick={() => setTab('FAV')}>
-          ♥ Favoritos {list.filter((e) => e.favorite).length}
+          {t('♥ Favoritos')}{' '}{list.filter((e) => e.favorite).length}
         </button>
         {STATUS_ORDER.map((s) => (
           <button key={s} className={`chip ${tab === s ? 'on' : ''}`} onClick={() => setTab(s)}>
@@ -97,13 +99,13 @@ export default function PublicProfile() {
       {shown.length ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {shown.map((e) => (
-            <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? `Nota de ${name}: ★ ${e.score}` : undefined} />
+            <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? t('Nota de {0}: ★ {1}', name, e.score) : undefined} />
           ))}
         </div>
       ) : (
-        <EmptyState jp="空" title="Nada aqui" />
+        <EmptyState jp="空" title={t('Nada aqui')} />
       )}
-      {snap.updatedAt && <p className="mt-8 text-center text-xs font-bold text-muted">Atualizado em {new Date(snap.updatedAt).toLocaleString('pt-BR')}</p>}
+      {snap.updatedAt && <p className="mt-8 text-center text-xs font-bold text-muted">{t('Atualizado em')}{' '}{new Date(snap.updatedAt).toLocaleString(locale())}</p>}
     </>
   );
 }

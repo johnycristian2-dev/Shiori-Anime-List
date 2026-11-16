@@ -7,26 +7,254 @@ import { useActiveTheme } from '../lib/useTheme';
 import SearchModal from './SearchModal';
 import EpisodeBell from './EpisodeBell';
 import SyncBadge from './SyncBadge';
+import LangSwitch from './LangSwitch';
 import { useUI } from '../store/ui';
 import { useList } from '../store/list';
 
+import { t } from '../lib/i18n';
+import { ThemeOverlay, ThemeParticles } from './ThemeFx';
+
 const NAV = [
-  { to: '/', label: 'Descobrir', short: 'Início', jp: '発見', icon: Compass, main: true },
-  { to: '/explorar', label: 'Explorar', short: 'Explorar', jp: '探索', icon: Search, main: true },
-  { to: '/swipe', label: 'Modo rápido', short: 'Rápido', jp: '速攻', icon: Layers, main: true },
-  { to: '/calendario', label: 'Calendário', short: 'Agenda', jp: '放送', icon: CalendarDays, main: true },
-  { to: '/lista', label: 'Minha lista', short: 'Lista', jp: 'リスト', icon: ListChecks, main: true },
-  { to: '/pra-voce', label: 'Pra você', short: 'Pra você', jp: 'おすすめ', icon: Sparkles, main: false },
-  { to: '/comecar', label: 'Quiz: por onde começar', short: 'Quiz', jp: '診断', icon: Compass, main: false },
-  { to: '/maratona', label: 'Planejar maratona', short: 'Maratona', jp: '一気見', icon: Timer, main: false },
-  { to: '/roleta', label: 'Roleta', short: 'Roleta', jp: 'ガチャ', icon: Dices, main: false },
-  { to: '/perfil', label: 'Perfil e conquistas', short: 'Perfil', jp: '実績', icon: Trophy, main: false },
-  { to: '/party', label: 'Watch party', short: 'Party', jp: '鑑賞会', icon: Popcorn, main: false },
-  { to: '/comparar', label: 'Comparar com amigo', short: 'Comparar', jp: '相性', icon: Users, main: false },
-  { to: '/retrospectiva', label: 'Retrospectiva do ano', short: 'Retrô', jp: '年間', icon: Gift, main: false },
-  { to: '/temas', label: 'Temas', short: 'Temas', jp: '着せ替え', icon: Palette, main: false },
-  { to: '/sync', label: 'Importar / Exportar', short: 'Sync', jp: '同期', icon: RefreshCw, main: false },
-  { to: '/roadmap', label: 'Roadmap', short: 'Roadmap', jp: '予定', icon: Map, main: false },
+  {
+    to: '/',
+
+    get label() {
+      return t('Descobrir');
+    },
+
+    get short() {
+      return t('Início');
+    },
+
+    jp: '発見',
+    icon: Compass,
+    main: true
+  },
+  {
+    to: '/explorar',
+
+    get label() {
+      return t('Explorar');
+    },
+
+    get short() {
+      return t('Explorar');
+    },
+
+    jp: '探索',
+    icon: Search,
+    main: true
+  },
+  {
+    to: '/swipe',
+
+    get label() {
+      return t('Modo rápido');
+    },
+
+    get short() {
+      return t('Rápido');
+    },
+
+    jp: '速攻',
+    icon: Layers,
+    main: true
+  },
+  {
+    to: '/calendario',
+
+    get label() {
+      return t('Calendário');
+    },
+
+    get short() {
+      return t('Agenda');
+    },
+
+    jp: '放送',
+    icon: CalendarDays,
+    main: true
+  },
+  {
+    to: '/lista',
+
+    get label() {
+      return t('Minha lista');
+    },
+
+    get short() {
+      return t('Lista');
+    },
+
+    jp: 'リスト',
+    icon: ListChecks,
+    main: true
+  },
+  {
+    to: '/pra-voce',
+
+    get label() {
+      return t('Pra você');
+    },
+
+    get short() {
+      return t('Pra você');
+    },
+
+    jp: 'おすすめ',
+    icon: Sparkles,
+    main: false
+  },
+  {
+    to: '/comecar',
+
+    get label() {
+      return t('Quiz: por onde começar');
+    },
+
+    get short() {
+      return t('Quiz');
+    },
+
+    jp: '診断',
+    icon: Compass,
+    main: false
+  },
+  {
+    to: '/maratona',
+
+    get label() {
+      return t('Planejar maratona');
+    },
+
+    get short() {
+      return t('Maratona');
+    },
+
+    jp: '一気見',
+    icon: Timer,
+    main: false
+  },
+  {
+    to: '/roleta',
+
+    get label() {
+      return t('Roleta');
+    },
+
+    get short() {
+      return t('Roleta');
+    },
+
+    jp: 'ガチャ',
+    icon: Dices,
+    main: false
+  },
+  {
+    to: '/perfil',
+
+    get label() {
+      return t('Perfil e conquistas');
+    },
+
+    get short() {
+      return t('Perfil');
+    },
+
+    jp: '実績',
+    icon: Trophy,
+    main: false
+  },
+  {
+    to: '/party',
+
+    get label() {
+      return t('Watch party');
+    },
+
+    get short() {
+      return t('Party');
+    },
+
+    jp: '鑑賞会',
+    icon: Popcorn,
+    main: false
+  },
+  {
+    to: '/comparar',
+
+    get label() {
+      return t('Comparar com amigo');
+    },
+
+    get short() {
+      return t('Comparar');
+    },
+
+    jp: '相性',
+    icon: Users,
+    main: false
+  },
+  {
+    to: '/retrospectiva',
+
+    get label() {
+      return t('Retrospectiva do ano');
+    },
+
+    get short() {
+      return t('Retrô');
+    },
+
+    jp: '年間',
+    icon: Gift,
+    main: false
+  },
+  {
+    to: '/temas',
+
+    get label() {
+      return t('Temas');
+    },
+
+    get short() {
+      return t('Temas');
+    },
+
+    jp: '着せ替え',
+    icon: Palette,
+    main: false
+  },
+  {
+    to: '/sync',
+
+    get label() {
+      return t('Importar / Exportar');
+    },
+
+    get short() {
+      return t('Sync');
+    },
+
+    jp: '同期',
+    icon: RefreshCw,
+    main: false
+  },
+  {
+    to: '/roadmap',
+
+    get label() {
+      return t('Roadmap');
+    },
+
+    get short() {
+      return t('Roadmap');
+    },
+
+    jp: '予定',
+    icon: Map,
+    main: false
+  },
 ];
 const MAIN = NAV.filter((n) => n.main);
 const MORE = NAV.filter((n) => !n.main);
@@ -39,7 +267,7 @@ export function Logo() {
         栞
       </span>
       <span className="leading-none">
-        <span className="block font-display text-xl tracking-wide">SHIORI</span>
+        <span className="block font-display text-xl tracking-wide">{t('SHIORI')}</span>
         <span className="block font-jp text-[10px] font-bold tracking-[0.3em] text-pink">アニメリスト</span>
       </span>
     </NavLink>
@@ -48,26 +276,10 @@ export function Logo() {
 
 function Petals({ kind }: { kind: Theme['petals'] }) {
   const on = useUI((s) => s.petals);
-  if (!on || kind === 'none') return null;
-  const cls = kind === 'embers' ? 'ember' : kind === 'snow' ? 'snowflake' : 'petal';
+  if (!on) return null;
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {Array.from({ length: 14 }, (_, i) => {
-        const size = kind === 'sakura' || !kind ? 8 + ((i * 5) % 10) : 3 + ((i * 3) % 5);
-        return (
-          <span
-            key={i}
-            className={cls}
-            style={{
-              left: `${(i * 73) % 100}%`,
-              width: size,
-              height: kind === 'sakura' || !kind ? size * 0.8 : size,
-              animationDelay: `${(i * 1.7) % 12}s`,
-              animationDuration: `${11 + ((i * 3) % 9)}s`,
-            }}
-          />
-        );
-      })}
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+      <ThemeParticles kind={kind} />
     </div>
   );
 }
@@ -77,15 +289,15 @@ function Toasts() {
   const dismiss = useUI((s) => s.dismiss);
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[200] flex flex-col items-center gap-2 px-4 md:bottom-6">
-      {toasts.map((t) => (
+      {toasts.map((toastItem) => (
         <div
-          key={t.id}
+          key={toastItem.id}
           className={`pop-in pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border-[2.5px] border-black px-4 py-2.5 text-sm font-extrabold shadow-[4px_4px_0_#000] ${
-            t.tone === 'err' ? 'bg-red-400 text-black' : t.tone === 'info' ? 'bg-cyan text-black' : 'bg-yellow text-black'
+            toastItem.tone === 'err' ? 'bg-red-400 text-black' : toastItem.tone === 'info' ? 'bg-cyan text-black' : 'bg-yellow text-black'
           }`}
         >
-          <span className="line-clamp-2">{t.text}</span>
-          <button onClick={() => dismiss(t.id)} aria-label="Fechar">
+          <span className="line-clamp-2">{toastItem.text}</span>
+          <button onClick={() => dismiss(toastItem.id)} aria-label={t('Fechar')}>
             <X size={14} />
           </button>
         </div>
@@ -132,8 +344,9 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="relative min-h-dvh">
       {theme.image && <div aria-hidden className="theme-art" style={{ backgroundImage: `url("${theme.image}")` }} />}
       <Petals kind={theme.petals} />
+      <ThemeOverlay kind={theme.overlay} />
       <header className="sticky top-0 z-40 border-b-2 border-line bg-bg/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:gap-4 sm:px-4">
           <Logo />
           <nav className="ml-4 hidden flex-1 items-center gap-1 lg:flex">
             {MAIN.map(({ to, label, jp }) => (
@@ -159,7 +372,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onClick={() => setMore((v) => !v)}
                 className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-extrabold ${MORE.some((m) => m.to === pathname) ? 'text-pink' : 'text-muted hover:text-ink'}`}
               >
-                Mais <ChevronDown size={14} className={more ? 'rotate-180 transition' : 'transition'} />
+                {t('Mais')}{' '}<ChevronDown size={14} className={more ? 'rotate-180 transition' : 'transition'} />
               </button>
               {more && (
                 <>
@@ -182,14 +395,15 @@ export default function Layout({ children }: { children: ReactNode }) {
           <button
             onClick={() => setSearch(true)}
             className="ml-auto flex items-center gap-2 rounded-xl border-2 border-line bg-panel px-3 py-2 text-sm font-bold text-muted transition hover:border-pink lg:ml-0"
-            aria-label="Buscar"
+            aria-label={t('Buscar')}
           >
-            <Search size={16} /> <span className="hidden sm:inline">Buscar</span>
-            <kbd className="hidden rounded border border-line px-1.5 text-[10px] md:inline">Ctrl K</kbd>
+            <Search size={16} /> <span className="hidden sm:inline">{t('Buscar')}</span>
+            <kbd className="hidden rounded border border-line px-1.5 text-[10px] md:inline">{t('Ctrl K')}</kbd>
           </button>
           <SyncBadge />
           <EpisodeBell />
-          <NavLink to="/temas" className="manga-btn ghost !p-2" aria-label="Temas" title={`Tema: ${theme.name}`}>
+          <LangSwitch />
+          <NavLink to="/temas" className="manga-btn ghost !p-2" aria-label={t('Temas')} title={t('Tema: {0}', theme.name)}>
             <Palette size={18} />
           </NavLink>
         </div>
@@ -231,7 +445,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <span className="grid h-8 w-8 place-items-center rounded-lg">
               <Menu size={18} />
             </span>
-            Mais
+            {t('Mais')}
           </button>
         </div>
       </nav>

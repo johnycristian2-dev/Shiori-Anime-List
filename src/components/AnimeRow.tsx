@@ -4,6 +4,8 @@ import type { Media } from '../types';
 import AnimeCard from './AnimeCard';
 import { SectionTitle, SkeletonCard } from './ui';
 
+import { t } from '../lib/i18n';
+
 export default function AnimeRow({
   title,
   jp,
@@ -37,14 +39,14 @@ export default function AnimeRow({
         </div>
         <button
           onClick={() => scroll(-1)}
-          aria-label="Anterior"
+          aria-label={t('Anterior')}
           className="manga-btn ghost absolute -left-3 top-1/2 hidden -translate-y-1/2 !p-2 md:inline-flex"
         >
           <ChevronLeft size={18} />
         </button>
         <button
           onClick={() => scroll(1)}
-          aria-label="Próximo"
+          aria-label={t('Próximo')}
           className="manga-btn ghost absolute -right-3 top-1/2 hidden -translate-y-1/2 !p-2 md:inline-flex"
         >
           <ChevronRight size={18} />

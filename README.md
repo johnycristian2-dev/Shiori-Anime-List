@@ -52,6 +52,12 @@ Extras: busca global (**Ctrl+K** ou **/**), "Continuar assistindo" com botão +1
 
 Pra criar um tema novo no código, adicione um objeto em `PRESETS` (`src/lib/themes.ts`). Os testes verificam que todo tema tem texto legível.
 
+## Idiomas e sinopses traduzidas
+
+O site inteiro está em **Português, English e 日本語** (bandeira no topo ou em *Sync → Preferências*). Os textos ficam em `src/lib/i18n/{en,ja}.ts`, usando a frase em português como chave.
+
+O AniList só tem sinopse em inglês. Em PT/JA ela é traduzida por `api/translate.ts`, uma Vercel Function que busca a sinopse no AniList pelo id e traduz pelo **Vercel AI Gateway** (Claude Haiku). A autenticação usa o token OIDC do próprio deploy, sem chave no front; fora da Vercel, defina `AI_GATEWAY_API_KEY`. Cada tradução fica 30 dias no cache da CDN e também no navegador. Sem a função (ex.: GitHub Pages) o site mostra o original em inglês.
+
 ## Exportar pro MyAnimeList
 
 1. Em **Sync**, clique em **Baixar XML**.

@@ -16,6 +16,8 @@ import { AL_TO_LOCAL } from '../sync/anilistSync';
 import { getPublicProfile, snapshotEntries } from '../sync/profile';
 import type { ListEntry, Media } from '../types';
 
+import { t } from '../lib/i18n';
+
 type Source = 'anilist' | 'shiori';
 
 async function loadTheirs(source: Source, name: string): Promise<{ label: string; list: ListEntry[] }> {
@@ -67,14 +69,16 @@ function Picker() {
   const [name, setName] = useState('');
   return (
     <div className="mx-auto max-w-xl">
-      <p className="-mt-2 mb-5 text-sm font-bold text-muted">Veja o quanto seus gostos batem com os de um amigo, o que vocês dois amam e o que um deveria indicar pro outro.</p>
+      <p className="-mt-2 mb-5 text-sm font-bold text-muted">{t(
+        'Veja o quanto seus gostos batem com os de um amigo, o que vocês dois amam e o que um deveria indicar pro outro.'
+      )}</p>
       <div className="panel space-y-4 p-5">
         <div className="flex flex-wrap gap-2">
           <button className={`chip ${source === 'anilist' ? 'on' : ''}`} onClick={() => setSource('anilist')}>
-            Usuário do AniList
+            {t('Usuário do AniList')}
           </button>
           <button className={`chip ${source === 'shiori' ? 'on' : ''}`} onClick={() => setSource('shiori')} disabled={!CLOUD_ENABLED}>
-            Perfil Shiori {!CLOUD_ENABLED && '(precisa da conta)'}
+            {t('Perfil Shiori')}{' '}{!CLOUD_ENABLED && t('(precisa da conta)')}
           </button>
         </div>
         <form
@@ -84,9 +88,9 @@ function Picker() {
             if (name.trim()) nav(`/comparar/${source}/${encodeURIComponent(name.trim())}`);
           }}
         >
-          <input className="field" placeholder={source === 'anilist' ? 'nome no AniList' : 'apelido no Shiori'} value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="field" placeholder={source === 'anilist' ? t('nome no AniList') : t('apelido no Shiori')} value={name} onChange={(e) => setName(e.target.value)} />
           <button className="manga-btn shrink-0">
-            <Users size={16} /> Comparar
+            <Users size={16} />{' '}{t('Comparar')}
           </button>
         </form>
       </div>
@@ -98,7 +102,7 @@ export default function Compare() {
   const { source, name } = useParams<{ source: Source; name: string }>();
   const entries = useList((s) => s.entries);
   const lang = useUI((s) => s.titleLang);
-  const nick = useUI((s) => s.nickname) || 'Você';
+  const nick = useUI((s) => s.nickname) || t('Você');
   const mine = useMemo(() => Object.values(entries), [entries]);
   const q = useQuery({
     queryKey: ['compare', source, name],
@@ -106,12 +110,12 @@ export default function Compare() {
     enabled: !!source && !!name,
   });
   const r = useMemo(() => (q.data ? compareLists(mine, q.data.list) : null), [mine, q.data]);
-  const t = (e: ListEntry) => pickTitle({ romaji: e.title, english: e.titleEnglish, native: e.titleNative }, lang);
+  const titleOf = (e: ListEntry) => pickTitle({ romaji: e.title, english: e.titleEnglish, native: e.titleNative }, lang);
 
   if (!source || !name)
     return (
       <>
-        <SectionTitle title="Comparar listas" jp="相性診断" />
+        <SectionTitle title={t('Comparar listas')} jp="相性診断" />
         <Picker />
       </>
     );
@@ -119,9 +123,9 @@ export default function Compare() {
   if (!mine.length)
     return (
       <>
-        <SectionTitle title="Comparar listas" jp="相性診断" />
-        <EmptyState jp="空" title="Sua lista está vazia">
-          Adicione alguns animes (ou <Link to="/sync" className="font-bold text-pink">importe do MAL/AniList</Link>) pra comparar.
+        <SectionTitle title={t('Comparar listas')} jp="相性診断" />
+        <EmptyState jp="空" title={t('Sua lista está vazia')}>
+          {t('Adicione alguns animes (ou')}{' '}<Link to="/sync" className="font-bold text-pink">{t('importe do MAL/AniList')}</Link>{t(') pra comparar.')}
         </EmptyState>
       </>
     );
@@ -135,8 +139,8 @@ export default function Compare() {
   if (q.error || !q.data || !r)
     return (
       <>
-        <SectionTitle title="Comparar listas" jp="相性診断" action={<Link to="/comparar">Trocar</Link>} />
-        <ErrorBox error={q.error ?? new Error('Não deu pra carregar a lista')} onRetry={() => q.refetch()} />
+        <SectionTitle title={t('Comparar listas')} jp="相性診断" action={<Link to="/comparar">{t('Trocar')}</Link>} />
+        <ErrorBox error={q.error ?? new Error(t('Não deu pra carregar a lista'))} onRetry={() => q.refetch()} />
       </>
     );
 
@@ -144,7 +148,7 @@ export default function Compare() {
 
   return (
     <>
-      <SectionTitle title="Comparar listas" jp="相性診断" action={<Link to="/comparar">Comparar com outra pessoa</Link>} />
+      <SectionTitle title={t('Comparar listas')} jp="相性診断" action={<Link to="/comparar">{t('Comparar com outra pessoa')}</Link>} />
 
       <section className="halftone relative mb-8 flex flex-wrap items-center gap-6 overflow-hidden rounded-3xl border-[3px] border-black bg-panel p-6 shadow-[8px_8px_0_var(--pink)]">
         <div className="absolute -right-2 -top-6 font-jp text-[120px] font-black leading-none text-pink/10">{r.jp}</div>
@@ -156,23 +160,23 @@ export default function Compare() {
         </div>
         <div className="relative flex-1">
           <div className="text-sm font-black text-muted">
-            {nick} × {them}
+            {nick}{' '}{t('×')}{' '}{them}
           </div>
           <div className="font-display text-3xl text-pink">{r.label}</div>
           <div className="font-jp text-xl font-black">{r.jp}</div>
           <div className="mt-3 flex flex-wrap gap-2 text-xs font-black">
-            <span className="rounded-md bg-panel-2 px-2 py-1">{r.shared.length} vistos em comum</span>
-            <span className="rounded-md bg-panel-2 px-2 py-1">{r.scoredCount} com nota dos dois</span>
-            <span className="rounded-md bg-panel-2 px-2 py-1">gêneros {Math.round(r.genreSim * 100)}% parecidos</span>
+            <span className="rounded-md bg-panel-2 px-2 py-1">{r.shared.length}{' '}{t('vistos em comum')}</span>
+            <span className="rounded-md bg-panel-2 px-2 py-1">{r.scoredCount}{' '}{t('com nota dos dois')}</span>
+            <span className="rounded-md bg-panel-2 px-2 py-1">{t('gêneros')}{' '}{Math.round(r.genreSim * 100)}{t('% parecidos')}</span>
           </div>
-          {r.scoredCount < 3 && <p className="mt-2 text-xs font-bold text-muted">Deem nota a mais animes em comum pra um resultado mais preciso.</p>}
+          {r.scoredCount < 3 && <p className="mt-2 text-xs font-bold text-muted">{t('Deem nota a mais animes em comum pra um resultado mais preciso.')}</p>}
         </div>
       </section>
 
       <div className="mb-10 grid gap-5 md:grid-cols-2">
         {[
-          { who: nick === 'Você' ? 'Seus gêneros' : `Gêneros de ${nick}`, list: r.myGenres },
-          { who: `Gêneros de ${them}`, list: r.theirGenres },
+          { who: !useUI.getState().nickname ? t('Seus gêneros') : t('Gêneros de {0}', nick), list: r.myGenres },
+          { who: t('Gêneros de {0}', them), list: r.theirGenres },
         ].map((side) => {
           const max = Math.max(1, ...side.list.slice(0, 6).map(([, v]) => v));
           return (
@@ -195,51 +199,51 @@ export default function Compare() {
 
       {r.bothLove.length > 0 && (
         <>
-          <SectionTitle title="Vocês dois amam" jp="共通の推し" />
+          <SectionTitle title={t('Vocês dois amam')} jp="共通の推し" />
           <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {r.bothLove.slice(0, 12).map((p) => (
-              <AnimeCard key={p.me.mediaId} media={entryToMedia(p.me)} note={`Você ★${p.me.score} · ${them} ★${p.them.score}`} />
+              <AnimeCard key={p.me.mediaId} media={entryToMedia(p.me)} note={t('Você ★{0} · {1} ★{2}', p.me.score, them, p.them.score)} />
             ))}
           </div>
         </>
       )}
 
-      <SectionTitle title={`${them} recomenda pra você`} jp="おすすめ" />
+      <SectionTitle title={t('{0} recomenda pra você', them)} jp="おすすめ" />
       {r.forMe.length ? (
         <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {r.forMe.slice(0, 18).map((e) => (
-            <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? `Nota de ${them}: ★ ${e.score}` : `Favorito de ${them}`} />
+            <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? t('Nota de {0}: ★ {1}', them, e.score) : t('Favorito de {0}', them)} />
           ))}
         </div>
       ) : (
-        <p className="mb-10 text-sm font-bold text-muted">Você já viu tudo que {them} amou. 👀</p>
+        <p className="mb-10 text-sm font-bold text-muted">{t('Você já viu tudo que')}{' '}{them}{' '}{t('amou. 👀')}</p>
       )}
 
-      <SectionTitle title={`Pra você indicar pra ${them}`} jp="布教" />
+      <SectionTitle title={t('Pra você indicar pra {0}', them)} jp="布教" />
       {r.forThem.length ? (
         <div className="panel mb-10 divide-y-2 divide-line">
           {r.forThem.slice(0, 10).map((e) => (
             <Link key={e.mediaId} to={`/anime/${e.mediaId}`} className="flex items-center gap-3 p-2.5 hover:bg-panel-2">
               {e.cover && <img src={e.cover} alt="" className="h-12 w-9 rounded border-2 border-black object-cover" />}
-              <span className="min-w-0 flex-1 truncate font-bold">{t(e)}</span>
+              <span className="min-w-0 flex-1 truncate font-bold">{titleOf(e)}</span>
               {e.score > 0 && <span className="rounded border-2 border-black bg-yellow px-1.5 text-xs font-black text-black">★ {e.score}</span>}
             </Link>
           ))}
         </div>
       ) : (
-        <p className="mb-10 text-sm font-bold text-muted">Dê nota 8+ aos seus favoritos pra aparecerem aqui.</p>
+        <p className="mb-10 text-sm font-bold text-muted">{t('Dê nota 8+ aos seus favoritos pra aparecerem aqui.')}</p>
       )}
 
       {r.disagree.length > 0 && (
         <>
-          <SectionTitle title="Onde vocês brigariam" jp="論争" />
+          <SectionTitle title={t('Onde vocês brigariam')} jp="論争" />
           <div className="panel divide-y-2 divide-line">
             {r.disagree.slice(0, 8).map((p) => (
               <Link key={p.me.mediaId} to={`/anime/${p.me.mediaId}`} className="flex items-center gap-3 p-2.5 hover:bg-panel-2">
                 {p.me.cover && <img src={p.me.cover} alt="" className="h-12 w-9 rounded border-2 border-black object-cover" />}
-                <span className="min-w-0 flex-1 truncate font-bold">{t(p.me)}</span>
+                <span className="min-w-0 flex-1 truncate font-bold">{titleOf(p.me)}</span>
                 <span className="text-xs font-black">
-                  <span className="text-pink">Você ★{p.me.score}</span> vs <span className="text-cyan">★{p.them.score}</span>
+                  <span className="text-pink">{t('Você ★')}{p.me.score}</span>{' '}{t('vs')}{' '}<span className="text-cyan">★{p.them.score}</span>
                 </span>
               </Link>
             ))}

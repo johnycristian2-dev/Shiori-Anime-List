@@ -15,6 +15,9 @@ import { stripHtml, useTitle } from '../lib/format';
 import { FORMAT_LABEL, GENRES, MEDIA_STATUS_LABEL, RELATION_LABEL, genrePt } from '../lib/labels';
 import { SEASON_LABEL } from '../lib/season';
 
+import { t, locale } from '../lib/i18n';
+import Synopsis from '../components/Synopsis';
+
 export default function AnimeDetail() {
   const id = Number(useParams().id);
   const { data: m, isLoading, error, refetch } = useMedia(id);
@@ -32,7 +35,7 @@ export default function AnimeDetail() {
         <Spinner className="h-10 w-10 text-pink" />
       </div>
     );
-  if (error || !m) return <ErrorBox error={error ?? new Error('Anime não encontrado')} onRetry={() => refetch()} />;
+  if (error || !m) return <ErrorBox error={error ?? new Error(t('Anime não encontrado'))} onRetry={() => refetch()} />;
 
   const relations = m.relations.edges.filter((e) => e.node.type === 'ANIME');
   const recs = m.recommendations.nodes.map((n) => n.mediaRecommendation).filter((x): x is NonNullable<typeof x> => !!x);
@@ -43,11 +46,11 @@ export default function AnimeDetail() {
   const accent = m.coverImage.color ?? 'var(--pink)';
 
   const facts = [
-    m.format && { k: 'Formato', v: FORMAT_LABEL[m.format] },
-    m.episodes && { k: 'Episódios', v: m.episodes },
-    m.season && m.seasonYear && { k: 'Temporada', v: `${SEASON_LABEL[m.season].pt} ${m.seasonYear}` },
-    !m.season && m.seasonYear && { k: 'Ano', v: m.seasonYear },
-    m.status && { k: 'Situação', v: MEDIA_STATUS_LABEL[m.status] },
+    m.format && { k: t('Formato'), v: FORMAT_LABEL[m.format] },
+    m.episodes && { k: t('Episódios'), v: m.episodes },
+    m.season && m.seasonYear && { k: t('Temporada'), v: `${SEASON_LABEL[m.season].pt} ${m.seasonYear}` },
+    !m.season && m.seasonYear && { k: t('Ano'), v: m.seasonYear },
+    m.status && { k: t('Situação'), v: MEDIA_STATUS_LABEL[m.status] },
   ].filter(Boolean) as { k: string; v: string | number }[];
 
   return (
@@ -76,11 +79,11 @@ export default function AnimeDetail() {
             {entry ? (
               <div className="panel p-3">
                 <div className="mb-2 flex items-center justify-between text-xs font-black uppercase text-muted">
-                  Na sua lista
+                  {t('Na sua lista')}
                   <button
                     onClick={() => toggleFavorite(id)}
                     className={entry.favorite ? 'text-pink' : 'text-muted hover:text-pink'}
-                    aria-label={entry.favorite ? 'Remover dos favoritos' : 'Favoritar'}
+                    aria-label={entry.favorite ? t('Remover dos favoritos') : t('Favoritar')}
                   >
                     <Heart size={20} fill={entry.favorite ? 'currentColor' : 'none'} />
                   </button>
@@ -119,7 +122,7 @@ export default function AnimeDetail() {
             )}
             {m.popularity != null && (
               <span className="inline-flex items-center gap-1 rounded-lg border-2 border-black bg-cyan px-2 py-1 text-sm font-black text-black">
-                <Users size={14} /> {m.popularity.toLocaleString('pt-BR')}
+                <Users size={14} /> {m.popularity.toLocaleString(locale())}
               </span>
             )}
             {m.genres.map((g) => (
@@ -140,7 +143,7 @@ export default function AnimeDetail() {
 
           {m.studios.nodes.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="text-muted">Estúdio:</span>
+              <span className="text-muted">{t('Estúdio:')}</span>
               {m.studios.nodes.map((st) => (
                 <Link key={st.id} to={`/estudio/${st.id}`} className="chip !border-cyan !text-cyan">
                   {st.name}
@@ -161,30 +164,32 @@ export default function AnimeDetail() {
 
           {m.nextAiringEpisode && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-xl border-2 border-cyan px-3 py-2 text-sm font-bold text-cyan">
-              <CalendarClock size={16} /> Episódio {m.nextAiringEpisode.episode} em{' '}
-              {new Date(m.nextAiringEpisode.airingAt * 1000).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+              <CalendarClock size={16} />{' '}{t('Episódio')}{' '}{m.nextAiringEpisode.episode}{' '}{t('em')}{' '}
+              {new Date(m.nextAiringEpisode.airingAt * 1000).toLocaleString(locale(), { dateStyle: 'short', timeStyle: 'short' })}
             </div>
           )}
 
-          <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-ink/85">{stripHtml(m.description) || 'Sem sinopse.'}</p>
+          <div className="mt-5">
+            <Synopsis id={m.id} text={m.description} className="whitespace-pre-line text-sm leading-relaxed text-ink/85" />
+          </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
             {m.trailer?.site === 'youtube' && (
               <a href={`https://www.youtube.com/watch?v=${m.trailer.id}`} target="_blank" rel="noreferrer" className="manga-btn">
-                <Play size={16} /> Trailer
+                <Play size={16} />{' '}{t('Trailer')}
               </a>
             )}
             <button
               className="manga-btn cyan"
               onClick={() => {
                 setAnimeTheme(themeFromColor(m.coverImage.color ?? '#ff4f9a', { id: 'anime', name: title(m), image: m.bannerImage ?? cover }));
-                toast(`Tema de ${title(m)} aplicado 🎨 — volte em Temas quando quiser trocar`);
+                toast(t('Tema de {0} aplicado 🎨 — volte em Temas quando quiser trocar', title(m)));
               }}
             >
-              <Palette size={16} /> Usar como tema
+              <Palette size={16} />{' '}{t('Usar como tema')}
             </button>
             <Link to={`/maratona/${m.id}`} className="manga-btn yellow">
-              <Timer size={16} /> Planejar maratona
+              <Timer size={16} />{' '}{t('Planejar maratona')}
             </Link>
             {streaming.map((l) => (
               <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="manga-btn ghost" style={l.color ? { boxShadow: `4px 4px 0 ${l.color}` } : undefined}>
@@ -192,11 +197,11 @@ export default function AnimeDetail() {
               </a>
             ))}
             <a href={`https://anilist.co/anime/${m.id}`} target="_blank" rel="noreferrer" className="manga-btn ghost">
-              <ExternalLink size={14} /> AniList
+              <ExternalLink size={14} />{' '}{t('AniList')}
             </a>
             {m.idMal && (
               <a href={`https://myanimelist.net/anime/${m.idMal}`} target="_blank" rel="noreferrer" className="manga-btn ghost">
-                <ExternalLink size={14} /> MyAnimeList
+                <ExternalLink size={14} />{' '}{t('MyAnimeList')}
               </a>
             )}
           </div>
@@ -206,7 +211,7 @@ export default function AnimeDetail() {
       <div className="mt-12">
         {m.characters.edges.length > 0 && (
           <section className="mb-10">
-            <SectionTitle title="Personagens e dubladores" jp="キャラクター" />
+            <SectionTitle title={t('Personagens e dubladores')} jp="キャラクター" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {m.characters.edges.map((c) => {
                 const va = c.voiceActors[0];
@@ -218,7 +223,7 @@ export default function AnimeDetail() {
                         <div className="truncate text-sm font-extrabold">{c.node.name.full}</div>
                         <div className="truncate font-jp text-xs text-muted">{c.node.name.native}</div>
                         <div className={`mt-1 text-[10px] font-black uppercase ${c.role === 'MAIN' ? 'text-pink' : 'text-muted'}`}>
-                          {c.role === 'MAIN' ? 'Principal' : c.role === 'SUPPORTING' ? 'Secundário' : 'Figurante'}
+                          {c.role === 'MAIN' ? t('Principal') : c.role === 'SUPPORTING' ? t('Secundário') : t('Figurante')}
                         </div>
                       </div>
                     </Link>
@@ -227,7 +232,7 @@ export default function AnimeDetail() {
                         <div className="min-w-0 py-2.5">
                           <div className="truncate text-sm font-bold">{va.name.full}</div>
                           <div className="truncate font-jp text-xs text-muted">{va.name.native}</div>
-                          <div className="mt-1 text-[10px] font-black uppercase text-cyan">Dublador · JP</div>
+                          <div className="mt-1 text-[10px] font-black uppercase text-cyan">{t('Dublador · JP')}</div>
                         </div>
                         {va.image.large && <img src={va.image.large} alt="" loading="lazy" className="h-24 w-16 object-cover" />}
                       </Link>
@@ -240,7 +245,7 @@ export default function AnimeDetail() {
         )}
         {relations.length > 0 && (
           <AnimeRow
-            title="Da mesma franquia"
+            title={t('Da mesma franquia')}
             jp="関連作品"
             items={relations.map((r) => r.node)}
             notes={Object.fromEntries(relations.map((r) => [r.node.id, RELATION_LABEL[r.relationType] ?? r.relationType]))}
@@ -249,16 +254,16 @@ export default function AnimeDetail() {
                 <button
                   onClick={() => {
                     const n = addMany(franchise, 'PLANNING');
-                    toast(n ? `${n} da franquia adicionados em "Quero ver"` : 'Já estão todos na lista', n ? 'ok' : 'info');
+                    toast(n ? t('{0} da franquia adicionados em "Quero ver"', n) : t('Já estão todos na lista'), n ? 'ok' : 'info');
                   }}
                 >
-                  + Adicionar franquia
+                  {t('+ Adicionar franquia')}
                 </button>
               )
             }
           />
         )}
-        {recs.length > 0 && <AnimeRow title="Quem curtiu, também curtiu" jp="おすすめ" items={recs} />}
+        {recs.length > 0 && <AnimeRow title={t('Quem curtiu, também curtiu')} jp="おすすめ" items={recs} />}
       </div>
     </>
   );
@@ -276,7 +281,7 @@ function Notes({ entry }: { entry: ListEntry }) {
     <textarea
       value={text}
       onChange={(e) => setText(e.target.value)}
-      placeholder="Anotações (onde parei, quem indicou…)"
+      placeholder={t('Anotações (onde parei, quem indicou…)')}
       rows={2}
       className="field mt-2 resize-y text-sm"
     />
@@ -290,7 +295,7 @@ function ListChips({ media }: { media: Media }) {
   if (!lists.length) return null;
   return (
     <div className="mt-3">
-      <div className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted">Minhas listas</div>
+      <div className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted">{t('Minhas listas')}</div>
       <div className="flex flex-wrap gap-1.5">
         {lists.map((l) => (
           <button key={l.id} className={`chip !px-2 !py-1 !text-xs ${l.mediaIds.includes(media.id) ? 'on' : ''}`} onClick={() => toggleInList(l.id, media)}>

@@ -13,6 +13,8 @@ import { useSyncStatus } from '../store/sync';
 import type { SyncDoc } from '../types';
 import { publishSnapshot } from './profile';
 
+import { t } from '../lib/i18n';
+
 export const useCloudUser = create<{ user: User | null; ready: boolean }>(() => ({ user: null, ready: false }));
 
 const DEVICE = (() => {
@@ -83,7 +85,7 @@ function syncNow(force = false): Promise<void> {
         if (error) throw error;
       }
       lastSig = sig;
-      status('ok', 'Sincronizado');
+      status('ok', t('Sincronizado'));
       // Mantém o perfil público atualizado (se existir; sem perfil, o update não afeta nada)
       publishSnapshot(user!.id).catch(() => null);
     } catch (e) {
@@ -116,7 +118,7 @@ function setup(u: User) {
       if (!row?.doc || row.device === DEVICE) return;
       applyRemote(row.doc);
       lastSig = docSignature(useList.getState().getDoc());
-      status('ok', 'Atualizado por outro aparelho');
+      status('ok', t('Atualizado por outro aparelho'));
     })
     .subscribe();
 }

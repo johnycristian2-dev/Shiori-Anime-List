@@ -1,6 +1,8 @@
 import { SectionTitle } from '../components/ui';
 import { ROADMAP, STATUS_LABEL } from '../lib/roadmap';
 
+import { t } from '../lib/i18n';
+
 export default function Roadmap() {
   const all = ROADMAP.flatMap((p) => p.items);
   const done = all.filter((i) => i.status === 'feito').length;
@@ -8,8 +10,8 @@ export default function Roadmap() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <SectionTitle title="Roadmap" jp="今後の予定" action={<span className="text-muted">{done}/{all.length} feitas</span>} />
-      <p className="-mt-2 mb-4 text-sm font-bold text-muted">O que vem por aí no Shiori. Pendências organizadas por versão.</p>
+      <SectionTitle title={t('Roadmap')} jp="今後の予定" action={<span className="text-muted">{done}/{all.length}{' '}{t('feitas')}</span>} />
+      <p className="-mt-2 mb-4 text-sm font-bold text-muted">{t('O que vem por aí no Shiori. Pendências organizadas por versão.')}</p>
       <div className="mb-10 h-4 overflow-hidden rounded-full border-2 border-black bg-panel-2">
         <div className="h-full bg-linear-to-r from-pink via-yellow to-cyan transition-all" style={{ width: `${pct}%` }} />
       </div>

@@ -10,17 +10,17 @@ import { useTitle } from '../lib/format';
 import { STATUS_META, useList } from '../store/list';
 import { useUI } from '../store/ui';
 
-const WEEK = [
-  { d: 1, l: 'S' },
-  { d: 2, l: 'T' },
-  { d: 3, l: 'Q' },
-  { d: 4, l: 'Q' },
-  { d: 5, l: 'S' },
-  { d: 6, l: 'S' },
-  { d: 0, l: 'D' },
-];
+import { t, locale } from '../lib/i18n';
 
-const fmtDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+/** Segunda a domingo, com a inicial no idioma atual (2024-01-01 foi segunda). */
+const WEEK = [1, 2, 3, 4, 5, 6, 0].map((d) => ({
+  d,
+  get l() {
+    return new Date(2024, 0, d === 0 ? 7 : d).toLocaleDateString(locale(), { weekday: 'narrow' });
+  },
+}));
+
+const fmtDate = (d: Date) => d.toLocaleDateString(locale(), { day: '2-digit', month: 'short' });
 const fmtHours = (min: number) => {
   const h = Math.floor(min / 60);
   const m = Math.round(min % 60);
@@ -37,7 +37,7 @@ function Picker() {
     <div className="mx-auto max-w-xl">
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-pink" size={18} />
-        <input className="field !py-3 !pl-10 text-base" autoFocus placeholder="Qual franquia? (ex.: Shingeki, Monogatari…)" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <input className="field !py-3 !pl-10 text-base" autoFocus placeholder={t('Qual franquia? (ex.: Shingeki, Monogatari…)')} value={term} onChange={(e) => setTerm(e.target.value)} />
       </div>
       {q.isFetching && <Spinner className="mx-auto h-6 w-6 text-pink" />}
       <div className="space-y-2">
@@ -85,8 +85,10 @@ export default function Marathon() {
   if (!Number.isFinite(id))
     return (
       <>
-        <SectionTitle title="Planejador de maratona" jp="一気見" />
-        <p className="-mt-2 mb-6 text-sm font-bold text-muted">Escolha um anime: eu monto a franquia na ordem certa e calculo quando você termina.</p>
+        <SectionTitle title={t('Planejador de maratona')} jp="一気見" />
+        <p className="-mt-2 mb-6 text-sm font-bold text-muted">{t(
+          'Escolha um anime: eu monto a franquia na ordem certa e calculo quando você termina.'
+        )}</p>
         <Picker />
       </>
     );
@@ -96,11 +98,11 @@ export default function Marathon() {
       <div className="grid h-[50vh] place-items-center text-center">
         <div>
           <Spinner className="mx-auto h-10 w-10 text-pink" />
-          <p className="mt-3 text-sm font-bold text-muted">Montando a franquia (prequelas, sequências, filmes)…</p>
+          <p className="mt-3 text-sm font-bold text-muted">{t('Montando a franquia (prequelas, sequências, filmes)…')}</p>
         </div>
       </div>
     );
-  if (q.error || !q.data || !result) return <ErrorBox error={q.error ?? new Error('Não deu pra montar a franquia')} onRetry={() => q.refetch()} />;
+  if (q.error || !q.data || !result) return <ErrorBox error={q.error ?? new Error(t('Não deu pra montar a franquia'))} onRetry={() => q.refetch()} />;
 
   const root = q.data.find((m) => m.id === id) ?? q.data[0];
   const counted = result.plan.filter((p) => !p.skipped);
@@ -111,25 +113,29 @@ export default function Marathon() {
     const n = addMany(medias, 'PLANNING');
     const first = counted.find((p) => entries[p.media.id]?.status !== 'COMPLETED');
     if (first && entries[first.media.id]?.status !== 'WATCHING') add(first.media, 'WATCHING');
-    toast(`${n} adicionados · ${first ? title(first.media) + ' em Assistindo' : ''}`);
+    toast(t(
+      '{0} adicionados · {1}',
+      n,
+      first ? t('{0} em Assistindo', title(first.media)) : ''
+    ));
   };
 
   const makeList = () => {
     const listId = createList(`Maratona: ${title(root)}`.slice(0, 30), '🏃');
     counted.forEach((p) => toggleInList(listId, p.media));
-    toast('Lista da maratona criada em Minha lista');
+    toast(t('Lista da maratona criada em Minha lista'));
   };
 
   return (
     <>
-      <SectionTitle title="Planejador de maratona" jp="一気見" action={<Link to="/maratona">Trocar anime</Link>} />
+      <SectionTitle title={t('Planejador de maratona')} jp="一気見" action={<Link to="/maratona">{t('Trocar anime')}</Link>} />
 
       <div className="mb-6 flex items-center gap-4">
         {root.coverImage.large && <img src={root.coverImage.large} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />}
         <div>
           <div className="font-display text-2xl">{title(root)}</div>
           <div className="text-sm font-bold text-muted">
-            {q.data.filter((m) => m.main).length} na linha principal · {extrasCount} extras
+            {q.data.filter((m) => m.main).length}{' '}{t('na linha principal ·')}{' '}{extrasCount}{' '}{t('extras')}
           </div>
         </div>
       </div>
@@ -138,12 +144,12 @@ export default function Marathon() {
         <div className="panel space-y-5 p-5">
           <div>
             <label className="mb-1.5 flex justify-between text-xs font-black uppercase tracking-wider text-muted">
-              Tempo por dia <span className="text-pink">{fmtHours(minutes)}</span>
+              {t('Tempo por dia')}{' '}<span className="text-pink">{fmtHours(minutes)}</span>
             </label>
             <input type="range" min={20} max={480} step={10} value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} className="w-full accent-[var(--pink)]" />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Dias que você assiste</label>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Dias que você assiste')}</label>
             <div className="flex gap-1.5">
               {WEEK.map((w) => {
                 const on = weekdays.includes(w.d);
@@ -160,22 +166,22 @@ export default function Marathon() {
             </div>
             <div className="mt-2 flex gap-2">
               <button className="chip !text-xs" onClick={() => setWeekdays([0, 1, 2, 3, 4, 5, 6])}>
-                Todo dia
+                {t('Todo dia')}
               </button>
               <button className="chip !text-xs" onClick={() => setWeekdays([0, 6])}>
-                Só fim de semana
+                {t('Só fim de semana')}
               </button>
               <button className="chip !text-xs" onClick={() => setWeekdays([1, 2, 3, 4, 5])}>
-                Dias úteis
+                {t('Dias úteis')}
               </button>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <button className={`chip ${extras ? 'on' : ''}`} onClick={() => setExtras((v) => !v)} disabled={!extrasCount}>
-              Incluir extras ({extrasCount})
+              {t('Incluir extras (')}{extrasCount})
             </button>
             <button className={`chip ${skipSeen ? 'on' : ''}`} onClick={() => setSkipSeen((v) => !v)}>
-              Descontar o que já vi
+              {t('Descontar o que já vi')}
             </button>
           </div>
         </div>
@@ -185,35 +191,37 @@ export default function Marathon() {
           <div className="relative grid grid-cols-2 gap-3">
             <div>
               <div className="font-display text-xl leading-tight sm:text-3xl">{result.totalEpisodes}</div>
-              <div className="text-xs font-black uppercase">episódios</div>
+              <div className="text-xs font-black uppercase">{t('episódios')}</div>
             </div>
             <div>
               <div className="font-display text-xl leading-tight sm:text-3xl">{fmtHours(result.totalMinutes)}</div>
-              <div className="text-xs font-black uppercase">no total</div>
+              <div className="text-xs font-black uppercase">{t('no total')}</div>
             </div>
             <div>
               <div className="font-display text-xl leading-tight sm:text-3xl">{result.calendarDays}</div>
-              <div className="text-xs font-black uppercase">dias de calendário</div>
+              <div className="text-xs font-black uppercase">{t('dias de calendário')}</div>
             </div>
             <div>
               <div className="font-display text-xl leading-tight sm:text-3xl">{result.totalEpisodes ? fmtDate(result.endDate) : '—'}</div>
-              <div className="text-xs font-black uppercase">você termina</div>
+              <div className="text-xs font-black uppercase">{t('você termina')}</div>
             </div>
           </div>
           <div className="relative mt-4 flex flex-wrap gap-2">
             <button className="manga-btn" onClick={addAll} disabled={!counted.length}>
-              <ListPlus size={16} /> Adicionar na ordem
+              <ListPlus size={16} />{' '}{t('Adicionar na ordem')}
             </button>
             <button className="manga-btn ghost" onClick={makeList} disabled={!counted.length}>
-              <FolderPlus size={16} /> Criar lista da maratona
+              <FolderPlus size={16} />{' '}{t('Criar lista da maratona')}
             </button>
           </div>
         </div>
       </div>
 
       {!counted.length && (
-        <EmptyState jp="完" title="Nada pra maratonar">
-          Você já viu tudo dessa franquia, ou os títulos ainda não têm número de episódios.
+        <EmptyState jp="完" title={t('Nada pra maratonar')}>
+          {t(
+            'Você já viu tudo dessa franquia, ou os títulos ainda não têm número de episódios.'
+          )}
         </EmptyState>
       )}
 
@@ -242,13 +250,13 @@ export default function Marathon() {
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold">
                   {p.skipped === 'visto' ? (
-                    <span className="text-[#7cff8a]">✓ Já visto</span>
+                    <span className="text-[#7cff8a]">{t('✓ Já visto')}</span>
                   ) : p.skipped === 'sem-episodios' ? (
-                    <span className="text-yellow">Em lançamento / sem nº de episódios</span>
+                    <span className="text-yellow">{t('Em lançamento / sem nº de episódios')}</span>
                   ) : (
                     <>
                       <span className="inline-flex items-center gap-1">
-                        <Clock size={12} /> {p.episodes} ep × {p.minutesPerEp}min = {fmtHours(p.totalMinutes)}
+                        <Clock size={12} /> {p.episodes}{' '}{t('ep ×')}{' '}{p.minutesPerEp}{t('min =')}{' '}{fmtHours(p.totalMinutes)}
                       </span>
                       <span className="inline-flex items-center gap-1 text-cyan">
                         <CalendarCheck size={12} /> {p.startDay === p.endDay ? fmtDate(p.startDate) : `${fmtDate(p.startDate)} → ${fmtDate(p.endDate)}`}

@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n';
 /**
  * Cliente mínimo da API GraphQL do AniList (https://docs.anilist.co).
  * Pública, gratuita e sem chave. Tem limite de requisições por minuto,
@@ -39,7 +40,7 @@ export async function gql<T>(
     });
   } catch (e) {
     if ((e as Error).name === 'AbortError') throw e;
-    const err = new AniListError('Sem conexão com o AniList. Verifique sua internet.');
+    const err = new AniListError(t('Sem conexão com o AniList. Verifique sua internet.'));
     throw err;
   }
 
@@ -52,7 +53,7 @@ export async function gql<T>(
   const json = await res.json().catch(() => null);
   if (!res.ok || json?.errors) {
     const msg: string = json?.errors?.[0]?.message ?? `Erro ${res.status} no AniList`;
-    const err = new AniListError(res.status === 429 ? 'Muitas requisições — aguarde um pouco.' : msg);
+    const err = new AniListError(res.status === 429 ? t('Muitas requisições — aguarde um pouco.') : msg);
     err.status = res.status;
     throw err;
   }

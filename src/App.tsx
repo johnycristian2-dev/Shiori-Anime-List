@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { useUI } from './store/ui';
 import { Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import { Spinner } from './components/ui';
@@ -33,8 +34,13 @@ const Loading = () => (
 );
 
 export default function App() {
+  // Trocar o idioma remonta a árvore inteira: todos os textos t() são recalculados
+  const lang = useUI((s) => s.lang);
+  useEffect(() => {
+    document.documentElement.lang = { pt: 'pt-BR', en: 'en', ja: 'ja' }[lang];
+  }, [lang]);
   return (
-    <Layout>
+    <Layout key={lang}>
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<Discover />} />

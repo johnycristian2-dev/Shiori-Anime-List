@@ -15,6 +15,9 @@ import { useUI } from '../store/ui';
 import { authorizeUrl, CLIENT_ID, useAuth, validToken, type Viewer } from '../store/auth';
 import type { ListEntry, ListStatus, Media, MediaPage } from '../types';
 
+import { t, locale } from '../lib/i18n';
+import { LANGS } from '../lib/i18n';
+
 const AL_TO_LOCAL: Record<string, ListStatus> = {
   CURRENT: 'WATCHING',
   REPEATING: 'WATCHING',
@@ -82,16 +85,16 @@ export default function Sync() {
 
   // Carrega o perfil quando volta do login do AniList
   useEffect(() => {
-    const t = validToken();
-    if (t && !viewer) {
-      gql<{ Viewer: Viewer }>(VIEWER_QUERY, {}, { token: t })
+    const tok = validToken();
+    if (tok && !viewer) {
+      gql<{ Viewer: Viewer }>(VIEWER_QUERY, {}, { token: tok })
         .then((d) => {
           setViewer(d.Viewer);
-          toast(`Conectado como ${d.Viewer.name}`);
+          toast(t('Conectado como {0}', d.Viewer.name));
         })
         .catch(() => {
           logout();
-          toast('Não deu pra conectar no AniList', 'err');
+          toast(t('Não deu pra conectar no AniList'), 'err');
         });
     }
   }, [token, viewer, setViewer, logout, toast]);
@@ -112,7 +115,11 @@ export default function Sync() {
   const exportMal = () => {
     const { xml, exported, skipped } = toMalXml(all);
     downloadText(`shiori-mal-${new Date().toISOString().slice(0, 10)}.xml`, xml, 'application/xml');
-    toast(skipped.length ? `${exported} exportados · ${skipped.length} sem ID no MAL ficaram de fora` : `${exported} animes exportados!`);
+    toast(skipped.length ? t(
+      '{0} exportados · {1} sem ID no MAL ficaram de fora',
+      exported,
+      skipped.length
+    ) : t('{0} animes exportados!', exported));
   };
 
   const exportJson = () => {
@@ -128,10 +135,10 @@ export default function Sync() {
       const data = JSON.parse(await file.text());
       const raw = Array.isArray(data) ? data : data.entries;
       const list: ListEntry[] = Array.isArray(raw) ? raw : Object.values(raw ?? {});
-      if (!list.length || !list.every((e) => typeof e.mediaId === 'number')) throw new Error('Backup inválido.');
+      if (!list.length || !list.every((e) => typeof e.mediaId === 'number')) throw new Error(t('Backup inválido.'));
       importEntries(list, mode);
       if (data.lists) mergeDoc({ entries: {}, deleted: {}, lists: data.lists, skipped: data.skipped ?? [] });
-      toast(`${list.length} animes restaurados`);
+      toast(t('{0} animes restaurados', list.length));
     });
 
   const importMal = (file: File) =>
@@ -142,7 +149,7 @@ export default function Sync() {
       const parts = chunk([...byMal.keys()], 50);
       for (let i = 0; i < parts.length; i++) {
         if (cancel.current) break;
-        setProg({ v: i, max: parts.length, label: 'Buscando dados no AniList…' });
+        setProg({ v: i, max: parts.length, label: t('Buscando dados no AniList…') });
         const page = (await gql<{ Page: MediaPage }>(PAGE_QUERY, { idMalIn: parts[i], perPage: 50, page: 1 })).Page;
         page.media.forEach((m) => {
           const r = m.idMal ? byMal.get(m.idMal) : undefined;
@@ -152,13 +159,17 @@ export default function Sync() {
       }
       importEntries(found, mode);
       const missing = rows.length - found.length;
-      toast(`${found.length} importados do MAL${missing ? ` · ${missing} não encontrados` : ''}`);
+      toast(t(
+        '{0} importados do MAL{1}',
+        found.length,
+        missing ? t(' · {0} não encontrados', missing) : ''
+      ));
     });
 
   const importAniList = () =>
     run('al', async () => {
       const name = alUser.trim();
-      if (!name) throw new Error('Digite o nome de usuário do AniList.');
+      if (!name) throw new Error(t('Digite o nome de usuário do AniList.'));
       type R = { MediaListCollection: { lists: { entries: { status: string; score: number; progress: number; media: Media }[] }[] } };
       const d = await gql<R>(USER_LIST_QUERY, { user: name });
       const list = d.MediaListCollection.lists.flatMap((l) => l.entries);
@@ -169,25 +180,25 @@ export default function Sync() {
           mediaToEntry(e.media, AL_TO_LOCAL[e.status] ?? 'PLANNING', { score: Math.round(e.score || 0), progress: e.progress || 0 }),
         );
       importEntries(out, mode);
-      toast(`${out.length} animes importados de ${name}`);
+      toast(t('{0} animes importados de {1}', out.length, name));
     });
 
   const pushAniList = () =>
     run('push', async () => {
-      const t = validToken();
-      if (!t) throw new Error('Conecte sua conta do AniList primeiro.');
+      const tok = validToken();
+      if (!tok) throw new Error(t('Conecte sua conta do AniList primeiro.'));
       for (let i = 0; i < all.length; i++) {
         if (cancel.current) break;
         const e = all[i];
-        setProg({ v: i, max: all.length, label: 'Enviando para o AniList…' });
+        setProg({ v: i, max: all.length, label: t('Enviando para o AniList…') });
         await gql(
           SAVE_ENTRY_MUTATION,
           { mediaId: e.mediaId, status: LOCAL_TO_AL[e.status], scoreRaw: e.score * 10, progress: e.progress },
-          { token: t },
+          { token: tok },
         );
         await sleep(800);
       }
-      toast(cancel.current ? 'Envio interrompido' : `${all.length} animes sincronizados com o AniList!`);
+      toast(cancel.current ? t('Envio interrompido') : t('{0} animes sincronizados com o AniList!', all.length));
     });
 
   const fileBtn = (key: string, accept: string, onFile: (f: File) => void, label: string) => (
@@ -208,15 +219,15 @@ export default function Sync() {
 
   return (
     <>
-      <SectionTitle title="Sincronizar" jp="同期" />
+      <SectionTitle title={t('Sincronizar')} jp="同期" />
 
       <div className="panel mb-6 flex flex-wrap items-center gap-3 p-4 text-sm font-bold">
-        Ao importar:
+        {t('Ao importar:')}
         <button className={`chip ${mode === 'merge' ? 'on' : ''}`} onClick={() => setMode('merge')}>
-          Mesclar com a lista atual
+          {t('Mesclar com a lista atual')}
         </button>
         <button className={`chip ${mode === 'replace' ? 'on' : ''}`} onClick={() => setMode('replace')}>
-          Substituir tudo
+          {t('Substituir tudo')}
         </button>
       </div>
 
@@ -224,17 +235,19 @@ export default function Sync() {
         <div className="panel mb-6 space-y-3 p-4">
           <Progress value={prog.v} max={prog.max} label={prog.label} />
           <button className="manga-btn ghost !py-1.5" onClick={() => (cancel.current = true)}>
-            Cancelar
+            {t('Cancelar')}
           </button>
         </div>
       )}
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Card jp="雲" title="Conta Shiori (nuvem)">
+        <Card jp="雲" title={t('Conta Shiori (nuvem)')}>
           {!CLOUD_ENABLED ? (
             <p>
-              Pra salvar sua lista na nuvem e usar em vários aparelhos, crie um projeto grátis no <b>Supabase</b> e coloque as chaves em{' '}
-              <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code> (passo a passo no README).
+              {t(
+                'Pra salvar sua lista na nuvem e usar em vários aparelhos, crie um projeto grátis no'
+              )}{' '}<b>{t('Supabase')}</b>{' '}{t('e coloque as chaves em')}{' '}
+              <code>{t('VITE_SUPABASE_URL')}</code>{' '}{t('e')}{' '}<code>{t('VITE_SUPABASE_ANON_KEY')}</code>{' '}{t('(passo a passo no README).')}
             </p>
           ) : cloudUser && !cloudUser.is_anonymous ? (
             <>
@@ -244,30 +257,35 @@ export default function Sync() {
               </div>
               <p>
                 {cloudStatus.state === 'syncing'
-                  ? 'Sincronizando…'
+                  ? t('Sincronizando…')
                   : cloudStatus.state === 'error'
-                    ? `Erro: ${cloudStatus.msg}`
-                    : `Lista salva na nuvem${cloudStatus.at ? ` · ${new Date(cloudStatus.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}. Entre com a mesma conta em outro aparelho.`}
+                    ? t('Erro: {0}', cloudStatus.msg)
+                    : t(
+                  'Lista salva na nuvem{0}. Entre com a mesma conta em outro aparelho.',
+                  cloudStatus.at ? ` · ${new Date(cloudStatus.at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}` : ''
+                )}
               </p>
               <div className="flex flex-wrap gap-2">
                 <button className="manga-btn cyan" onClick={() => run('cloud', cloud.syncNow)} disabled={!!busy}>
-                  {busy === 'cloud' ? <Spinner className="h-4 w-4" /> : <RefreshCw size={16} />} Sincronizar agora
+                  {busy === 'cloud' ? <Spinner className="h-4 w-4" /> : <RefreshCw size={16} />}{' '}{t('Sincronizar agora')}
                 </button>
                 <button className="manga-btn ghost" onClick={() => run('cloud-out', cloud.signOut)}>
-                  <LogOut size={16} /> Sair
+                  <LogOut size={16} />{' '}{t('Sair')}
                 </button>
               </div>
             </>
           ) : mailSent ? (
             <p className="text-ink">
-              📬 Enviamos um link pra <b>{email}</b>. Abra no aparelho que quiser conectar.{' '}
+              {t('📬 Enviamos um link pra')}{' '}<b>{email}</b>{t('. Abra no aparelho que quiser conectar.')}{' '}
               <button className="font-bold text-pink" onClick={() => setMailSent(false)}>
-                Trocar e-mail
+                {t('Trocar e-mail')}
               </button>
             </p>
           ) : (
             <>
-              <p>Entre pra salvar sua lista na nuvem e sincronizar entre celular e PC — sem senha, por link no e-mail.</p>
+              <p>{t(
+                'Entre pra salvar sua lista na nuvem e sincronizar entre celular e PC — sem senha, por link no e-mail.'
+              )}</p>
               <form
                 className="flex gap-2"
                 onSubmit={(e) => {
@@ -278,152 +296,167 @@ export default function Sync() {
                   });
                 }}
               >
-                <input className="field" type="email" required placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input className="field" type="email" required placeholder={t('seu@email.com')} value={email} onChange={(e) => setEmail(e.target.value)} />
                 <button className="manga-btn shrink-0" disabled={!!busy}>
-                  {busy === 'mail' ? <Spinner className="h-4 w-4" /> : <Mail size={16} />} Entrar
+                  {busy === 'mail' ? <Spinner className="h-4 w-4" /> : <Mail size={16} />}{' '}{t('Entrar')}
                 </button>
               </form>
               <button className="manga-btn ghost w-full" onClick={() => run('google', cloud.signInGoogle)}>
-                Entrar com Google
+                {t('Entrar com Google')}
               </button>
             </>
           )}
         </Card>
 
         {CLOUD_ENABLED && (
-          <Card jp="公開" title="Perfil público">
+          <Card jp="公開" title={t('Perfil público')}>
             <PublicProfileCard />
           </Card>
         )}
 
-        <Card jp="輸出" title="Exportar pro MyAnimeList">
+        <Card jp="輸出" title={t('Exportar pro MyAnimeList')}>
           <p>
-            Gera um arquivo <b>.xml</b> no formato do MAL. Lá no site: <b>Perfil → Import</b> → escolha <i>MyAnimeList Import</i> e envie o arquivo.
+            {t('Gera um arquivo')}{' '}<b>{t('.xml')}</b>{' '}{t('no formato do MAL. Lá no site:')}{' '}<b>{t('Perfil → Import')}</b>{' '}{t('→ escolha')}{' '}<i>{t('MyAnimeList Import')}</i>{' '}{t('e envie o arquivo.')}
           </p>
           <button className="manga-btn" disabled={!all.length} onClick={exportMal}>
-            <Download size={16} /> Baixar XML ({all.length})
+            <Download size={16} />{' '}{t('Baixar XML (')}{all.length})
           </button>
         </Card>
 
-        <Card jp="輸入" title="Importar do MyAnimeList">
+        <Card jp="輸入" title={t('Importar do MyAnimeList')}>
           <p>
-            No MAL: <b>Perfil → Export</b> → baixe o arquivo (.xml.gz). Envie aqui mesmo compactado.
+            {t('No MAL:')}{' '}<b>{t('Perfil → Export')}</b>{' '}{t('→ baixe o arquivo (.xml.gz). Envie aqui mesmo compactado.')}
           </p>
-          {fileBtn('mal', '.xml,.gz,application/xml,application/gzip', importMal, 'Escolher arquivo do MAL')}
+          {fileBtn('mal', '.xml,.gz,application/xml,application/gzip', importMal, t('Escolher arquivo do MAL'))}
         </Card>
 
-        <Card jp="取込" title="Importar do AniList">
-          <p>Puxa a lista pública de qualquer usuário do AniList (não precisa login).</p>
+        <Card jp="取込" title={t('Importar do AniList')}>
+          <p>{t('Puxa a lista pública de qualquer usuário do AniList (não precisa login).')}</p>
           <div className="flex gap-2">
-            <input className="field" placeholder="nome de usuário" value={alUser} onChange={(e) => setAlUser(e.target.value)} />
+            <input className="field" placeholder={t('nome de usuário')} value={alUser} onChange={(e) => setAlUser(e.target.value)} />
             <button className="manga-btn cyan shrink-0" disabled={!!busy} onClick={importAniList}>
-              {busy === 'al' ? <Spinner className="h-4 w-4" /> : <Upload size={16} />} Importar
+              {busy === 'al' ? <Spinner className="h-4 w-4" /> : <Upload size={16} />}{' '}{t('Importar')}
             </button>
           </div>
         </Card>
 
-        <Card jp="連携" title="Conectar com AniList">
+        <Card jp="連携" title={t('Conectar com AniList')}>
           {!CLIENT_ID ? (
             <p>
-              Pra sincronizar direto, crie um app em <b>anilist.co/settings/developer</b> e coloque o ID em <code>VITE_ANILIST_CLIENT_ID</code> (veja o README).
+              {t('Pra sincronizar direto, crie um app em')}{' '}<b>{t('anilist.co/settings/developer')}</b>{' '}{t('e coloque o ID em')}{' '}<code>{t('VITE_ANILIST_CLIENT_ID')}</code>{' '}{t('(veja o README).')}
             </p>
           ) : viewer ? (
             <>
               <div className="flex items-center gap-3 text-ink">
                 {viewer.avatar?.medium && <img src={viewer.avatar.medium} alt="" className="h-10 w-10 rounded-full border-2 border-black" />}
                 <b>{viewer.name}</b>
-                <button className="ml-auto text-muted hover:text-pink" onClick={logout} aria-label="Sair">
+                <button className="ml-auto text-muted hover:text-pink" onClick={logout} aria-label={t('Sair')}>
                   <LogOut size={16} />
                 </button>
               </div>
               <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-panel-2 p-3 text-ink">
                 <input type="checkbox" checked={autoSync} onChange={(e) => setAutoSync(e.target.checked)} className="h-5 w-5 accent-[var(--pink)]" />
                 <span>
-                  <b>Sincronizar automaticamente</b>
+                  <b>{t('Sincronizar automaticamente')}</b>
                   <span className="block text-xs text-muted">
-                    {autoSync ? alStatus.msg ?? 'Cada mudança vai pro AniList sozinha' : 'Desligado: use o botão abaixo'}
+                    {autoSync ? alStatus.msg ?? t('Cada mudança vai pro AniList sozinha') : t('Desligado: use o botão abaixo')}
                   </span>
                 </span>
               </label>
-              <p>Ou envie tudo de uma vez (status, nota e episódios):</p>
+              <p>{t('Ou envie tudo de uma vez (status, nota e episódios):')}</p>
               <button className="manga-btn cyan" disabled={!all.length || !!busy} onClick={pushAniList}>
-                {busy === 'push' ? <Spinner className="h-4 w-4" /> : <Upload size={16} />} Enviar {all.length} animes
+                {busy === 'push' ? <Spinner className="h-4 w-4" /> : <Upload size={16} />}{' '}{t('Enviar')}{' '}{all.length}{' '}{t('animes')}
               </button>
             </>
           ) : (
             <>
-              <p>Faça login no AniList pra enviar sua lista direto, sem arquivo.</p>
+              <p>{t('Faça login no AniList pra enviar sua lista direto, sem arquivo.')}</p>
               <a className="manga-btn cyan" href={authorizeUrl()}>
-                <Link2 size={16} /> Conectar conta
+                <Link2 size={16} />{' '}{t('Conectar conta')}
               </a>
             </>
           )}
         </Card>
 
-        <Card jp="保存" title="Backup">
-          <p>Sua lista fica salva neste navegador. Faça backup pra levar pra outro aparelho.</p>
+        <Card jp="保存" title={t('Backup')}>
+          <p>{t(
+            'Sua lista fica salva neste navegador. Faça backup pra levar pra outro aparelho.'
+          )}</p>
           <div className="flex flex-wrap gap-2">
             <button className="manga-btn yellow" disabled={!all.length} onClick={exportJson}>
-              <Download size={16} /> Baixar backup
+              <Download size={16} />{' '}{t('Baixar backup')}
             </button>
             {fileBtn('json', '.json,application/json', importJson, 'Restaurar')}
           </div>
         </Card>
 
-        <Card jp="設定" title="Preferências">
+        <Card jp="設定" title={t('Preferências')}>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="w-24 font-bold text-ink">Tema</span>
+            <span className="w-24 font-bold text-ink">{t('Tema')}</span>
             <button className={`chip ${ui.theme === 'noite' ? 'on' : ''}`} onClick={() => ui.setTheme('noite')}>
-              Noite 夜
+              {t('Noite 夜')}
             </button>
             <button className={`chip ${ui.theme === 'sakura' ? 'on' : ''}`} onClick={() => ui.setTheme('sakura')}>
-              Sakura 桜
+              {t('Sakura 桜')}
             </button>
             <Link to="/temas" className="chip !border-cyan !text-cyan">
-              Mais temas →
+              {t('Mais temas →')}
             </Link>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="w-24 font-bold text-ink">Títulos</span>
+            <span className="w-24 font-bold text-ink">{t('Títulos')}</span>
             <button className={`chip ${ui.titleLang === 'romaji' ? 'on' : ''}`} onClick={() => ui.setTitleLang('romaji')}>
-              Romaji
+              {t('Romaji')}
             </button>
             <button className={`chip ${ui.titleLang === 'english' ? 'on' : ''}`} onClick={() => ui.setTitleLang('english')}>
-              Inglês
+              {t('Inglês')}
+            </button>
+            <button className={`chip ${ui.titleLang === 'native' ? 'on' : ''}`} onClick={() => ui.setTitleLang('native')}>
+              日本語
             </button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="w-24 font-bold text-ink">Pétalas</span>
+            <span className="w-24 font-bold text-ink">{t('Idioma')}</span>
+            {LANGS.map((l) => (
+              <button key={l.id} className={`chip ${ui.lang === l.id ? 'on' : ''}`} onClick={() => ui.setLang(l.id)}>
+                {l.flag} {l.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-24 font-bold text-ink">{t('Pétalas')}</span>
             <button className={`chip ${ui.petals ? 'on' : ''}`} onClick={() => ui.setPetals(!ui.petals)}>
-              {ui.petals ? 'Ligadas 🌸' : 'Desligadas'}
+              {ui.petals ? t('Ligadas 🌸') : t('Desligadas')}
             </button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="w-24 font-bold text-ink">Avisos</span>
+            <span className="w-24 font-bold text-ink">{t('Avisos')}</span>
             <button
               className={`chip ${ui.notify ? 'on' : ''}`}
               onClick={async () => {
                 if (ui.notify) return ui.setNotify(false);
-                if (typeof Notification === 'undefined') return toast('Seu navegador não suporta notificações', 'err');
+                if (typeof Notification === 'undefined') return toast(t('Seu navegador não suporta notificações'), 'err');
                 const perm = await Notification.requestPermission();
                 if (perm === 'granted') {
                   ui.setNotify(true);
-                  toast('Você será avisado de episódios novos 🔔');
-                } else toast('Permissão de notificação negada', 'err');
+                  toast(t('Você será avisado de episódios novos 🔔'));
+                } else toast(t('Permissão de notificação negada'), 'err');
               }}
             >
-              <Bell size={14} /> {ui.notify ? 'Notificações ligadas' : 'Ativar notificações'}
+              <Bell size={14} /> {ui.notify ? t('Notificações ligadas') : t('Ativar notificações')}
             </button>
           </div>
           <p className="text-xs">
-            O sino 🔔 no topo mostra episódios novos sempre. As notificações do navegador funcionam enquanto o Shiori estiver aberto (mesmo em outra aba ou minimizado). Aviso com o app fechado precisa de servidor — está no roadmap.
+            {t(
+              'O sino 🔔 no topo mostra episódios novos sempre. As notificações do navegador funcionam enquanto o Shiori estiver aberto (mesmo em outra aba ou minimizado). Aviso com o app fechado precisa de servidor — está no roadmap.'
+            )}
           </p>
           <div className="flex flex-wrap gap-2 border-t-2 border-line pt-3">
-            <button className="manga-btn ghost !py-1.5" disabled={!skippedCount} onClick={() => { clearSkipped(); toast('Pulados liberados no modo rápido', 'info'); }}>
-              Resetar pulados ({skippedCount})
+            <button className="manga-btn ghost !py-1.5" disabled={!skippedCount} onClick={() => { clearSkipped(); toast(t('Pulados liberados no modo rápido'), 'info'); }}>
+              {t('Resetar pulados (')}{skippedCount})
             </button>
-            <ConfirmButton className="manga-btn ghost !py-1.5 !text-red-400" onConfirm={() => { clearAll(); toast('Lista apagada', 'info'); }}>
-              Apagar lista
+            <ConfirmButton className="manga-btn ghost !py-1.5 !text-red-400" onConfirm={() => { clearAll(); toast(t('Lista apagada'), 'info'); }}>
+              {t('Apagar lista')}
             </ConfirmButton>
           </div>
         </Card>

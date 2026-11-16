@@ -8,6 +8,8 @@ import { useTitle } from '../lib/format';
 import { FORMAT_LABEL } from '../lib/labels';
 import { STATUS_META, useList } from '../store/list';
 
+import { t } from '../lib/i18n';
+
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [term, setTerm] = useState('');
   const [sel, setSel] = useState(0);
@@ -61,11 +63,11 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
             value={term}
             onChange={(e) => setTerm(e.target.value)}
             onKeyDown={onKey}
-            placeholder="Buscar anime… (romaji, inglês ou japonês)"
+            placeholder={t('Buscar anime… (romaji, inglês ou japonês)')}
             className="flex-1 bg-transparent text-lg font-bold outline-none placeholder:text-muted"
           />
           {q.isFetching && <Spinner className="h-4 w-4 text-pink" />}
-          <button onClick={onClose} aria-label="Fechar" className="text-muted hover:text-ink">
+          <button onClick={onClose} aria-label={t('Fechar')} className="text-muted hover:text-ink">
             <X size={18} />
           </button>
         </div>
@@ -73,10 +75,10 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {debounced.trim().length < 2 ? (
             <div className="p-6 text-center text-sm font-bold text-muted">
-              Digite pelo menos 2 letras · <span className="font-jp">検索</span>
+              {t('Digite pelo menos 2 letras ·')}{' '}<span className="font-jp">検索</span>
             </div>
           ) : !q.isLoading && items.length === 0 ? (
-            <div className="p-6 text-center text-sm font-bold text-muted">Nada encontrado 😢</div>
+            <div className="p-6 text-center text-sm font-bold text-muted">{t('Nada encontrado 😢')}</div>
           ) : (
             items.map((m, i) => {
               const e = entries[m.id];
@@ -113,7 +115,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
               onClick={() => go(`/explorar?q=${encodeURIComponent(term.trim())}`)}
               className={`mt-1 flex w-full items-center justify-between rounded-xl p-3 text-sm font-extrabold text-cyan ${sel === items.length ? 'bg-panel-2' : ''}`}
             >
-              Ver todos os resultados em Explorar <CornerDownLeft size={14} />
+              {t('Ver todos os resultados em Explorar')}{' '}<CornerDownLeft size={14} />
             </button>
           )}
         </div>

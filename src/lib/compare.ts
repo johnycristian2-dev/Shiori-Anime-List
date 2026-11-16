@@ -3,6 +3,8 @@
  */
 import type { ListEntry } from '../types';
 
+import { t } from './i18n';
+
 const seen = (e: ListEntry) => e.status !== 'PLANNING';
 
 function pearson(xs: number[], ys: number[]) {
@@ -40,11 +42,41 @@ function cosine(a: Map<string, number>, b: Map<string, number>) {
 }
 
 export function compatLabel(score: number) {
-  if (score >= 90) return { label: 'Almas gêmeas', jp: '運命' };
-  if (score >= 75) return { label: 'Muito parecidos', jp: '親友' };
-  if (score >= 55) return { label: 'Combinam bem', jp: '仲間' };
-  if (score >= 35) return { label: 'Gostos diferentes', jp: '個性' };
-  return { label: 'Opostos que se atraem', jp: '宿敵' };
+  if (score >= 90) return {
+    get label() {
+      return t('Almas gêmeas');
+    },
+
+    jp: '運命'
+  };
+  if (score >= 75) return {
+    get label() {
+      return t('Muito parecidos');
+    },
+
+    jp: '親友'
+  };
+  if (score >= 55) return {
+    get label() {
+      return t('Combinam bem');
+    },
+
+    jp: '仲間'
+  };
+  if (score >= 35) return {
+    get label() {
+      return t('Gostos diferentes');
+    },
+
+    jp: '個性'
+  };
+  return {
+    get label() {
+      return t('Opostos que se atraem');
+    },
+
+    jp: '宿敵'
+  };
 }
 
 export function compareLists(mineList: ListEntry[], theirsList: ListEntry[]) {

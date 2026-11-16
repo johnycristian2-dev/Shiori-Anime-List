@@ -25,6 +25,8 @@ import {
   type PartyState,
 } from '../sync/party';
 
+import { t } from '../lib/i18n';
+
 function useMyName() {
   const nickname = useUI((s) => s.nickname);
   const setNickname = useUI((s) => s.setNickname);
@@ -40,7 +42,7 @@ function Lobby() {
   const toast = useUI((s) => s.toast);
 
   const run = async (k: string, fn: () => Promise<string>) => {
-    if (!myName.trim()) return toast('Digite seu nome primeiro', 'info');
+    if (!myName.trim()) return toast(t('Digite seu nome primeiro'), 'info');
     setBusy(k);
     try {
       nav(`/party/${await fn()}`);
@@ -54,11 +56,13 @@ function Lobby() {
   return (
     <div className="mx-auto max-w-xl space-y-5">
       <p className="-mt-2 text-sm font-bold text-muted">
-        Crie uma sala, mande o código pros amigos, cada um sugere animes e vota. O mais votado vira o anime da noite 🍿
+        {t(
+          'Crie uma sala, mande o código pros amigos, cada um sugere animes e vota. O mais votado vira o anime da noite 🍿'
+        )}
       </p>
       <div className="panel p-5">
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Seu nome na sala</label>
-        <input className="field" maxLength={24} placeholder="Ex.: Jotas" value={myName} onChange={(e) => setMyName(e.target.value)} />
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Seu nome na sala')}</label>
+        <input className="field" maxLength={24} placeholder={t('Ex.: Jotas')} value={myName} onChange={(e) => setMyName(e.target.value)} />
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <form
@@ -68,10 +72,10 @@ function Lobby() {
             run('create', () => createRoom(roomName, myName));
           }}
         >
-          <h3 className="font-display">Criar sala</h3>
-          <input className="field" maxLength={40} placeholder="Nome (ex.: Sexta do anime)" value={roomName} onChange={(e) => setRoomName(e.target.value)} />
+          <h3 className="font-display">{t('Criar sala')}</h3>
+          <input className="field" maxLength={40} placeholder={t('Nome (ex.: Sexta do anime)')} value={roomName} onChange={(e) => setRoomName(e.target.value)} />
           <button className="manga-btn w-full" disabled={!!busy}>
-            {busy === 'create' ? <Spinner className="h-4 w-4" /> : <Plus size={16} />} Criar
+            {busy === 'create' ? <Spinner className="h-4 w-4" /> : <Plus size={16} />}{' '}{t('Criar')}
           </button>
         </form>
         <form
@@ -81,20 +85,20 @@ function Lobby() {
             run('join', () => joinRoom(code, myName));
           }}
         >
-          <h3 className="font-display">Entrar com código</h3>
+          <h3 className="font-display">{t('Entrar com código')}</h3>
           <input
             className="field text-center font-display tracking-[0.3em] uppercase"
             maxLength={6}
-            placeholder="ABC123"
+            placeholder={t('ABC123')}
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
           />
           <button className="manga-btn cyan w-full" disabled={!!busy || code.length !== 6}>
-            {busy === 'join' ? <Spinner className="h-4 w-4" /> : <Play size={16} />} Entrar
+            {busy === 'join' ? <Spinner className="h-4 w-4" /> : <Play size={16} />}{' '}{t('Entrar')}
           </button>
         </form>
       </div>
-      <p className="text-center text-xs font-bold text-muted">Não precisa de conta: quem não estiver logado entra como convidado.</p>
+      <p className="text-center text-xs font-bold text-muted">{t('Não precisa de conta: quem não estiver logado entra como convidado.')}</p>
     </div>
   );
 }
@@ -113,7 +117,7 @@ function AddPanel({ code, myName, existing }: { code: string; myName: string; ex
   const add = async (m: Parameters<typeof addItem>[1]) => {
     try {
       await addItem(code, m, myName);
-      toast(`${title(m)} sugerido!`);
+      toast(t('{0} sugerido!', title(m)));
     } catch (e) {
       toast((e as Error).message, 'err');
     }
@@ -121,10 +125,10 @@ function AddPanel({ code, myName, existing }: { code: string; myName: string; ex
 
   return (
     <div className="panel space-y-3 p-4">
-      <h3 className="font-display">Sugerir anime</h3>
+      <h3 className="font-display">{t('Sugerir anime')}</h3>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-        <input className="field !pl-9" placeholder="Buscar…" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <input className="field !pl-9" placeholder={t('Buscar…')} value={term} onChange={(e) => setTerm(e.target.value)} />
       </div>
       {(q.data?.media ?? []).slice(0, 6).map((m) => (
         <button
@@ -140,7 +144,7 @@ function AddPanel({ code, myName, existing }: { code: string; myName: string; ex
       ))}
       {planning.length > 0 && (
         <>
-          <div className="pt-1 text-[10px] font-black uppercase tracking-wider text-muted">Da sua lista "Quero ver"</div>
+          <div className="pt-1 text-[10px] font-black uppercase tracking-wider text-muted">{t('Da sua lista "Quero ver"')}</div>
           <div className="flex flex-wrap gap-1.5">
             {planning.map((e) => (
               <button key={e.mediaId} className="chip !px-2 !py-1 !text-xs" onClick={() => add(entryToMedia(e))}>
@@ -203,7 +207,7 @@ function Room({ code }: { code: string }) {
   const r = winner ? rarityOf(winner.averageScore) : null;
 
   const vote = async (mediaId: number, on: boolean) => {
-    if (on && myVotes.length >= MAX_VOTES) return toast(`Você só tem ${MAX_VOTES} votos — tire um pra mudar`, 'info');
+    if (on && myVotes.length >= MAX_VOTES) return toast(t('Você só tem {0} votos — tire um pra mudar', MAX_VOTES), 'info');
     try {
       await setVote(code, mediaId, on);
       refresh();
@@ -235,7 +239,7 @@ function Room({ code }: { code: string }) {
                 <span className={`h-2 w-2 rounded-full ${online.includes(m.user_id) ? 'bg-[#7cff8a]' : 'bg-line'}`} />
                 {m.user_id === state.room.host && <Crown size={11} className="text-yellow" />}
                 {m.name}
-                {m.user_id === user.id && ' (você)'}
+                {m.user_id === user.id && t(' (você)')}
               </span>
             ))}
           </div>
@@ -245,8 +249,8 @@ function Room({ code }: { code: string }) {
           onClick={() =>
             navigator.clipboard
               .writeText(link)
-              .then(() => toast('Link copiado! Mande pros amigos'))
-              .catch(() => toast(`Código: ${code}`, 'info'))
+              .then(() => toast(t('Link copiado! Mande pros amigos')))
+              .catch(() => toast(t('Código: {0}', code), 'info'))
           }
         >
           <Copy size={16} /> <span className="font-display tracking-[0.25em]">{code}</span>
@@ -262,7 +266,7 @@ function Room({ code }: { code: string }) {
           {winner.coverImage.large && <img src={winner.coverImage.large} alt="" className="w-32 rounded-xl border-[3px] border-black" />}
           <div className="relative flex-1">
             <div className="flex items-center gap-2 text-sm font-black text-yellow">
-              <Trophy size={16} /> O anime da vez é…
+              <Trophy size={16} />{' '}{t('O anime da vez é…')}
             </div>
             <div className="font-display text-3xl">{title(winner)}</div>
             <div className="text-sm font-bold text-muted">
@@ -273,17 +277,17 @@ function Room({ code }: { code: string }) {
                 className="manga-btn cyan"
                 onClick={() => {
                   add(winner, 'WATCHING');
-                  toast('Adicionado como Assistindo — bom anime! 🍿');
+                  toast(t('Adicionado como Assistindo — bom anime! 🍿'));
                 }}
               >
-                <Play size={16} /> Vou assistir
+                <Play size={16} />{' '}{t('Vou assistir')}
               </button>
               <Link to={`/anime/${winner.id}`} className="manga-btn ghost">
-                Detalhes
+                {t('Detalhes')}
               </Link>
               {isHost && (
                 <button className="manga-btn ghost" onClick={() => reopenVoting(code).then(refresh)}>
-                  <RotateCcw size={16} /> Reabrir votação
+                  <RotateCcw size={16} />{' '}{t('Reabrir votação')}
                 </button>
               )}
             </div>
@@ -295,15 +299,15 @@ function Room({ code }: { code: string }) {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-display text-lg">
-              Votação <span className="font-jp text-sm text-pink">投票</span>
+              {t('Votação')}{' '}<span className="font-jp text-sm text-pink">投票</span>
             </h3>
             <span className="text-xs font-black text-muted">
-              Seus votos: {myVotes.length}/{MAX_VOTES}
+              {t('Seus votos:')}{' '}{myVotes.length}/{MAX_VOTES}
             </span>
           </div>
           {!ranked.length ? (
-            <EmptyState jp="空" title="Ninguém sugeriu nada ainda">
-              Use o painel ao lado pra sugerir o primeiro anime.
+            <EmptyState jp="空" title={t('Ninguém sugeriu nada ainda')}>
+              {t('Use o painel ao lado pra sugerir o primeiro anime.')}
             </EmptyState>
           ) : (
             <div className="space-y-3">
@@ -322,8 +326,8 @@ function Room({ code }: { code: string }) {
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-extrabold">{title(item.media)}</div>
                         <div className="truncate text-xs font-bold text-muted">
-                          sugerido por {item.added_name ?? '?'}
-                          {voters.length > 0 && ` · votos: ${voters.join(', ')}`}
+                          {t('sugerido por')}{' '}{item.added_name ?? '?'}
+                          {voters.length > 0 && t(' · votos: {0}', voters.join(', '))}
                         </div>
                       </div>
                       <span className="font-display text-2xl">{votes}</span>
@@ -331,13 +335,13 @@ function Room({ code }: { code: string }) {
                         <button
                           className={`manga-btn !rounded-lg !px-3 !py-2 ${mine ? '' : 'ghost'}`}
                           onClick={() => vote(item.media_id, !mine)}
-                          aria-label={mine ? 'Tirar voto' : 'Votar'}
+                          aria-label={mine ? t('Tirar voto') : t('Votar')}
                         >
                           {mine ? <Check size={16} /> : '+1'}
                         </button>
                       )}
                       {(isHost || item.added_by === user.id) && state.room.status === 'voting' && (
-                        <button className="p-1 text-muted hover:text-red-400" onClick={() => removeItem(code, item.media_id).then(refresh)} aria-label="Remover">
+                        <button className="p-1 text-muted hover:text-red-400" onClick={() => removeItem(code, item.media_id).then(refresh)} aria-label={t('Remover')}>
                           <Trash2 size={15} />
                         </button>
                       )}
@@ -349,11 +353,11 @@ function Room({ code }: { code: string }) {
           )}
           {isHost && state.room.status === 'voting' && ranked.length > 0 && (
             <button className="manga-btn mt-5 w-full !py-3" onClick={doClose} disabled={busy}>
-              {busy ? <Spinner className="h-4 w-4" /> : <Trophy size={18} />} Encerrar e revelar o vencedor
+              {busy ? <Spinner className="h-4 w-4" /> : <Trophy size={18} />}{' '}{t('Encerrar e revelar o vencedor')}
             </button>
           )}
           {!isHost && state.room.status === 'voting' && (
-            <p className="mt-4 text-center text-xs font-bold text-muted">Quando todos votarem, o anfitrião 👑 encerra a votação.</p>
+            <p className="mt-4 text-center text-xs font-bold text-muted">{t('Quando todos votarem, o anfitrião 👑 encerra a votação.')}</p>
           )}
         </div>
         {state.room.status === 'voting' && <AddPanel code={code} myName={myName || 'Otaku'} existing={existing} />}
@@ -368,19 +372,21 @@ export default function Party() {
   return (
     <>
       <SectionTitle
-        title="Watch party"
+        title={t('Watch party')}
         jp="鑑賞会"
         action={
           code && (
             <button className="inline-flex items-center gap-1" onClick={() => nav('/party')}>
-              <X size={14} /> Sair da sala
+              <X size={14} />{' '}{t('Sair da sala')}
             </button>
           )
         }
       />
       {!CLOUD_ENABLED ? (
-        <EmptyState jp="雲" title="Precisa da conta Shiori">
-          A watch party usa o Supabase pra juntar todo mundo em tempo real. Veja o passo a passo no README (seção "Conta Shiori").
+        <EmptyState jp="雲" title={t('Precisa da conta Shiori')}>
+          {t(
+            'A watch party usa o Supabase pra juntar todo mundo em tempo real. Veja o passo a passo no README (seção "Conta Shiori").'
+          )}
         </EmptyState>
       ) : code ? (
         <Room code={code.toUpperCase()} />

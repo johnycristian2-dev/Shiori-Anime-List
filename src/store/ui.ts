@@ -5,7 +5,7 @@ import type { Theme as ThemeDef } from '../lib/themes';
 
 /** id de um tema pronto, de um tema seu, ou 'anime' (gerado a partir de um anime) */
 export type Theme = string;
-export type TitleLang = 'romaji' | 'english';
+export type TitleLang = 'romaji' | 'english' | 'native';
 export interface Toast {
   id: number;
   text: string;
@@ -23,6 +23,8 @@ interface UIState {
   setAnimeTheme: (t: ThemeDef) => void;
   setRotateFavorites: (v: boolean) => void;
   titleLang: TitleLang;
+  lang: 'pt' | 'en' | 'ja';
+  setLang: (l: 'pt' | 'en' | 'ja') => void;
   petals: boolean;
   nickname: string;
   notify: boolean;
@@ -58,6 +60,8 @@ export const useUI = create<UIState>()(
       setAnimeTheme: (t) => set({ animeTheme: t, theme: 'anime', rotateFavorites: false }),
       setRotateFavorites: (rotateFavorites) => set({ rotateFavorites }),
       titleLang: 'romaji',
+      lang: (typeof navigator !== 'undefined' && navigator.language?.startsWith('ja') ? 'ja' : typeof navigator !== 'undefined' && navigator.language?.startsWith('en') ? 'en' : 'pt') as 'pt' | 'en' | 'ja',
+      setLang: (lang) => set({ lang }),
       petals: true,
       nickname: '',
       notify: false,
@@ -87,6 +91,7 @@ export const useUI = create<UIState>()(
         animeTheme: s.animeTheme,
         rotateFavorites: s.rotateFavorites,
         titleLang: s.titleLang,
+        lang: s.lang,
         petals: s.petals,
         nickname: s.nickname,
         notify: s.notify,

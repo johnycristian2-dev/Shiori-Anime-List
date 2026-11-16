@@ -4,6 +4,8 @@
  */
 import type { ListEntry, ListStatus, MediaFormat } from '../types';
 
+import { t } from './i18n';
+
 const TO_MAL: Record<ListStatus, string> = {
   WATCHING: 'Watching',
   COMPLETED: 'Completed',
@@ -107,9 +109,9 @@ export async function readMalFile(file: File): Promise<string> {
 
 export function parseMalXml(xml: string): MalRow[] {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
-  if (doc.querySelector('parsererror')) throw new Error('Arquivo XML inválido.');
+  if (doc.querySelector('parsererror')) throw new Error(t('Arquivo XML inválido.'));
   const animes = [...doc.querySelectorAll('anime')];
-  if (!animes.length) throw new Error('Nenhum anime encontrado no arquivo.');
+  if (!animes.length) throw new Error(t('Nenhum anime encontrado no arquivo.'));
   return animes
     .map((a) => {
       const get = (tag: string) => a.querySelector(tag)?.textContent?.trim() ?? '';

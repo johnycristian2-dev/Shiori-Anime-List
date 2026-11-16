@@ -4,12 +4,49 @@ import type { CustomList, HistoryEvent, ListEntry, ListStatus, Media, SyncDoc } 
 import { HISTORY_MAX, mergeDocs } from '../lib/merge';
 import { applyDailyPull } from '../lib/gacha';
 
+import { t } from '../lib/i18n';
+
 export const STATUS_META: Record<ListStatus, { label: string; jp: string; color: string }> = {
-  WATCHING: { label: 'Assistindo', jp: '視聴中', color: '#3de2ff' },
-  PLANNING: { label: 'Quero ver', jp: '予定', color: '#ffe14d' },
-  COMPLETED: { label: 'Completo', jp: '完了', color: '#7cff8a' },
-  PAUSED: { label: 'Pausado', jp: '保留', color: '#b98cff' },
-  DROPPED: { label: 'Dropado', jp: '中止', color: '#ff6b6b' },
+  WATCHING: {
+    get label() {
+      return t('Assistindo');
+    },
+
+    jp: '視聴中',
+    color: '#3de2ff'
+  },
+  PLANNING: {
+    get label() {
+      return t('Quero ver');
+    },
+
+    jp: '予定',
+    color: '#ffe14d'
+  },
+  COMPLETED: {
+    get label() {
+      return t('Completo');
+    },
+
+    jp: '完了',
+    color: '#7cff8a'
+  },
+  PAUSED: {
+    get label() {
+      return t('Pausado');
+    },
+
+    jp: '保留',
+    color: '#b98cff'
+  },
+  DROPPED: {
+    get label() {
+      return t('Dropado');
+    },
+
+    jp: '中止',
+    color: '#ff6b6b'
+  },
 };
 export const STATUS_ORDER: ListStatus[] = ['WATCHING', 'PLANNING', 'COMPLETED', 'PAUSED', 'DROPPED'];
 
@@ -205,7 +242,7 @@ export const useList = create<ListState>()(
         const now = Date.now();
         const list: CustomList = {
           id,
-          name: name.trim() || 'Nova lista',
+          name: name.trim() || t('Nova lista'),
           emoji: emoji ?? LIST_EMOJIS[Object.keys(get().lists).length % LIST_EMOJIS.length],
           mediaIds: [],
           createdAt: now,
@@ -244,7 +281,13 @@ export const useList = create<ListState>()(
 
       mergeDoc: (remote) => set(mergeDocs(get().getDoc(), remote)),
     }),
-    { name: 'shiori-list', version: 1 },
+    {
+      get name() {
+        return t('shiori-list');
+      },
+
+      version: 1
+    },
   ),
 );
 

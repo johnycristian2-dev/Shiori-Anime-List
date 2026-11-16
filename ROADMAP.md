@@ -46,9 +46,20 @@ Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande
 ## v0.6 · Polimento 仕上げ
 > Objetivo: bonito, em português e pronto pro portfólio.
 
-- [x] 🟢 **Temas extras** — ✅ v0.6 (`/temas`: 15 prontos, tema do seu anime pela cor da capa, rodízio diário entre favoritos, editor com prévia ao vivo, fundos e partículas)
-- [ ] 🟡 **Sinopse em português** — endpoint backend chamando a API da Claude (nunca expor a chave no front), com cache por `mediaId`.
+- [x] 🟢 **Temas extras** — ✅ v0.6/v0.7 (`/temas`: 15 prontos, cada um com fonte própria, cantos, sombras mangá/neon/suave, efeito de título glitch/neon/pincel/pop 3D, camadas CRT/vinheta/papel/filme/hexágonos e 10 tipos de partículas; tema do seu anime, rodízio diário, editor completo)
+- [x] 🟡 **Idiomas + sinopses traduzidas** — ✅ site em Português, English e 日本語 (`src/lib/i18n`); sinopses traduzidas por `api/translate.ts` (Vercel Function → AI Gateway, sem chave no front) com cache na CDN e no navegador por `mediaId`.
 - [ ] 🟢 **Testes e lint no deploy** — Vitest + Testing Library pros stores e `lib/` (mal.ts, profile.ts), ESLint, e rodar ambos no workflow antes do build.
+
+## v0.7 · Comunidade 仲間
+> Objetivo: login, perfil caprichado e um lugar pra conversar sobre anime com segurança.
+
+- [ ] 🔴 **Perfil de verdade** — foto, banner, bio, anime favorito em destaque, vitrine de conquistas (Supabase Storage pra imagens, com limite de tamanho e moderação).
+- [ ] 🟡 **Conquistas no perfil** — medalhas públicas, raridade (% de usuários que têm) e progresso das secretas.
+- [ ] 🟡 **Postagens e reviews** — review com nota, post curto, reação por episódio; curtidas e comentários.
+- [ ] 🟡 **Seguir e feed** — seguir amigos; feed com o que eles adicionaram/terminaram/avaliaram.
+- [ ] 🔴 **Comunidade com chats** — salas por anime e por temporada (Supabase Realtime), aviso/ocultação de spoiler.
+- [ ] 🔴 **Verificação de idade** — data/faixa etária no cadastro, conteúdo adulto (gênero Hentai/Ecchi, `isAdult`) escondido por padrão, restrições pra menores; estudar ECA Digital (Lei 15.211/2025) e LGPD antes de abrir chats.
+- [ ] 🔴 **Moderação e segurança** — denunciar/bloquear, filtro de palavrões, limite de envio, termos de uso e política de privacidade.
 
 ---
 
@@ -58,4 +69,4 @@ Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande
 - v0.3 — Conta na nuvem (Supabase), sync automático AniList, sino de episódios novos + notificações, listas personalizadas, testes com Vitest no deploy
 - v0.4 — Quiz pra iniciantes, planejador de maratona, filtros extras (streaming, tamanho, temas, origem, excluir gêneros), páginas de personagem e dublador
 - v0.5 — Perfil público, comparar listas, watch party em tempo real, retrospectiva do ano, gacha diário com conquistas secretas
-- v0.6 (parcial) — Sistema de temas: 15 temas prontos, tema gerado do anime, rodízio diário, editor
+- v0.6 — Sistema de temas completo (fontes, efeitos, camadas, partículas), site em 3 idiomas, sinopses traduzidas

@@ -8,6 +8,8 @@ import { useUI } from '../store/ui';
 import { pickTitle } from '../lib/format';
 import type { ListEntry } from '../types';
 
+import { t } from '../lib/i18n';
+
 const MAX_SEEDS = 10;
 
 function weight(e: ListEntry) {
@@ -43,27 +45,26 @@ export default function Recommendations() {
   if (!all.length)
     return (
       <>
-        <SectionTitle title="Pra você" jp="おすすめ" />
-        <EmptyState jp="推" title="Adicione alguns animes primeiro">
-          As recomendações usam o que está na sua lista. Comece pelo{' '}
+        <SectionTitle title={t('Pra você')} jp="おすすめ" />
+        <EmptyState jp="推" title={t('Adicione alguns animes primeiro')}>
+          {t('As recomendações usam o que está na sua lista. Comece pelo')}{' '}
           <Link to="/swipe" className="font-bold text-pink">
-            modo rápido
+            {t('modo rápido')}
           </Link>{' '}
-          ou{' '}
+          {t('ou')}{' '}
           <Link to="/" className="font-bold text-pink">
-            Descobrir
-          </Link>
-          .
+            {t('Descobrir')}
+          </Link>.
         </EmptyState>
       </>
     );
 
   return (
     <>
-      <SectionTitle title="Pra você" jp="おすすめ" />
+      <SectionTitle title={t('Pra você')} jp="おすすめ" />
       <div className="panel mb-6 p-4">
         <div className="mb-2 text-xs font-black uppercase tracking-wider text-muted">
-          Baseado em ({seedIds.length}/{MAX_SEEDS}) — toque pra escolher
+          {t('Baseado em (')}{seedIds.length}/{MAX_SEEDS}{t(') — toque pra escolher')}
         </div>
         <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
           {all.slice(0, 40).map((e) => (
@@ -85,14 +86,14 @@ export default function Recommendations() {
                 <AnimeCard
                   key={r.media.id}
                   media={r.media}
-                  note={`Porque você curtiu ${r.because.slice(0, 2).map(nameOf).join(' e ')}`}
+                  note={t('Porque você curtiu {0}', r.because.slice(0, 2).map(nameOf).join(' e '))}
                 />
               ))}
         </div>
       )}
       {!q.isLoading && q.data && recs.length === 0 && (
-        <EmptyState jp="無" title="Sem novidades">
-          Você já tem tudo que foi recomendado! Escolha outros animes base.
+        <EmptyState jp="無" title={t('Sem novidades')}>
+          {t('Você já tem tudo que foi recomendado! Escolha outros animes base.')}
         </EmptyState>
       )}
     </>

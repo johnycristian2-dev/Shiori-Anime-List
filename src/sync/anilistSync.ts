@@ -17,6 +17,8 @@ import { mediaToEntry, useList } from '../store/list';
 import { useSyncStatus } from '../store/sync';
 import type { ListEntry, ListStatus, Media, SyncDoc } from '../types';
 
+import { t } from '../lib/i18n';
+
 export const AL_TO_LOCAL: Record<string, ListStatus> = {
   CURRENT: 'WATCHING',
   REPEATING: 'WATCHING',
@@ -66,7 +68,7 @@ export async function pullFromAniList() {
   const token = validToken();
   const viewer = await ensureViewer();
   if (!token || !viewer) return;
-  status('syncing', 'Baixando do AniList…');
+  status('syncing', t('Baixando do AniList…'));
   type R = {
     MediaListCollection: {
       lists: { entries: { status: string; score: number; progress: number; updatedAt: number; media: Media }[] }[];
@@ -99,7 +101,7 @@ export async function pullFromAniList() {
   const now = useList.getState().entries;
   for (const e of Object.values(now)) if (synced.get(e.mediaId) !== sigOf(e)) queue.set(e.mediaId, 'save');
   pulledFor = viewer.id;
-  status('ok', 'Sincronizado com o AniList');
+  status('ok', t('Sincronizado com o AniList'));
   kick(300);
 }
 
@@ -117,7 +119,7 @@ async function processQueue() {
     while (queue.size && active()) {
       const [id, op] = queue.entries().next().value as [number, 'save' | 'delete'];
       queue.delete(id);
-      status('syncing', `Enviando pro AniList… (${queue.size + 1} na fila)`);
+      status('syncing', t('Enviando pro AniList… ({0} na fila)', queue.size + 1));
       if (op === 'save') {
         const e = useList.getState().entries[id];
         if (!e) continue;
@@ -132,7 +134,7 @@ async function processQueue() {
       }
       await sleep(900);
     }
-    status('ok', 'Sincronizado com o AniList');
+    status('ok', t('Sincronizado com o AniList'));
   } catch (e) {
     status('error', (e as Error).message);
     kick(30_000); // tenta de novo depois

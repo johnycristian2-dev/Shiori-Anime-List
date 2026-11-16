@@ -3,6 +3,7 @@ import { useList } from '../store/list';
 import { useUI } from '../store/ui';
 import { dayKey } from './gacha';
 import { pickOfTheDay, PRESETS, themeFromColor, type Theme } from './themes';
+import { t } from './i18n';
 
 /** Todos os temas que o usuário pode escolher (prontos + os que ele criou). */
 export function useAllThemes() {
@@ -36,7 +37,7 @@ export function useActiveTheme(): Theme {
     if (rotate) {
       const pool = favorites.length ? favorites : others.slice(0, 10);
       const e = pickOfTheDay(pool, today);
-      if (e?.color) return themeFromColor(e.color, { id: `dia-${e.mediaId}`, name: `Tema do dia: ${e.title}`, image: e.cover });
+      if (e?.color) return themeFromColor(e.color, { id: `dia-${e.mediaId}`, name: t('Tema do dia: {0}', e.title), image: e.cover });
     }
     if (id === 'anime' && animeTheme) return animeTheme;
     return custom.find((t) => t.id === id) ?? PRESETS.find((t) => t.id === id) ?? PRESETS[0];

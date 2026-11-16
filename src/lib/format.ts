@@ -1,7 +1,9 @@
 import { useUI } from '../store/ui';
 import type { ListEntry, Media, Title } from '../types';
+import { locale } from './i18n';
 
-export function pickTitle(t: Title, lang: 'romaji' | 'english') {
+export function pickTitle(t: Title, lang: 'romaji' | 'english' | 'native') {
+  if (lang === 'native') return t.native ?? t.romaji ?? t.english ?? '???';
   return (lang === 'english' ? t.english ?? t.romaji : t.romaji ?? t.english) ?? t.native ?? '???';
 }
 
@@ -76,8 +78,8 @@ export function cleanAniListText(s: string | null | undefined) {
   ).trim();
 }
 
-const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 export function fuzzyDate(d: { year?: number | null; month: number | null; day: number | null } | null | undefined) {
   if (!d || (!d.month && !d.year)) return null;
-  return [d.day, d.month ? MONTHS[d.month - 1] : null, d.year].filter(Boolean).join(' ');
+  if (!d.month) return String(d.year);
+  return new Date(d.year ?? 2000, d.month - 1, d.day ?? 1).toLocaleDateString(locale(), { day: d.day ? 'numeric' : undefined, month: 'short', year: d.year ? 'numeric' : undefined });
 }

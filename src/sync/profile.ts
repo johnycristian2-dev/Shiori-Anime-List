@@ -8,6 +8,8 @@ import { useList } from '../store/list';
 import { useUI } from '../store/ui';
 import type { ListEntry, ListStatus, MediaFormat } from '../types';
 
+import { t } from '../lib/i18n';
+
 export interface Profile {
   user_id: string;
   username: string;
@@ -105,16 +107,16 @@ export async function getMyProfile(userId: string) {
 }
 
 export async function getPublicProfile(username: string) {
-  if (!supabase) throw new Error('Perfis públicos precisam da conta Shiori configurada (Supabase).');
+  if (!supabase) throw new Error(t('Perfis públicos precisam da conta Shiori configurada (Supabase).'));
   const { data, error } = await supabase.from('profiles').select('*').eq('username', username.toLowerCase()).maybeSingle();
   if (error) throw error;
-  if (!data) throw new Error(`Perfil "${username}" não encontrado (ou é privado).`);
+  if (!data) throw new Error(t('Perfil "{0}" não encontrado (ou é privado).', username));
   return data as Profile;
 }
 
 export async function saveProfile(userId: string, p: { username: string; display_name: string; is_public: boolean }) {
   const username = p.username.trim().toLowerCase();
-  if (!USERNAME_RE.test(username)) throw new Error('Apelido: 3 a 20 letras minúsculas, números ou _');
+  if (!USERNAME_RE.test(username)) throw new Error(t('Apelido: 3 a 20 letras minúsculas, números ou _'));
   const { error } = await supabase!.from('profiles').upsert({
     user_id: userId,
     username,
@@ -124,7 +126,7 @@ export async function saveProfile(userId: string, p: { username: string; display
     updated_at: new Date().toISOString(),
   });
   if (error) {
-    if (error.code === '23505') throw new Error('Esse apelido já está em uso.');
+    if (error.code === '23505') throw new Error(t('Esse apelido já está em uso.'));
     throw error;
   }
   if (!useUI.getState().nickname) useUI.getState().setNickname(p.display_name.trim() || username);

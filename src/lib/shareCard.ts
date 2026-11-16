@@ -5,6 +5,8 @@
 import type { ListEntry } from '../types';
 import type { Stats } from './profile';
 
+import { t, locale } from './i18n';
+
 const W = 1080;
 const H = 1350;
 const PINK = '#ff4f9a';
@@ -99,7 +101,7 @@ export async function renderShareCard(opts: {
   ctx.textAlign = 'left';
   ctx.fillStyle = '#fff';
   ctx.font = '54px "Dela Gothic One"';
-  const name = opts.nickname.trim() || 'Minha lista de animes';
+  const name = opts.nickname.trim() || t('Minha lista de animes');
   ctx.fillText(name.length > 22 ? name.slice(0, 21) + '…' : name, 190, 108);
   ctx.font = '900 30px "Zen Kaku Gothic New"';
   ctx.fillStyle = PINK;
@@ -107,10 +109,10 @@ export async function renderShareCard(opts: {
 
   // Estatísticas
   const tiles = [
-    { v: opts.stats.total, k: 'animes', c: PINK },
-    { v: opts.stats.completed, k: 'completos', c: '#7cff8a' },
-    { v: opts.stats.eps.toLocaleString('pt-BR'), k: 'episódios', c: CYAN },
-    { v: opts.stats.mean ? opts.stats.mean.toFixed(1) : '—', k: 'nota média', c: YELLOW },
+    { v: opts.stats.total, k: t('animes'), c: PINK },
+    { v: opts.stats.completed, k: t('completos'), c: '#7cff8a' },
+    { v: opts.stats.eps.toLocaleString(locale()), k: t('episódios'), c: CYAN },
+    { v: opts.stats.mean ? opts.stats.mean.toFixed(1) : '—', k: t('nota média'), c: YELLOW },
   ];
   tiles.forEach((t, i) => {
     const x = 60 + i * 245;
@@ -193,7 +195,7 @@ export async function renderShareCard(opts: {
   ctx.fillStyle = '#a59fca';
   ctx.font = '700 26px "M PLUS Rounded 1c"';
   ctx.textAlign = 'center';
-  ctx.fillText('feito com SHIORI 栞 · アニメリスト', W / 2, H - 40);
+  ctx.fillText(t('feito com SHIORI 栞 · アニメリスト'), W / 2, H - 40);
 
-  return new Promise<Blob>((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error('Falha ao gerar imagem'))), 'image/png'));
+  return new Promise<Blob>((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error(t('Falha ao gerar imagem')))), 'image/png'));
 }

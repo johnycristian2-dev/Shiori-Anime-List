@@ -6,6 +6,8 @@ import { activeLists, STATUS_META, STATUS_ORDER, useList } from '../store/list';
 import { useUI } from '../store/ui';
 import { useTitle } from '../lib/format';
 
+import { t } from '../lib/i18n';
+
 const W = 216;
 
 export default function AddMenu({ media, compact = false }: { media: Media; compact?: boolean }) {
@@ -69,12 +71,12 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
       <button
         ref={btn}
         onClick={toggle}
-        aria-label={meta ? `Na lista: ${meta.label}` : 'Adicionar à lista'}
+        aria-label={meta ? t('Na lista: {0}', meta.label) : t('Adicionar à lista')}
         className={compact ? 'add-fab' : 'manga-btn'}
         style={meta ? { background: meta.color, color: '#0c0a1d' } : undefined}
       >
         {meta ? <Check size={compact ? 18 : 16} strokeWidth={3} /> : <Plus size={compact ? 20 : 16} strokeWidth={3} />}
-        {!compact && (meta ? meta.label : 'Adicionar')}
+        {!compact && (meta ? meta.label : t('Adicionar'))}
       </button>
       {pos &&
         createPortal(
@@ -100,15 +102,15 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
               <button
                 onClick={() => {
                   remove(media.id);
-                  toast('Removido da lista', 'info');
+                  toast(t('Removido da lista'), 'info');
                   setPos(null);
                 }}
                 className="mt-1 flex w-full items-center gap-2 rounded-lg border-t-2 border-line px-2.5 py-2 text-left text-sm font-bold text-red-400 hover:bg-panel-2"
               >
-                <Trash2 size={14} /> Remover
+                <Trash2 size={14} />{' '}{t('Remover')}
               </button>
             )}
-            <div className="mt-1 border-t-2 border-line px-2.5 pb-1 pt-2 text-[10px] font-black uppercase tracking-wider text-muted">Minhas listas</div>
+            <div className="mt-1 border-t-2 border-line px-2.5 pb-1 pt-2 text-[10px] font-black uppercase tracking-wider text-muted">{t('Minhas listas')}</div>
             {lists.map((l) => {
               const on = l.mediaIds.includes(media.id);
               return (
@@ -116,7 +118,7 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
                   key={l.id}
                   onClick={() => {
                     toggleInList(l.id, media);
-                    toast(on ? `Tirado de ${l.emoji} ${l.name}` : `Adicionado a ${l.emoji} ${l.name}`, on ? 'info' : 'ok');
+                    toast(on ? t('Tirado de {0} {1}', l.emoji, l.name) : t('Adicionado a {0} {1}', l.emoji, l.name), on ? 'info' : 'ok');
                   }}
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm font-bold hover:bg-panel-2"
                 >
@@ -135,7 +137,7 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
                 if (!newName.trim()) return;
                 const id = createList(newName);
                 toggleInList(id, media);
-                toast(`Lista "${newName.trim()}" criada`);
+                toast(t('Lista "{0}" criada', newName.trim()));
                 setNewName('');
               }}
             >
@@ -143,7 +145,7 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Nova lista…"
+                placeholder={t('Nova lista…')}
                 maxLength={30}
                 className="min-w-0 flex-1 rounded-md bg-panel-2 px-2 py-1 text-sm font-bold outline-none focus:ring-2 focus:ring-cyan"
               />

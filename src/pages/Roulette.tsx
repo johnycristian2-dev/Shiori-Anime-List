@@ -10,6 +10,9 @@ import { STATUS_META, useList } from '../store/list';
 import { useUI } from '../store/ui';
 import type { Media } from '../types';
 
+import { t } from '../lib/i18n';
+import Synopsis from '../components/Synopsis';
+
 type Source = 'planning' | 'surprise';
 
 const rarityOf = (m: Media) => rarityByScore(m.averageScore);
@@ -57,7 +60,7 @@ export default function Roulette() {
       }
     } else if (src === 'planning') {
       pool = planning;
-      if (!pool.length) return toast('Sua lista "Quero ver" está vazia (ou sem esse gênero)', 'info');
+      if (!pool.length) return toast(t('Sua lista "Quero ver" está vazia (ou sem esse gênero)'), 'info');
     } else {
       setPhase('loading');
       try {
@@ -72,12 +75,12 @@ export default function Roulette() {
       }
       if (!pool.length) {
         setPhase('idle');
-        return toast('Nada encontrado com esses filtros', 'info');
+        return toast(t('Nada encontrado com esses filtros'), 'info');
       }
     }
     if (!pool.length) {
       setPhase('idle');
-      return toast('Nada encontrado — tente de novo', 'info');
+      return toast(t('Nada encontrado — tente de novo'), 'info');
     }
     const winner = pool[Math.floor(Math.random() * pool.length)];
     setPhase('spinning');
@@ -102,25 +105,25 @@ export default function Roulette() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <SectionTitle title="Roleta" jp="運命ガチャ" />
-      <p className="-mt-2 mb-5 text-sm font-bold text-muted">Não sabe o que assistir? Deixa o destino escolher.</p>
+      <SectionTitle title={t('Roleta')} jp="運命ガチャ" />
+      <p className="-mt-2 mb-5 text-sm font-bold text-muted">{t('Não sabe o que assistir? Deixa o destino escolher.')}</p>
 
       <div className="halftone mb-5 flex flex-wrap items-center gap-4 rounded-2xl border-[3px] border-black bg-yellow p-4 text-black shadow-[5px_5px_0_var(--shadow)]">
         <div className="flex-1">
           <div className="flex items-center gap-2 font-display text-lg">
-            <CalendarCheck size={20} /> Giro do dia <span className="font-jp text-sm">デイリー</span>
+            <CalendarCheck size={20} />{' '}{t('Giro do dia')}{' '}<span className="font-jp text-sm">デイリー</span>
           </div>
           <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs font-black">
             <span className="inline-flex items-center gap-1">
-              <Flame size={14} /> {streak} dia{streak === 1 ? '' : 's'} seguido{streak === 1 ? '' : 's'}
+              <Flame size={14} /> {streak}{' '}{t('dia')}{streak === 1 ? '' : t('s')}{' '}{t('seguido')}{streak === 1 ? '' : t('s')}
             </span>
-            <span>Recorde: {gacha?.bestStreak ?? 0}</span>
-            <span>SSR: {gacha?.ssr ?? 0}</span>
-            <span>Giros: {gacha?.pulls ?? 0}</span>
+            <span>{t('Recorde:')}{' '}{gacha?.bestStreak ?? 0}</span>
+            <span>{t('SSR:')}{' '}{gacha?.ssr ?? 0}</span>
+            <span>{t('Giros:')}{' '}{gacha?.pulls ?? 0}</span>
           </div>
         </div>
         <button className="manga-btn" onClick={() => spin(true)} disabled={!canDaily || phase === 'spinning' || phase === 'loading'}>
-          {canDaily ? '🎁 Girar o de hoje' : '✓ Volte amanhã'}
+          {canDaily ? t('🎁 Girar o de hoje') : t('✓ Volte amanhã')}
         </button>
         {gacha?.log.length ? (
           <div className="no-scrollbar flex w-full gap-1.5 overflow-x-auto">
@@ -145,15 +148,15 @@ export default function Roulette() {
       <div className="panel mb-6 space-y-4 p-4">
         <div className="flex flex-wrap gap-2">
           <button className={`chip ${src === 'planning' ? 'on' : ''}`} onClick={() => setSrc('planning')}>
-            Da minha lista "Quero ver" ({Object.values(entries).filter((e) => e.status === 'PLANNING').length})
+            {t('Da minha lista "Quero ver" (')}{Object.values(entries).filter((e) => e.status === 'PLANNING').length})
           </button>
           <button className={`chip ${src === 'surprise' ? 'on' : ''}`} onClick={() => setSrc('surprise')}>
-            <Sparkles size={14} /> Surpresa (fora da lista)
+            <Sparkles size={14} />{' '}{t('Surpresa (fora da lista)')}
           </button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <select className="field" value={genre} onChange={(e) => setGenre(e.target.value)}>
-            <option value="">Qualquer gênero</option>
+            <option value="">{t('Qualquer gênero')}</option>
             {(genres ?? []).map((g) => (
               <option key={g} value={g}>
                 {genrePt(g)}
@@ -162,7 +165,7 @@ export default function Roulette() {
           </select>
           {src === 'surprise' && (
             <label className="flex items-center gap-3 text-sm font-bold">
-              Nota mín. <span className="text-pink">{minScore}</span>
+              {t('Nota mín.')}{' '}<span className="text-pink">{minScore}</span>
               <input type="range" min={50} max={90} step={5} value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} className="flex-1 accent-[var(--pink)]" />
             </label>
           )}
@@ -184,7 +187,7 @@ export default function Roulette() {
                 </div>
                 {isDaily && (
                   <div className="absolute right-3 top-3 rounded-lg border-2 border-black bg-pink px-2 py-1 text-xs font-black text-white rotate-3">
-                    Giro do dia 🎁
+                    {t('Giro do dia 🎁')}
                   </div>
                 )}
                 <div className="absolute inset-x-0 bottom-0 p-4 text-white">
@@ -210,24 +213,28 @@ export default function Roulette() {
 
       {phase === 'reveal' && result && (
         <>
-          {result.description && <p className="mx-auto mb-4 line-clamp-3 max-w-lg text-center text-sm text-muted">{stripHtml(result.description)}</p>}
+          {result.description && (
+            <div className="mx-auto mb-4 max-w-lg text-center">
+              <Synopsis id={result.id} text={result.description} showBadge={false} className="line-clamp-3 text-sm text-muted" />
+            </div>
+          )}
           <div className="mb-4 flex flex-wrap justify-center gap-2">
             <button
               className="manga-btn cyan"
               onClick={() => {
                 add(result, 'WATCHING');
-                toast(`Bora! ${title(result)} → ${STATUS_META.WATCHING.label}`);
+                toast(t('Bora! {0} → {1}', title(result), STATUS_META.WATCHING.label));
               }}
             >
-              <Play size={16} /> Vou assistir agora
+              <Play size={16} />{' '}{t('Vou assistir agora')}
             </button>
             {!entries[result.id] && (
-              <button className="manga-btn yellow" onClick={() => { add(result, 'PLANNING'); toast('Adicionado em "Quero ver"'); }}>
-                Quero ver
+              <button className="manga-btn yellow" onClick={() => { add(result, 'PLANNING'); toast(t('Adicionado em "Quero ver"')); }}>
+                {t('Quero ver')}
               </button>
             )}
             <Link to={`/anime/${result.id}`} className="manga-btn ghost">
-              <Info size={16} /> Detalhes
+              <Info size={16} />{' '}{t('Detalhes')}
             </Link>
           </div>
         </>
@@ -235,7 +242,7 @@ export default function Roulette() {
 
       <div className="text-center">
         <button className="manga-btn !px-8 !py-4 !text-lg" onClick={() => spin(false)} disabled={phase === 'spinning' || phase === 'loading'}>
-          <Dices size={22} /> {phase === 'reveal' ? 'Girar de novo' : 'Girar!'}
+          <Dices size={22} /> {phase === 'reveal' ? t('Girar de novo') : t('Girar!')}
         </button>
       </div>
     </div>

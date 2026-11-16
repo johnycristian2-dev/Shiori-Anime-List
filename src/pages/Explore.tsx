@@ -10,6 +10,8 @@ import { STATUS_META, STATUS_ORDER, useList } from '../store/list';
 import { useUI } from '../store/ui';
 import type { BrowseFilters, ListStatus, MediaFormat, MediaSort, MediaStatus, Season } from '../types';
 
+import { t, locale } from '../lib/i18n';
+
 const FORMATS: MediaFormat[] = ['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'TV_SHORT'];
 
 function initial(sp: URLSearchParams): BrowseFilters {
@@ -75,7 +77,7 @@ export default function Explore() {
   const panel = (
     <div className="space-y-6">
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Ordenar por</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Ordenar por')}</label>
         <select className="field" value={f.sort} onChange={(e) => set('sort', e.target.value as MediaSort)}>
           {SORT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -86,8 +88,8 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Gêneros</label>
-        <p className="mb-2 text-[11px] font-bold text-muted">1 toque: incluir · 2 toques: excluir · 3: limpar</p>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Gêneros')}</label>
+        <p className="mb-2 text-[11px] font-bold text-muted">{t('1 toque: incluir · 2 toques: excluir · 3: limpar')}</p>
         <div className="flex flex-wrap gap-1.5">
           {(genres ?? Object.keys(GENRES)).map((g) => {
             const inc = f.genres.includes(g);
@@ -114,7 +116,7 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Década</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Década')}</label>
         <div className="flex flex-wrap gap-1.5">
           {DECADES.map((d) => {
             const on = f.yearFrom === d && f.yearTo === d + 9;
@@ -124,20 +126,20 @@ export default function Explore() {
                 className={`chip !text-xs ${on ? 'on' : ''}`}
                 onClick={() => setF((x) => ({ ...x, yearFrom: on ? undefined : d, yearTo: on ? undefined : d + 9 }))}
               >
-                {String(d).slice(2)}s
+                {String(d).slice(2)}{t('s')}
               </button>
             );
           })}
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <select className="field text-sm" value={f.yearFrom ?? ''} onChange={(e) => set('yearFrom', e.target.value ? Number(e.target.value) : undefined)}>
-            <option value="">De…</option>
+            <option value="">{t('De…')}</option>
             {YEARS.map((y) => (
               <option key={y}>{y}</option>
             ))}
           </select>
           <select className="field text-sm" value={f.yearTo ?? ''} onChange={(e) => set('yearTo', e.target.value ? Number(e.target.value) : undefined)}>
-            <option value="">Até…</option>
+            <option value="">{t('Até…')}</option>
             {YEARS.map((y) => (
               <option key={y}>{y}</option>
             ))}
@@ -146,10 +148,10 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Temporada</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Temporada')}</label>
         <div className="grid grid-cols-2 gap-2">
           <select className="field text-sm" value={f.season ?? ''} onChange={(e) => set('season', (e.target.value || undefined) as Season | undefined)}>
-            <option value="">Qualquer</option>
+            <option value="">{t('Qualquer')}</option>
             {SEASONS.map((s) => (
               <option key={s} value={s}>
                 {SEASON_LABEL[s].pt} {SEASON_LABEL[s].jp}
@@ -157,7 +159,7 @@ export default function Explore() {
             ))}
           </select>
           <select className="field text-sm" value={f.seasonYear ?? ''} onChange={(e) => set('seasonYear', e.target.value ? Number(e.target.value) : undefined)}>
-            <option value="">Ano</option>
+            <option value="">{t('Ano')}</option>
             {YEARS.map((y) => (
               <option key={y}>{y}</option>
             ))}
@@ -166,7 +168,7 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Formato</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Formato')}</label>
         <div className="flex flex-wrap gap-1.5">
           {FORMATS.map((fm) => (
             <button key={fm} className={`chip !text-xs ${f.formats.includes(fm) ? 'on' : ''}`} onClick={() => set('formats', toggle(f.formats, fm))}>
@@ -177,9 +179,9 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Situação</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Situação')}</label>
         <select className="field text-sm" value={f.status ?? ''} onChange={(e) => set('status', (e.target.value || undefined) as MediaStatus | undefined)}>
-          <option value="">Qualquer</option>
+          <option value="">{t('Qualquer')}</option>
           {(Object.keys(MEDIA_STATUS_LABEL) as MediaStatus[]).map((s) => (
             <option key={s} value={s}>
               {MEDIA_STATUS_LABEL[s]}
@@ -190,7 +192,7 @@ export default function Explore() {
 
       <div>
         <label className="mb-1.5 flex justify-between text-xs font-black uppercase tracking-wider text-muted">
-          Nota mínima <span className="text-pink">{f.minScore ? `${f.minScore}+` : '—'}</span>
+          {t('Nota mínima')}{' '}<span className="text-pink">{f.minScore ? `${f.minScore}+` : '—'}</span>
         </label>
         <input
           type="range"
@@ -204,7 +206,7 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Onde assistir</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Onde assistir')}</label>
         <div className="flex flex-wrap gap-1.5">
           {STREAMING.map((p) => {
             const on = (f.streaming ?? []).includes(p.id);
@@ -220,11 +222,11 @@ export default function Explore() {
             );
           })}
         </div>
-        <p className="mt-1.5 text-[11px] font-bold text-muted">Catálogo global do AniList — no Brasil pode variar.</p>
+        <p className="mt-1.5 text-[11px] font-bold text-muted">{t('Catálogo global do AniList — no Brasil pode variar.')}</p>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Tamanho</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Tamanho')}</label>
         <div className="flex flex-wrap gap-1.5">
           {LENGTHS.map((l) => (
             <button key={l.id} className={`chip !text-xs ${f.length === l.id ? 'on' : ''}`} onClick={() => set('length', f.length === l.id ? undefined : l.id)}>
@@ -236,12 +238,12 @@ export default function Explore() {
           className={`chip mt-1.5 !text-xs ${f.status === 'FINISHED' ? 'on' : ''}`}
           onClick={() => set('status', f.status === 'FINISHED' ? undefined : 'FINISHED')}
         >
-          ✅ Só finalizados (dá pra maratonar)
+          {t('✅ Só finalizados (dá pra maratonar)')}
         </button>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Temas</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Temas')}</label>
         <div className="flex flex-wrap gap-1.5">
           {THEME_TAGS.map((t) => (
             <button key={t.tag} className={`chip !text-xs ${(f.tags ?? []).includes(t.tag) ? 'on' : ''}`} onClick={() => set('tags', toggle(f.tags ?? [], t.tag))}>
@@ -252,7 +254,7 @@ export default function Explore() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">Origem</label>
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Origem')}</label>
         <div className="flex flex-wrap gap-1.5">
           {COUNTRIES.map((c) => (
             <button key={c.id} className={`chip !text-xs ${f.country === c.id ? 'on' : ''}`} onClick={() => set('country', f.country === c.id ? undefined : c.id)}>
@@ -263,19 +265,19 @@ export default function Explore() {
       </div>
 
       <button className="manga-btn ghost w-full" onClick={reset}>
-        <RotateCcw size={14} /> Limpar filtros
+        <RotateCcw size={14} />{' '}{t('Limpar filtros')}
       </button>
     </div>
   );
 
   return (
     <>
-      <SectionTitle title="Explorar" jp="探索" action={total != null && <span className="text-muted">{total.toLocaleString('pt-BR')}{total >= 5000 ? '+' : ''} animes</span>} />
+      <SectionTitle title={t('Explorar')} jp="探索" action={total != null && <span className="text-muted">{total.toLocaleString(locale())}{total >= 5000 ? '+' : ''}{' '}{t('animes')}</span>} />
 
       <div className="mb-5 flex gap-2">
         <input
           className="field flex-1 !py-3 text-base"
-          placeholder="Buscar por título… (ex.: Frieren, Naruto)"
+          placeholder={t('Buscar por título… (ex.: Frieren, Naruto)')}
           value={f.search ?? ''}
           onChange={(e) => set('search', e.target.value)}
         />
@@ -292,8 +294,8 @@ export default function Explore() {
             <div className="absolute inset-0 bg-black/60" />
             <div className="pop-in relative ml-auto h-full w-[86%] max-w-sm overflow-y-auto border-l-2 border-line bg-bg p-5" onClick={(e) => e.stopPropagation()}>
               <div className="mb-4 flex items-center justify-between">
-                <span className="font-display text-xl">Filtros</span>
-                <button onClick={() => setOpen(false)} aria-label="Fechar">
+                <span className="font-display text-xl">{t('Filtros')}</span>
+                <button onClick={() => setOpen(false)} aria-label={t('Fechar')}>
                   <X />
                 </button>
               </div>
@@ -305,14 +307,14 @@ export default function Explore() {
         <div className="min-w-0 flex-1">
           <div className="mb-3 flex justify-end">
             <button className={`chip ${hideMine ? 'on' : ''}`} onClick={() => setHideMine((v) => !v)}>
-              Ocultar os que já estão na lista
+              {t('Ocultar os que já estão na lista')}
             </button>
           </div>
           {notInList.length > 0 && (
             <div className="panel mb-5 flex flex-wrap items-center gap-3 p-3">
               <ListPlus className="text-pink" size={20} />
               <span className="text-sm font-bold">
-                Adicionar os <b className="text-pink">{notInList.length}</b> desta busca que ainda não estão na lista como
+                {t('Adicionar os')}{' '}<b className="text-pink">{notInList.length}</b>{' '}{t('desta busca que ainda não estão na lista como')}
               </span>
               <select className="field !w-auto !py-1.5 text-sm" value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value as ListStatus)}>
                 {STATUS_ORDER.map((s) => (
@@ -325,10 +327,10 @@ export default function Explore() {
                 className="manga-btn yellow !py-1.5"
                 onClick={() => {
                   const n = addMany(notInList, bulkStatus);
-                  toast(`${n} animes adicionados como "${STATUS_META[bulkStatus].label}"`);
+                  toast(t('{0} animes adicionados como "{1}"', n, STATUS_META[bulkStatus].label));
                 }}
               >
-                Adicionar todos
+                {t('Adicionar todos')}
               </button>
             </div>
           )}
@@ -336,8 +338,8 @@ export default function Explore() {
           {q.error ? (
             <ErrorBox error={q.error} onRetry={() => q.refetch()} />
           ) : !q.isLoading && items.length === 0 ? (
-            <EmptyState jp="空" title="Nada encontrado">
-              Tente tirar alguns filtros.
+            <EmptyState jp="空" title={t('Nada encontrado')}>
+              {t('Tente tirar alguns filtros.')}
             </EmptyState>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">

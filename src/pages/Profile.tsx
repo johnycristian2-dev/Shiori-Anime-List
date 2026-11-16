@@ -11,6 +11,8 @@ import { STATUS_META, STATUS_ORDER, useList } from '../store/list';
 import { useUI } from '../store/ui';
 import type { ListEntry } from '../types';
 
+import { t, locale } from '../lib/i18n';
+
 function Bars({ data, color = 'var(--pink)' }: { data: { label: string; value: number; sub?: string }[]; color?: string }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
@@ -76,8 +78,8 @@ export default function Profile() {
     if (!card) return;
     const file = new File([card.blob], 'shiori.png', { type: 'image/png' });
     try {
-      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: 'Minha lista de animes' });
-      else toast('Seu navegador não compartilha arquivos — use Baixar', 'info');
+      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: t('Minha lista de animes') });
+      else toast(t('Seu navegador não compartilha arquivos — use Baixar'), 'info');
     } catch {
       /* usuário cancelou */
     }
@@ -86,9 +88,9 @@ export default function Profile() {
   if (!all.length)
     return (
       <>
-        <SectionTitle title="Perfil" jp="プロフィール" />
-        <EmptyState jp="無" title="Seu perfil nasce com a sua lista">
-          Adicione animes pelo <Link to="/swipe" className="font-bold text-pink">modo rápido</Link> e volte aqui.
+        <SectionTitle title={t('Perfil')} jp="プロフィール" />
+        <EmptyState jp="無" title={t('Seu perfil nasce com a sua lista')}>
+          {t('Adicione animes pelo')}{' '}<Link to="/swipe" className="font-bold text-pink">{t('modo rápido')}</Link>{' '}{t('e volte aqui.')}
         </EmptyState>
       </>
     );
@@ -97,7 +99,7 @@ export default function Profile() {
 
   return (
     <>
-      <SectionTitle title="Perfil" jp="プロフィール" />
+      <SectionTitle title={t('Perfil')} jp="プロフィール" />
 
       {/* Cartão de rank */}
       <section className="halftone relative mb-8 overflow-hidden rounded-3xl border-[3px] border-black bg-panel p-6 shadow-[8px_8px_0_var(--pink)] sm:p-8">
@@ -108,7 +110,7 @@ export default function Profile() {
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              placeholder="Seu apelido"
+              placeholder={t('Seu apelido')}
               maxLength={24}
               className="w-full max-w-sm border-b-2 border-dashed border-line bg-transparent font-display text-3xl outline-none placeholder:text-muted focus:border-pink"
             />
@@ -120,26 +122,31 @@ export default function Profile() {
                 <div className="h-full bg-linear-to-r from-pink via-yellow to-cyan" style={{ width: `${rank.pct * 100}%` }} />
               </div>
               <div className="mt-1 text-xs font-bold text-muted">
-                {rank.next ? `${rank.next.min - stats.completed} completos para ${rank.next.name} ${rank.next.jp}` : 'Rank máximo! 伝説'}
+                {rank.next ? t(
+                  '{0} completos para {1} {2}',
+                  rank.next.min - stats.completed,
+                  rank.next.name,
+                  rank.next.jp
+                ) : t('Rank máximo! 伝説')}
               </div>
             </div>
           </div>
           <Link to="/retrospectiva" className="manga-btn ghost">
-            🎁 Retrospectiva do ano
+            {t('🎁 Retrospectiva do ano')}
           </Link>
           <button className="manga-btn yellow" onClick={makeCard} disabled={busy}>
-            {busy ? <Spinner className="h-4 w-4" /> : <ImageIcon size={16} />} Gerar card pra compartilhar
+            {busy ? <Spinner className="h-4 w-4" /> : <ImageIcon size={16} />}{' '}{t('Gerar card pra compartilhar')}
           </button>
         </div>
       </section>
 
       <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
-          { k: 'Animes', v: stats.total, c: 'text-pink' },
-          { k: 'Completos', v: stats.completed, c: 'text-[#7cff8a]' },
-          { k: 'Episódios', v: stats.eps.toLocaleString('pt-BR'), c: 'text-cyan' },
-          { k: 'Horas (aprox.)', v: `≈${stats.hours.toLocaleString('pt-BR')}h`, c: 'text-yellow' },
-          { k: 'Nota média', v: stats.mean ? stats.mean.toFixed(1) : '—', c: 'text-pink' },
+          { k: t('Animes'), v: stats.total, c: 'text-pink' },
+          { k: t('Completos'), v: stats.completed, c: 'text-[#7cff8a]' },
+          { k: t('Episódios'), v: stats.eps.toLocaleString(locale()), c: 'text-cyan' },
+          { k: t('Horas (aprox.)'), v: `≈${stats.hours.toLocaleString(locale())}h`, c: 'text-yellow' },
+          { k: t('Nota média'), v: stats.mean ? stats.mean.toFixed(1) : '—', c: 'text-pink' },
         ].map((s) => (
           <div key={s.k} className="panel p-4">
             <div className={`font-display text-2xl ${s.c}`}>{s.v}</div>
@@ -150,7 +157,7 @@ export default function Profile() {
 
       <div className="mb-10 grid gap-5 lg:grid-cols-2">
         <div className="panel p-5">
-          <h3 className="mb-4 font-display">Por status</h3>
+          <h3 className="mb-4 font-display">{t('Por status')}</h3>
           <div className="mb-4 flex h-6 overflow-hidden rounded-lg border-2 border-black">
             {STATUS_ORDER.map((s) => {
               const v = all.filter((e) => e.status === s).length;
@@ -165,7 +172,7 @@ export default function Profile() {
               </span>
             ))}
           </div>
-          <h3 className="mb-3 mt-6 font-display">Suas notas</h3>
+          <h3 className="mb-3 mt-6 font-display">{t('Suas notas')}</h3>
           <div className="flex h-32 items-end gap-1.5">
             {stats.scores.map((v, i) => {
               const max = Math.max(1, ...stats.scores);
@@ -180,14 +187,14 @@ export default function Profile() {
           </div>
         </div>
         <div className="panel p-5">
-          <h3 className="mb-4 font-display">Gêneros favoritos</h3>
+          <h3 className="mb-4 font-display">{t('Gêneros favoritos')}</h3>
           <Bars data={stats.genres.slice(0, 8).map(([g, v]) => ({ label: genrePt(g), sub: GENRES[g]?.jp, value: v }))} />
-          <h3 className="mb-4 mt-6 font-display">Por década</h3>
-          <Bars color="var(--cyan)" data={stats.decades.map(([d, v]) => ({ label: `Anos ${String(d).slice(2)}`, value: v }))} />
+          <h3 className="mb-4 mt-6 font-display">{t('Por década')}</h3>
+          <Bars color="var(--cyan)" data={stats.decades.map(([d, v]) => ({ label: t('Anos {0}', String(d).slice(2)), value: v }))} />
         </div>
       </div>
 
-      <SectionTitle title="Conquistas" jp="実績" action={<span className="text-muted">{unlocked.length}/{ACHIEVEMENTS.length}</span>} />
+      <SectionTitle title={t('Conquistas')} jp="実績" action={<span className="text-muted">{unlocked.length}/{ACHIEVEMENTS.length}</span>} />
       <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ACHIEVEMENTS.map((a) => {
           const ok = a.test(stats, gacha);
@@ -197,32 +204,32 @@ export default function Profile() {
               key={a.id}
               className={`panel relative p-4 text-center transition ${ok ? (a.hidden ? 'border-pink shadow-[4px_4px_0_var(--pink)]' : 'border-yellow shadow-[4px_4px_0_var(--yellow)]') : 'opacity-45 grayscale'}`}
             >
-              {a.hidden && ok && <span className="absolute right-2 top-2 rounded bg-pink px-1 text-[9px] font-black text-white">RARA</span>}
+              {a.hidden && ok && <span className="absolute right-2 top-2 rounded bg-pink px-1 text-[9px] font-black text-white">{t('RARA')}</span>}
               <div className="text-3xl">{secret ? '❓' : a.icon}</div>
               <div className="mt-1 font-extrabold">{secret ? '???' : a.name}</div>
-              <div className="text-[11px] font-bold text-muted">{secret ? 'Conquista secreta' : a.desc}</div>
+              <div className="text-[11px] font-bold text-muted">{secret ? t('Conquista secreta') : a.desc}</div>
             </div>
           );
         })}
       </div>
 
-      <SectionTitle title="Ranks" jp="階級" />
+      <SectionTitle title={t('Ranks')} jp="階級" />
       <div className="no-scrollbar -mx-4 mb-10 flex gap-3 overflow-x-auto px-4">
         {RANKS.map((r) => (
           <div key={r.name} className={`panel shrink-0 px-4 py-3 text-center ${r.name === rank.name ? 'border-pink shadow-[4px_4px_0_var(--pink)]' : ''}`}>
             <div className="font-jp text-2xl font-black text-pink">{r.jp}</div>
             <div className="font-extrabold">{r.name}</div>
-            <div className="text-[11px] font-bold text-muted">{r.min}+ completos</div>
+            <div className="text-[11px] font-bold text-muted">{r.min}{t('+ completos')}</div>
           </div>
         ))}
       </div>
 
       {favorites.length > 0 && (
         <>
-          <SectionTitle title="Favoritos" jp="お気に入り" />
+          <SectionTitle title={t('Favoritos')} jp="お気に入り" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {favorites.map((e) => (
-              <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? `Sua nota: ★ ${e.score}` : undefined} />
+              <AnimeCard key={e.mediaId} media={entryToMedia(e)} note={e.score ? t('Sua nota: ★ {0}', e.score) : undefined} />
             ))}
           </div>
         </>
@@ -232,18 +239,18 @@ export default function Profile() {
         <div className="fixed inset-0 z-[150] grid place-items-center bg-black/75 p-4" onClick={() => setCard(null)}>
           <div className="pop-in panel max-h-full w-full max-w-md overflow-auto p-4" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
-              <span className="font-display">Seu card</span>
-              <button onClick={() => setCard(null)} aria-label="Fechar">
+              <span className="font-display">{t('Seu card')}</span>
+              <button onClick={() => setCard(null)} aria-label={t('Fechar')}>
                 <X />
               </button>
             </div>
-            <img src={card.url} alt="Card da sua lista" className="w-full rounded-xl border-2 border-black" />
+            <img src={card.url} alt="" className="w-full rounded-xl border-2 border-black" />
             <div className="mt-4 flex gap-2">
               <a className="manga-btn flex-1" href={card.url} download="shiori-lista.png">
-                <Download size={16} /> Baixar
+                <Download size={16} />{' '}{t('Baixar')}
               </a>
               <button className="manga-btn cyan flex-1" onClick={share}>
-                <Share2 size={16} /> Compartilhar
+                <Share2 size={16} />{' '}{t('Compartilhar')}
               </button>
             </div>
           </div>

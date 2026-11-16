@@ -1,12 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { LoaderCircle } from 'lucide-react';
 
+import { t } from '../lib/i18n';
+
 export function SectionTitle({ title, jp, action }: { title: string; jp?: string; action?: ReactNode }) {
   return (
     <div className="mb-5 mt-2 flex items-end justify-between gap-4">
       <div className="relative pt-4">
         {jp && <span className="jp-ghost">{jp}</span>}
-        <h2 className="relative font-display text-2xl leading-none sm:text-3xl">{title}</h2>
+        <h2 className="section-title relative font-display text-2xl leading-none sm:text-3xl">{title}</h2>
         <span className="title-underline" />
       </div>
       {action && <div className="shrink-0 text-sm font-extrabold text-cyan">{action}</div>}
@@ -40,10 +42,10 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
   return (
     <div className="panel border-red-400/60 p-5 text-center">
       <div className="font-jp text-3xl font-black text-pink">エラー</div>
-      <p className="mt-2 text-sm text-muted">{(error as Error)?.message ?? 'Algo deu errado.'}</p>
+      <p className="mt-2 text-sm text-muted">{(error as Error)?.message ?? t('Algo deu errado.')}</p>
       {onRetry && (
         <button className="manga-btn ghost mt-4" onClick={onRetry}>
-          Tentar de novo
+          {t('Tentar de novo')}
         </button>
       )}
     </div>
@@ -53,7 +55,7 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
 /** Botão que pede confirmação no segundo clique (sem window.confirm). */
 export function ConfirmButton({
   children,
-  confirmText = 'Clique de novo pra confirmar',
+  confirmText,
   onConfirm,
   className = 'manga-btn ghost',
 }: {
@@ -78,7 +80,7 @@ export function ConfirmButton({
         } else setArmed(true);
       }}
     >
-      {armed ? confirmText : children}
+      {armed ? confirmText ?? t('Clique de novo pra confirmar') : children}
     </button>
   );
 }
