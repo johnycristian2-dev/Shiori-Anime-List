@@ -6,6 +6,7 @@
  * - A resposta fica no cache da CDN por 30 dias: cada anime é traduzido uma vez por idioma.
  */
 import { getVercelOidcToken } from '@vercel/oidc';
+import { freeTranslate } from '../src/lib/freeTranslate';
 
 const MODEL = 'anthropic/claude-haiku-5.5';
 const LANG_NAME: Record<string, string> = {
@@ -13,12 +14,17 @@ const LANG_NAME: Record<string, string> = {
   ja: 'natural Japanese (as used on Japanese anime sites)',
 };
 
-function json(body: unknown, status = 200, cache = false) {
+function json(body: unknown, status = 200, cache: boolean | 'short' = false) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': cache ? 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800' : 'no-store',
+      'Cache-Control':
+        cache === 'short'
+          ? 'public, max-age=86400, s-maxage=604800'
+          : cache
+            ? 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800'
+            : 'no-store',
     },
   });
 }
@@ -32,6 +38,33 @@ function clean(s: string) {
     .replace(/&amp;/g, '&')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+async function aiTranslate(original: string, lang: string): Promise<string> {
+  const token = process.env.AI_GATEWAY_API_KEY || (await getVercelOidcToken());
+  const res = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1500,
+      temperature: 0.2,
+      messages: [
+        {
+          role: 'system',
+          content:
+            `Translate the anime synopsis the user sends into ${LANG_NAME[lang]}. ` +
+            'Keep character names, place names and the anime title as they are (romanized), keep paragraph breaks, ' +
+            'keep any "(Source: ...)" line translated naturally. Output only the translation, no notes.',
+        },
+        { role: 'user', content: original },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`gateway ${res.status}`);
+  const text: string = (await res.json())?.choices?.[0]?.message?.content?.trim() ?? '';
+  if (!text) throw new Error('empty translation');
+  return text;
 }
 
 export default {
@@ -52,35 +85,20 @@ export default {
     const original = clean(media?.description ?? '');
     if (!original) return json({ text: '' }, 200, true);
 
-    // 2. Tradução pelo AI Gateway
-    let token: string;
+    // 2. Tradução pela IA (AI Gateway); se não der, tradutor gratuito
+    let aiError = '';
     try {
-      token = process.env.AI_GATEWAY_API_KEY || (await getVercelOidcToken());
-    } catch {
-      return json({ error: 'no ai gateway credentials' }, 503);
+      const text = await aiTranslate(original, lang);
+      return json({ text, source: 'ai', model: MODEL }, 200, true);
+    } catch (e) {
+      aiError = String(e).slice(0, 200);
     }
-    const res = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1500,
-        temperature: 0.2,
-        messages: [
-          {
-            role: 'system',
-            content:
-              `Translate the anime synopsis the user sends into ${LANG_NAME[lang]}. ` +
-              'Keep character names, place names and the anime title as they are (romanized), keep paragraph breaks, ' +
-              'keep any "(Source: ...)" line translated naturally. Output only the translation, no notes.',
-          },
-          { role: 'user', content: original },
-        ],
-      }),
-    });
-    if (!res.ok) return json({ error: `gateway ${res.status}`, detail: (await res.text()).slice(0, 300) }, 502);
-    const text: string = (await res.json())?.choices?.[0]?.message?.content?.trim() ?? '';
-    if (!text) return json({ error: 'empty translation' }, 502);
-    return json({ text, model: MODEL }, 200, true);
+    try {
+      const text = await freeTranslate(original, lang as 'pt' | 'ja');
+      // cache menor: quando a IA voltar, a tradução melhor substitui esta
+      return json({ text, source: 'mt' }, 200, 'short');
+    } catch (e) {
+      return json({ error: 'translation failed', ai: aiError, mt: String(e).slice(0, 200) }, 502);
+    }
   },
 };

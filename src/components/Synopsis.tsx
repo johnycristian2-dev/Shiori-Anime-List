@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Languages } from 'lucide-react';
 import { stripHtml } from '../lib/format';
 import { getLang, t } from '../lib/i18n';
+import { freeTranslate } from '../lib/freeTranslate';
 
 const CACHE_KEY = 'shiori-synopsis';
 
@@ -40,9 +41,15 @@ export function useSynopsis(id: number, original: string | null | undefined) {
     queryFn: async () => {
       const cached = readCache()[key];
       if (cached) return cached;
-      const res = await fetch(`/api/translate?id=${id}&lang=${lang}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { text } = (await res.json()) as { text: string };
+      let text = '';
+      try {
+        const res = await fetch(`/api/translate?id=${id}&lang=${lang}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        text = ((await res.json()) as { text: string }).text;
+      } catch {
+        // Sem a função (ex.: GitHub Pages) ou ela falhou: traduz direto do navegador
+        text = await freeTranslate(base, lang as 'pt' | 'ja');
+      }
       if (text) writeCache(key, text);
       return text || base;
     },
