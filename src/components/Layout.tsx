@@ -153,6 +153,21 @@ const NAV = [
     main: false
   },
   {
+    to: '/amigos',
+
+    get label() {
+      return t('Amigos e feed');
+    },
+
+    get short() {
+      return t('Amigos');
+    },
+
+    jp: '仲間',
+    icon: Users,
+    main: false
+  },
+  {
     to: '/perfil',
 
     get label() {

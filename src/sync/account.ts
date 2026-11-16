@@ -138,6 +138,7 @@ export interface ProfileExtra {
   banner_url: string | null;
   bio: string | null;
   favorite_id: number | null;
+  share_activity: boolean;
 }
 export type FullProfile = Profile & Partial<ProfileExtra>;
 
@@ -189,7 +190,7 @@ export async function loadMyProfile() {
   }
 }
 
-export async function updateMyProfile(patch: Partial<Pick<FullProfile, 'username' | 'display_name' | 'is_public' | 'avatar_url' | 'banner_url' | 'bio' | 'favorite_id'>>) {
+export async function updateMyProfile(patch: Partial<Pick<FullProfile, 'username' | 'display_name' | 'is_public' | 'avatar_url' | 'banner_url' | 'bio' | 'favorite_id' | 'share_activity'>>) {
   const u = useCloudUser.getState().user;
   if (!u) throw new Error(t('Entre na sua conta primeiro.'));
   const clean = { ...patch };

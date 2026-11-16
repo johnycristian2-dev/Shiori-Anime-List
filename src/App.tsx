@@ -16,6 +16,8 @@ const Calendar = lazy(() => import('./pages/Calendar'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ProfileEdit = lazy(() => import('./pages/ProfileEdit'));
 const Terms = lazy(() => import('./pages/Terms'));
+const Friends = lazy(() => import('./pages/Friends'));
+const Moderation = lazy(() => import('./pages/Moderation'));
 const Roulette = lazy(() => import('./pages/Roulette'));
 const StudioPage = lazy(() => import('./pages/Studio'));
 const Roadmap = lazy(() => import('./pages/Roadmap'));
@@ -54,6 +56,8 @@ export default function App() {
           <Route path="/perfil" element={<Profile />} />
           <Route path="/perfil/editar" element={<ProfileEdit />} />
           <Route path="/termos" element={<Terms />} />
+          <Route path="/amigos" element={<Friends />} />
+          <Route path="/moderacao" element={<Moderation />} />
           <Route path="/lista" element={<MyList />} />
           <Route path="/anime/:id" element={<AnimeDetail />} />
           <Route path="/manga/:id" element={<AnimeDetail />} />

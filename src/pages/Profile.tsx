@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Image as ImageIcon, Pencil, Share2, UserPlus, X } from 'lucide-react';
 import ProfileHeader from '../components/ProfileHeader';
+import { FollowCounts } from '../components/Social';
 import { openAuth, useAccount } from '../sync/account';
 import { useCloudUser } from '../sync/cloud';
 import AnimeCard from '../components/AnimeCard';
@@ -153,6 +154,11 @@ export default function Profile() {
             {rank.next ? t('{0} completos para {1} {2}', rank.next.min - stats.completed, rank.next.name, rank.next.jp) : t('Rank máximo! 伝説')}
           </div>
         </div>
+        {logged && cloudUser && (
+          <Link to="/amigos" className="mt-3 block w-fit hover:text-pink">
+            <FollowCounts userId={cloudUser.id} />
+          </Link>
+        )}
         {!logged && <p className="mt-3 text-sm font-bold text-muted">{t('Com uma conta você ganha foto, banner, bio e um link de perfil pra mandar pros amigos.')}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           <Link to="/retrospectiva" className="manga-btn ghost">

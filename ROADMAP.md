@@ -60,10 +60,10 @@ Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande
 - [x] 🔴 **Conta e perfil de verdade** — ✅ botão Entrar/Criar conta no canto superior direito (e-mail + senha, link mágico, esqueci a senha, Google opcional), apelido único verificado na hora, `/perfil/editar` com foto e banner (envio com redução/WebP no aparelho ou personagem/banner do AniList), bio, anime favorito, público/privado, troca de senha e excluir conta (LGPD), página `/termos`.
 - [ ] 🟡 **Conquistas no perfil** — medalhas públicas, raridade (% de usuários que têm) e progresso das secretas.
 - [ ] 🟡 **Postagens e reviews** — review com nota, post curto, reação por episódio; curtidas e comentários.
-- [ ] 🟡 **Seguir e feed** — seguir amigos; feed com o que eles adicionaram/terminaram/avaliaram.
+- [x] 🟡 **Seguir, amigos e feed** — ✅ seguir (perfil privado/menor = pedido), amigos = seguem um ao outro, feed automático do que assistem/leem, notificações em tempo real, "amigos que têm na lista" na página do título, busca de pessoas (`/amigos`).
 - [ ] 🔴 **Comunidade com chats** — salas por anime e por temporada (Supabase Realtime), aviso/ocultação de spoiler.
 - [~] 🔴 **Verificação de idade** — ✅ data de nascimento obrigatória no cadastro (mín. 13 anos, guardada só nos dados privados da conta). Falta: data/faixa etária no cadastro, conteúdo adulto (gênero Hentai/Ecchi, `isAdult`) escondido por padrão, restrições pra menores; estudar ECA Digital (Lei 15.211/2025) e LGPD antes de abrir chats.
-- [ ] 🔴 **Moderação e segurança** — denunciar/bloquear, filtro de palavrões, limite de envio, termos de uso e política de privacidade.
+- [~] 🔴 **Moderação e segurança** — ✅ bloquear, denunciar (anônimo), limite de ações por minuto, tela `/moderacao` para administradores, menores com perfil privado e fora da busca. Falta: filtro de palavrões (vem junto com posts/chat).
 
 ---
 

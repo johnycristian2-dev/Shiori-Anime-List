@@ -3,7 +3,11 @@ import { CalendarClock, ExternalLink, Heart, Palette, Play, Star, Timer, Tv, Use
 import { themeFromColor } from '../lib/themes';
 import { useEffect, useState } from 'react';
 import { SectionTitle } from '../components/ui';
-import type { ListEntry, Media } from '../types';
+import type { ListEntry, ListStatus, Media } from '../types';
+import { useQuery } from '@tanstack/react-query';
+import Avatar from '../components/Avatar';
+import { useCloudUser } from '../sync/cloud';
+import { friendsWithMedia } from '../sync/social';
 import { activeLists } from '../store/list';
 import { useMedia } from '../api/hooks';
 import AnimeRow from '../components/AnimeRow';
@@ -229,6 +233,7 @@ export default function AnimeDetail() {
       </div>
 
       <div className="mt-12">
+        <FriendsOnMedia mediaId={m.id} manga={manga} />
         {m.characters.edges.length > 0 && (
           <section className="mb-10">
             <SectionTitle title={manga ? t('Personagens') : t('Personagens e dubladores')} jp="キャラクター" />
@@ -332,5 +337,40 @@ function ListChips({ media }: { media: Media }) {
         ))}
       </div>
     </div>
+  );
+}
+
+/** "3 amigos seus têm isso na lista" */
+function FriendsOnMedia({ mediaId, manga }: { mediaId: number; manga: boolean }) {
+  const user = useCloudUser((s) => s.user);
+  const logged = !!user && !user.is_anonymous;
+  const q = useQuery({ queryKey: ['friends-media', mediaId], queryFn: () => friendsWithMedia(mediaId), enabled: logged, staleTime: 60_000 });
+  const rows = q.data ?? [];
+  if (!rows.length) return null;
+  const scored = rows.filter((r) => r.score > 0);
+  const mean = scored.length ? (scored.reduce((n, r) => n + r.score, 0) / scored.length).toFixed(1) : null;
+  return (
+    <section className="mb-10">
+      <SectionTitle
+        title={rows.length === 1 ? t('1 amigo tem na lista') : t('{0} amigos têm na lista', rows.length)}
+        jp="仲間"
+        action={mean && <span className="text-yellow">{t('Nota média deles: ★ {0}', mean)}</span>}
+      />
+      <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-2">
+        {rows.map((r) => (
+          <Link key={r.user_id} to={`/u/${r.username}`} className="panel flex w-56 shrink-0 items-center gap-3 p-3 hover:border-pink">
+            <Avatar url={r.avatar_url} name={r.display_name || r.username} size={44} />
+            <div className="min-w-0">
+              <div className="truncate font-extrabold">{r.display_name || r.username}</div>
+              <div className="text-xs font-bold" style={{ color: STATUS_META[r.status as ListStatus]?.color }}>
+                {statusLabel(r.status as ListStatus, { type: manga ? 'MANGA' : 'ANIME' }, STATUS_META[r.status as ListStatus]?.label ?? r.status)}
+                {r.progress > 0 && r.status !== 'COMPLETED' && ` · ${manga ? t('cap.') : t('ep')} ${r.progress}`}
+              </div>
+              {r.score > 0 && <div className="text-xs font-black text-yellow">★ {r.score}</div>}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

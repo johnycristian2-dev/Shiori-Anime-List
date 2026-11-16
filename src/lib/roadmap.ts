@@ -367,7 +367,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'seguir',
         icon: '👥',
-        status: 'pendente',
+        status: 'feito',
 
         get title() {
           return t('Seguir e feed');
@@ -406,7 +406,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'moderacao',
         icon: '🛡️',
-        status: 'pendente',
+        status: 'andamento',
 
         get title() {
           return t('Moderação e segurança');

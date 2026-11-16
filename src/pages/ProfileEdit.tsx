@@ -22,6 +22,7 @@ import {
   usernameAvailable,
 } from '../sync/account';
 import { useCloudUser } from '../sync/cloud';
+import { listBlocked, unblock } from '../sync/social';
 import { USERNAME_RE } from '../sync/profile';
 import type { ListEntry } from '../types';
 
@@ -393,7 +394,13 @@ export default function ProfileEdit() {
         </Field>
         <Field label={t('Quem pode ver')}>
           <div className="flex gap-2">
-            <button type="button" className={`chip ${isPublic ? 'on' : ''}`} onClick={() => setIsPublic(true)}>
+            <button
+              type="button"
+              className={`chip ${isPublic ? 'on' : ''} disabled:opacity-40`}
+              disabled={!!birthdate && ageFrom(birthdate) < 18}
+              title={!!birthdate && ageFrom(birthdate) < 18 ? t('Indisponível para menores de 18 anos') : undefined}
+              onClick={() => setIsPublic(true)}
+            >
               🌐 {t('Público')}
             </button>
             <button type="button" className={`chip ${!isPublic ? 'on' : ''}`} onClick={() => setIsPublic(false)}>
@@ -422,6 +429,9 @@ export default function ProfileEdit() {
           )}
         </div>
       </form>
+
+      {/* Privacidade */}
+      <Privacy shareActivity={profile.share_activity !== false} isPublic={profile.is_public} minor={!!birthdate && ageFrom(birthdate) < 18} />
 
       {/* Conta */}
       <section className="panel mt-6 space-y-4 p-5">
@@ -465,5 +475,75 @@ export default function ProfileEdit() {
         <ImagePlus size={14} /> {t('Fotos e banners de personagens/animes vêm do AniList.')}
       </p>
     </>
+  );
+}
+
+function Privacy({ shareActivity, isPublic, minor }: { shareActivity: boolean; isPublic: boolean; minor: boolean }) {
+  const toast = useUI((s) => s.toast);
+  const blocked = useQuery({ queryKey: ['blocked'], queryFn: listBlocked });
+  const [busy, setBusy] = useState(false);
+  return (
+    <section id="privacidade" className="panel mt-6 scroll-mt-24 space-y-4 p-5">
+      <h3 className="font-display text-lg">{t('Privacidade e amigos')}</h3>
+      {minor && (
+        <p className="flex items-start gap-2 rounded-[var(--radius-sm)] border-2 border-cyan/50 p-2.5 text-sm font-bold text-cyan">
+          <ShieldCheck size={16} className="mt-0.5 shrink-0" />
+          {t('Como você tem menos de 18 anos, seu perfil fica privado: só quem você aceitar vê sua lista e seu feed, e você não aparece na busca de pessoas.')}
+        </p>
+      )}
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 accent-[var(--pink)]"
+          checked={shareActivity}
+          disabled={busy}
+          onChange={async (e) => {
+            setBusy(true);
+            try {
+              await updateMyProfile({ share_activity: e.target.checked });
+              toast(e.target.checked ? t('Suas atividades vão aparecer no feed') : t('Suas atividades não aparecem mais no feed'));
+            } catch (err) {
+              toast((err as Error).message, 'err');
+            } finally {
+              setBusy(false);
+            }
+          }}
+        />
+        <span>
+          <b className="text-sm">{t('Mostrar o que eu assisto e leio no feed dos amigos')}</b>
+          <span className="block text-xs text-muted">
+            {isPublic ? t('Perfil público: quem segue você vê na hora.') : t('Perfil privado: só quem você aceitou vê.')}
+          </span>
+        </span>
+      </label>
+      <div>
+        <div className="mb-2 text-xs font-black uppercase tracking-wider text-muted">{t('Pessoas bloqueadas')}</div>
+        {!blocked.data?.length ? (
+          <p className="text-sm text-muted">{t('Ninguém bloqueado.')}</p>
+        ) : (
+          <div className="space-y-2">
+            {blocked.data.map((p) => (
+              <div key={p.user_id} className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] bg-panel-2 p-2">
+                <span className="truncate text-sm font-bold">@{p.username}</span>
+                <button
+                  className="manga-btn ghost !py-1 text-xs"
+                  onClick={async () => {
+                    try {
+                      await unblock(p.user_id);
+                      toast(t('Desbloqueado'));
+                      blocked.refetch();
+                    } catch (err) {
+                      toast((err as Error).message, 'err');
+                    }
+                  }}
+                >
+                  {t('Desbloquear')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

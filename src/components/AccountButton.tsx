@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Check, ChevronDown, Cloud, ExternalLink, LogIn, LogOut, Palette, Pencil, UserRound } from 'lucide-react';
+import { Check, ChevronDown, Cloud, ExternalLink, LogIn, LogOut, Palette, Pencil, ShieldAlert, UserRound, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { amIAdmin, useSocial } from '../sync/social';
 import { LANGS, t } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { openAuth, useAccount } from '../sync/account';
@@ -22,6 +24,10 @@ export default function AccountButton() {
   useOutsideClose(box, open, close);
 
   const logged = !!user && !user.is_anonymous;
+  const unread = useSocial((s) => s.unread);
+  const requests = useSocial((s) => s.requests);
+  const badge = unread + requests;
+  const admin = useQuery({ queryKey: ['is-admin', user?.id], queryFn: amIAdmin, enabled: logged, staleTime: Infinity });
   const name = profile?.display_name || profile?.username || nickname || user?.email?.split('@')[0] || '';
 
   if (!logged)
@@ -42,7 +48,14 @@ export default function AccountButton() {
         aria-label={t('Minha conta')}
         aria-expanded={open}
       >
-        {loading && !profile ? <Spinner className="h-9 w-9 p-2" /> : <Avatar url={profile?.avatar_url} name={name} size={36} />}
+        <span className="relative">
+          {loading && !profile ? <Spinner className="h-9 w-9 p-2" /> : <Avatar url={profile?.avatar_url} name={name} size={36} />}
+          {badge > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full border-2 border-black bg-pink px-1 text-[10px] font-black text-white">
+              {badge > 9 ? '9+' : badge}
+            </span>
+          )}
+        </span>
         <ChevronDown size={14} className={`hidden text-muted transition sm:block ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -60,10 +73,12 @@ export default function AccountButton() {
           </div>
           <div className="space-y-0.5 p-1.5 pt-3">
             <Item to="/perfil" icon={UserRound} label={t('Meu perfil')} onClick={close} />
+            <Item to="/amigos" icon={Users} label={t('Amigos e feed')} onClick={close} badge={badge} />
             <Item to="/perfil/editar" icon={Pencil} label={t('Editar perfil')} onClick={close} />
             {profile?.is_public && <Item to={`/u/${profile.username}`} icon={ExternalLink} label={t('Ver como os outros veem')} onClick={close} />}
             <Item to="/sync" icon={Cloud} label={t('Sincronização e backup')} onClick={close} />
             <Item to="/temas" icon={Palette} label={t('Temas')} onClick={close} />
+            {admin.data && <Item to="/moderacao" icon={ShieldAlert} label={t('Moderação')} onClick={close} />}
             <LangRow lang={lang} setLang={setLang} />
             <button
               onClick={async () => {
@@ -81,7 +96,7 @@ export default function AccountButton() {
   );
 }
 
-function Item({ to, icon: Icon, label, onClick }: { to: string; icon: typeof UserRound; label: string; onClick: () => void }) {
+function Item({ to, icon: Icon, label, onClick, badge }: { to: string; icon: typeof UserRound; label: string; onClick: () => void; badge?: number }) {
   return (
     <NavLink
       to={to}
@@ -89,7 +104,8 @@ function Item({ to, icon: Icon, label, onClick }: { to: string; icon: typeof Use
       onClick={onClick}
       className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold hover:bg-panel-2 ${isActive ? 'text-pink' : ''}`}
     >
-      <Icon size={16} /> {label}
+      <Icon size={16} /> <span className="flex-1">{label}</span>
+      {!!badge && <span className="rounded-full bg-pink px-1.5 text-[10px] font-black text-white">{badge}</span>}
     </NavLink>
   );
 }
