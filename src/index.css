@@ -1,0 +1,424 @@
+@import 'tailwindcss';
+
+/* ───────── Temas (troque/adicione temas só mexendo aqui) ───────── */
+:root,
+[data-theme='noite'] {
+  --bg: #0c0a1d;
+  --bg-2: #141030;
+  --panel: #1a1538;
+  --panel-2: #231c4a;
+  --ink: #f5f1ff;
+  --muted: #a59fca;
+  --line: #2e2660;
+  --pink: #ff4f9a;
+  --cyan: #3de2ff;
+  --yellow: #ffe14d;
+  --shadow: #000000;
+  --glow: 0 0 24px color-mix(in srgb, var(--pink) 45%, transparent);
+  color-scheme: dark;
+}
+
+[data-theme='sakura'] {
+  --bg: #fff4f8;
+  --bg-2: #ffe6ef;
+  --panel: #ffffff;
+  --panel-2: #fff0f5;
+  --ink: #1d1430;
+  --muted: #6f6488;
+  --line: #f2c2d5;
+  --pink: #e2307a;
+  --cyan: #0a9fc4;
+  --yellow: #f5a800;
+  --shadow: #1d1430;
+  --glow: 0 0 0 transparent;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-pink: var(--pink);
+  --color-cyan: var(--cyan);
+  --color-yellow: var(--yellow);
+  --color-shadow: var(--shadow);
+}
+
+@theme {
+  --font-display: 'Dela Gothic One', 'Zen Kaku Gothic New', system-ui, sans-serif;
+  --font-sans: 'M PLUS Rounded 1c', system-ui, sans-serif;
+  --font-jp: 'Zen Kaku Gothic New', 'Dela Gothic One', sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  background-image:
+    radial-gradient(60rem 40rem at 110% -10%, color-mix(in srgb, var(--pink) 18%, transparent), transparent 60%),
+    radial-gradient(50rem 35rem at -10% 110%, color-mix(in srgb, var(--cyan) 14%, transparent), transparent 60%),
+    var(--pattern-1, none),
+    var(--pattern-2, none);
+  background-size: auto, auto, var(--pattern-size-1, auto), var(--pattern-size-2, auto);
+  background-attachment: fixed;
+}
+
+/* ───────── Padrões de fundo (por tema) ───────── */
+:root {
+  --pattern-ink: color-mix(in srgb, var(--ink) 7%, transparent);
+  --pattern-1: radial-gradient(var(--pattern-ink) 1px, transparent 1.4px);
+  --pattern-size-1: 16px 16px;
+  --on-pink: #ffffff;
+}
+[data-pattern='halftone'] {
+  --pattern-1: radial-gradient(var(--pattern-ink) 1px, transparent 1.4px);
+  --pattern-size-1: 16px 16px;
+}
+/* xadrez (ichimatsu) */
+[data-pattern='checker'] {
+  --pattern-1: conic-gradient(color-mix(in srgb, var(--cyan) 7%, transparent) 25%, transparent 0 50%, color-mix(in srgb, var(--cyan) 7%, transparent) 0 75%, transparent 0);
+  --pattern-size-1: 56px 56px;
+}
+/* linhas de tela de CRT */
+[data-pattern='scanlines'] {
+  --pattern-1: repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 6%, transparent) 0 1px, transparent 1px 4px);
+  --pattern-size-1: auto;
+  --pattern-2: linear-gradient(90deg, color-mix(in srgb, var(--pink) 5%, transparent) 1px, transparent 1px);
+  --pattern-size-2: 64px 100%;
+}
+[data-pattern='stars'] {
+  --pattern-1: radial-gradient(1.2px 1.2px at 20px 30px, color-mix(in srgb, var(--ink) 35%, transparent), transparent),
+    radial-gradient(1px 1px at 80px 90px, color-mix(in srgb, var(--yellow) 40%, transparent), transparent);
+  --pattern-size-1: 130px 130px;
+  --pattern-2: radial-gradient(1px 1px at 50px 60px, color-mix(in srgb, var(--cyan) 35%, transparent), transparent);
+  --pattern-size-2: 83px 83px;
+}
+/* ondas (seigaiha) */
+[data-pattern='waves'] {
+  --pattern-1: radial-gradient(circle at 50% 100%, transparent 13px, color-mix(in srgb, var(--cyan) 9%, transparent) 14px 15px, transparent 16px 20px, color-mix(in srgb, var(--cyan) 6%, transparent) 21px 22px, transparent 23px);
+  --pattern-size-1: 46px 23px;
+}
+[data-pattern='grid'] {
+  --pattern-1: linear-gradient(color-mix(in srgb, var(--pink) 6%, transparent) 1px, transparent 1px);
+  --pattern-size-1: 36px 36px;
+  --pattern-2: linear-gradient(90deg, color-mix(in srgb, var(--pink) 6%, transparent) 1px, transparent 1px);
+  --pattern-size-2: 36px 36px;
+}
+[data-pattern='none'] {
+  --pattern-1: none;
+}
+
+/* arte do anime (tema gerado) bem apagada atrás de tudo */
+.theme-art {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center 20%;
+  opacity: 0.13;
+  filter: blur(3px) saturate(1.2);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 75%);
+}
+
+::selection {
+  background: var(--pink);
+  color: #fff;
+}
+
+@layer components {
+  .panel {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+  }
+
+  /* Botão estilo "quadro de mangá": borda grossa + sombra deslocada */
+  .manga-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    border: 2.5px solid var(--shadow);
+    box-shadow: 4px 4px 0 var(--shadow);
+    background: var(--pink);
+    color: var(--on-pink);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease,
+      filter 0.12s;
+    cursor: pointer;
+    user-select: none;
+  }
+  .manga-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--shadow);
+    filter: brightness(1.08);
+  }
+  .manga-btn:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 var(--shadow);
+  }
+  .manga-btn:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .manga-btn.ghost {
+    background: var(--panel);
+    color: var(--ink);
+  }
+  .manga-btn.cyan {
+    background: var(--cyan);
+    color: #0c0a1d;
+  }
+  .manga-btn.yellow {
+    background: var(--yellow);
+    color: #0c0a1d;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    background: var(--panel);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    transition: all 0.15s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    border-color: var(--pink);
+  }
+  .chip.on {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: var(--on-pink);
+    box-shadow: var(--glow);
+  }
+
+  .field {
+    width: 100%;
+    background: var(--panel-2);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 0.55rem 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    outline: none;
+  }
+  .field:focus {
+    border-color: var(--cyan);
+  }
+
+  .card-frame {
+    border: 2.5px solid var(--shadow);
+    box-shadow: 5px 5px 0 var(--accent, var(--pink));
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .group:hover .card-frame {
+    transform: translate(-2px, -3px) rotate(-0.6deg);
+    box-shadow: 8px 9px 0 var(--accent, var(--pink));
+  }
+
+  .add-fab {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--pink);
+    color: #fff;
+    border: 2px solid #000;
+    box-shadow: 2px 2px 0 #000;
+    transition: transform 0.12s;
+  }
+  .add-fab:active {
+    transform: scale(0.9);
+  }
+
+  .rank-badge {
+    position: absolute;
+    left: 2px;
+    top: 30px;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #fff;
+    -webkit-text-stroke: 2px #000;
+    paint-order: stroke fill;
+    text-shadow: 3px 3px 0 var(--pink);
+    padding-left: 6px;
+  }
+
+  .jp-ghost {
+    position: absolute;
+    left: -4px;
+    top: -1.1rem;
+    font-family: var(--font-jp);
+    font-weight: 900;
+    font-size: 2.6rem;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.2px color-mix(in srgb, var(--pink) 55%, transparent);
+    pointer-events: none;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .title-underline {
+    display: block;
+    height: 6px;
+    width: 64px;
+    margin-top: 6px;
+    background: linear-gradient(90deg, var(--pink), var(--cyan));
+    transform: skewX(-30deg);
+    border-radius: 2px;
+  }
+
+  .speedlines {
+    background: repeating-conic-gradient(
+      from 0deg at 70% 50%,
+      transparent 0deg 3deg,
+      color-mix(in srgb, #fff 7%, transparent) 3deg 3.6deg
+    );
+  }
+
+  .halftone {
+    background-image: radial-gradient(color-mix(in srgb, var(--pink) 40%, transparent) 1.2px, transparent 1.6px);
+    background-size: 10px 10px;
+  }
+
+  .stroke-title {
+    -webkit-text-stroke: 2px #000;
+    paint-order: stroke fill;
+    text-shadow: 4px 4px 0 var(--pink);
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--panel) 0%, var(--panel-2) 50%, var(--panel) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s infinite linear;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ───────── Pétalas de sakura ───────── */
+.petal {
+  position: absolute;
+  top: -6%;
+  background: radial-gradient(circle at 30% 30%, #ffd1e3, #ff8dbb 70%);
+  border-radius: 150% 0 150% 0;
+  opacity: 0.75;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes fall {
+  0% {
+    transform: translate3d(0, -5vh, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(6vw, 50vh, 0) rotate(260deg);
+  }
+  100% {
+    transform: translate3d(-2vw, 110vh, 0) rotate(540deg);
+  }
+}
+
+/* brasas subindo */
+.ember {
+  position: absolute;
+  bottom: -4%;
+  border-radius: 999px;
+  background: radial-gradient(circle, #ffd27a, var(--pink) 60%, transparent 70%);
+  box-shadow: 0 0 8px var(--pink);
+  opacity: 0.8;
+  animation-name: rise;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+@keyframes rise {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(4vw, -110vh, 0);
+    opacity: 0;
+  }
+}
+/* neve / poeira mágica */
+.snowflake {
+  position: absolute;
+  top: -4%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cyan) 50%, #fff);
+  opacity: 0.7;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes pop-in {
+  from {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+  }
+}
+.pop-in {
+  animation: pop-in 0.22s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petal,
+  .ember,
+  .snowflake {
+    display: none;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* prévia de padrão dentro dos cards de tema */
+.pattern-preview {
+  background-image: var(--pattern-1, none), var(--pattern-2, none);
+  background-size: var(--pattern-size-1, auto), var(--pattern-size-2, auto);
+}
