@@ -11,10 +11,11 @@ import ja from './i18n/ja';
 
 export type Lang = 'pt' | 'en' | 'ja';
 
-export const LANGS: { id: Lang; label: string; flag: string }[] = [
-  { id: 'pt', label: 'Português', flag: '🇧🇷' },
-  { id: 'en', label: 'English', flag: '🇺🇸' },
-  { id: 'ja', label: '日本語', flag: '🇯🇵' },
+// Sigla em texto (o Windows não desenha emojis de bandeira, mostra "BR", "US"…)
+export const LANGS: { id: Lang; label: string; short: string }[] = [
+  { id: 'pt', label: 'Português', short: 'PT' },
+  { id: 'en', label: 'English', short: 'EN' },
+  { id: 'ja', label: '日本語', short: '日本' },
 ];
 
 const DICTS: Record<Exclude<Lang, 'pt'>, Record<string, string>> = { en, ja };

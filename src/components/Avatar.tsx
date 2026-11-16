@@ -1,8 +1,12 @@
-/** Foto de perfil; sem foto, mostra a inicial num quadrado colorido. */
+import { useState } from 'react';
+
+/** Foto de perfil; sem foto (ou se a imagem não carregar), mostra a inicial num quadrado colorido. */
 export default function Avatar({ url, name, size = 36, className = '' }: { url?: string | null; name?: string | null; size?: number; className?: string }) {
   const initial = (name || '?').trim()[0]?.toUpperCase() ?? '?';
-  return url ? (
+  const [failed, setFailed] = useState<string | null>(null);
+  return url && failed !== url ? (
     <img
+      onError={() => setFailed(url)}
       src={url}
       alt=""
       width={size}

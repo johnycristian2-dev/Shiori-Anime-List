@@ -438,7 +438,7 @@ export default function Sync() {
             <span className="w-24 font-bold text-ink">{t('Idioma')}</span>
             {LANGS.map((l) => (
               <button key={l.id} className={`chip ${ui.lang === l.id ? 'on' : ''}`} onClick={() => ui.setLang(l.id)}>
-                {l.flag} {l.label}
+                {l.label}
               </button>
             ))}
           </div>

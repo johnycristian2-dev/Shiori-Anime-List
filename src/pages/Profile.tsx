@@ -116,7 +116,7 @@ export default function Profile() {
       <ProfileHeader
         name={
           logged ? (
-            account?.display_name || account?.username || nickname
+            account?.display_name || account?.username || nickname || cloudUser?.email?.split('@')[0] || t('Meu perfil')
           ) : (
             <input
               value={nickname}

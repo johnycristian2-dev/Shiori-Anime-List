@@ -47,12 +47,13 @@ export default function AccountButton() {
       </button>
       {open && (
         <div className="pop-in panel absolute right-0 top-12 z-50 w-72 overflow-hidden !p-0 shadow-[6px_6px_0_var(--shadow)]">
-          <div className="relative h-16 bg-panel-2">
+          <div className="relative h-20 bg-panel-2">
             {profile?.banner_url && <img src={profile.banner_url} alt="" className="h-full w-full object-cover opacity-80" />}
+            <div className="absolute inset-0 bg-linear-to-t from-panel to-transparent" />
           </div>
-          <div className="-mt-7 flex items-end gap-3 px-4">
+          <div className="relative z-10 -mt-7 flex items-end gap-3 px-4">
             <Avatar url={profile?.avatar_url} name={name} size={56} className="shadow-[3px_3px_0_#000]" />
-            <div className="min-w-0 pb-1">
+            <div className="min-w-0 rounded-md bg-panel/85 px-1.5 py-0.5 backdrop-blur-sm">
               <div className="truncate font-display text-base leading-tight">{name}</div>
               {profile && <div className="truncate text-xs font-bold text-muted">@{profile.username}</div>}
             </div>
@@ -103,7 +104,7 @@ function LangRow({ lang, setLang }: { lang: string; setLang: (l: 'pt' | 'en' | '
           title={l.label}
           className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold ${l.id === lang ? 'bg-panel-2 text-pink' : 'text-muted hover:bg-panel-2'}`}
         >
-          {l.flag} {l.id === lang && <Check size={12} />}
+          {l.short} {l.id === lang && <Check size={12} />}
         </button>
       ))}
     </div>
