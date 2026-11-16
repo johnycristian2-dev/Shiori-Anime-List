@@ -179,11 +179,20 @@ export async function reportedContent(kind: string, id: string | null) {
     const { data } = await sb().from('posts').select('id,body,hidden,media').eq('id', Number(id)).maybeSingle();
     return data as { id: number; body: string; hidden: boolean; media: PostMedia | null } | null;
   }
+  if (kind === 'message') {
+    const { data } = await sb().from('chat_messages').select('id,body,hidden,room_id').eq('id', Number(id)).maybeSingle();
+    return data as { id: number; body: string; hidden: boolean; room_id: string } | null;
+  }
   if (kind === 'comment') {
     const { data } = await sb().from('post_comments').select('id,body,hidden').eq('id', Number(id)).maybeSingle();
     return data as { id: number; body: string; hidden: boolean } | null;
   }
   return null;
+}
+
+export async function setChatMessageHidden(id: number, hidden: boolean) {
+  const { error } = await sb().from('chat_messages').update({ hidden }).eq('id', id);
+  if (error) throw friendly(error);
 }
 
 export async function setCommentHidden(id: number, hidden: boolean) {

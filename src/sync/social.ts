@@ -191,7 +191,7 @@ export async function listBlocked() {
   return ids.map((id) => (ps ?? []).find((p) => p.user_id === id) ?? { user_id: id, username: '???', display_name: null, avatar_url: null }) as MiniProfile[];
 }
 
-export async function report(p: { targetUser: string; kind: 'profile' | 'activity' | 'post' | 'comment'; targetId?: string; reason: ReportReason; details?: string }) {
+export async function report(p: { targetUser: string; kind: 'profile' | 'activity' | 'post' | 'comment' | 'message'; targetId?: string; reason: ReportReason; details?: string }) {
   const { error } = await sb()
     .from('reports')
     .insert({ target_user: p.targetUser, target_kind: p.kind, target_id: p.targetId ?? null, reason: p.reason, details: p.details?.trim().slice(0, 500) || null });

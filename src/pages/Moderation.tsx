@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ShieldAlert, X } from 'lucide-react';
+import { Check, ShieldAlert, VolumeX, X } from 'lucide-react';
+import { muteUser } from '../sync/chat';
 import { EmptyState, ErrorBox, SectionTitle, Spinner } from '../components/ui';
 import { timeAgo, UserLink } from '../components/Social';
 import { t } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { useCloudUser } from '../sync/cloud';
 import { amIAdmin, loadReports, REPORT_REASONS, setReportStatus } from '../sync/social';
-import { reportedContent, setCommentHidden, setPostHidden } from '../sync/posts';
+import { reportedContent, setChatMessageHidden, setCommentHidden, setPostHidden } from '../sync/posts';
 
 const KIND: Record<string, () => string> = {
   profile: () => t('Perfil'),
   activity: () => t('Atividade do feed'),
   post: () => t('Post'),
   comment: () => t('Comentário'),
-  message: () => t('Mensagem'),
+  message: () => t('Mensagem de chat'),
 };
 
 export default function Moderation() {
@@ -87,7 +88,7 @@ export default function Moderation() {
                 </div>
               </div>
               {r.details && <p className="rounded-[var(--radius-sm)] bg-panel-2 p-2.5 text-sm">{r.details}</p>}
-              {(r.target_kind === 'post' || r.target_kind === 'comment') && <Reported kind={r.target_kind} id={r.target_id} />}
+              {['post', 'comment', 'message'].includes(r.target_kind) && <Reported kind={r.target_kind} id={r.target_id} />}
               <div className="flex flex-wrap gap-2">
                 {r.status === 'open' ? (
                   <>
@@ -97,6 +98,21 @@ export default function Moderation() {
                     <button className="manga-btn ghost !py-1.5 text-sm" onClick={() => act(r.id, 'dismissed')}>
                       <X size={14} /> {t('Descartar')}
                     </button>
+                    {r.target_user && (
+                      <button
+                        className="manga-btn ghost !py-1.5 text-sm"
+                        onClick={async () => {
+                          try {
+                            await muteUser(r.target_user!, 24, `report:${r.id}`);
+                            toast(t('Silenciado nos chats por 24 h'));
+                          } catch (e) {
+                            toast((e as Error).message, 'err');
+                          }
+                        }}
+                      >
+                        <VolumeX size={14} /> {t('Silenciar 24 h')}
+                      </button>
+                    )}
                   </>
                 ) : (
                   <button className="manga-btn ghost !py-1.5 text-sm" onClick={() => act(r.id, 'open')}>
@@ -123,13 +139,14 @@ function Reported({ kind, id }: { kind: string; id: string | null }) {
   const c = q.data;
   return (
     <div className="space-y-2 rounded-[var(--radius-sm)] border-2 border-red-400/40 p-3">
-      <div className="text-[10px] font-black uppercase tracking-wider text-red-300">{kind === 'post' ? t('Post denunciado') : t('Comentário denunciado')}</div>
+      <div className="text-[10px] font-black uppercase tracking-wider text-red-300">{kind === 'post' ? t('Post denunciado') : kind === 'message' ? t('Mensagem de chat denunciada') : t('Comentário denunciado')}</div>
       <p className="whitespace-pre-line break-words text-sm">{c.body}</p>
       <button
         className="manga-btn ghost !py-1 text-xs"
         onClick={async () => {
           try {
             if (kind === 'post') await setPostHidden(c.id, !c.hidden);
+            else if (kind === 'message') await setChatMessageHidden(c.id, !c.hidden);
             else await setCommentHidden(c.id, !c.hidden);
             toast(c.hidden ? t('Visível de novo') : t('Ocultado para todos'));
             q.refetch();

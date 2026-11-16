@@ -61,9 +61,9 @@ Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande
 - [ ] 🟡 **Conquistas no perfil** — medalhas públicas, raridade (% de usuários que têm) e progresso das secretas.
 - [x] 🟡 **Postagens e reviews** — ✅ review com nota (uma por título, editável), reação por episódio/capítulo com spoiler escondido pelo seu progresso, post livre; curtidas e comentários com notificação; filtro de palavrões (mascara) e termos de ódio barrados no servidor; moderador oculta posts (`supabase/posts.sql`).
 - [x] 🟡 **Seguir, amigos e feed** — ✅ seguir (perfil privado/menor = pedido), amigos = seguem um ao outro, feed automático do que assistem/leem, notificações em tempo real, "amigos que têm na lista" na página do título, busca de pessoas (`/amigos`).
-- [ ] 🔴 **Comunidade com chats** — salas por anime e por temporada (Supabase Realtime), aviso/ocultação de spoiler.
+- [x] 🔴 **Comunidade com chats** — ✅ sala por anime/mangá, por temporada e Geral (`/chat`), em tempo real com quem está online; spoiler marcado por episódio e borrado pra quem está antes; respostas; modo devagar e anti-repetição; menores leem mas não escrevem; moderador oculta e silencia (`supabase/chat.sql`).
 - [~] 🔴 **Verificação de idade** — ✅ data de nascimento obrigatória no cadastro (mín. 13 anos, guardada só nos dados privados da conta). Falta: data/faixa etária no cadastro, conteúdo adulto (gênero Hentai/Ecchi, `isAdult`) escondido por padrão, restrições pra menores; estudar ECA Digital (Lei 15.211/2025) e LGPD antes de abrir chats.
-- [~] 🔴 **Moderação e segurança** — ✅ bloquear, denunciar (anônimo), limite de ações por minuto, tela `/moderacao` para administradores, menores com perfil privado e fora da busca. ✅ filtro de palavrões e de termos de ódio nos posts. Falta: aplicar nos chats.
+- [~] 🔴 **Moderação e segurança** — ✅ bloquear, denunciar (anônimo), limite de ações por minuto, tela `/moderacao` para administradores, menores com perfil privado e fora da busca. ✅ filtro de palavrões e de termos de ódio nos posts. ✅ também nos chats.
 
 ---
 

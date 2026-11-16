@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useOutsideClose } from './ui';
 import { NavLink, useLocation } from 'react-router-dom';
-import { CalendarDays, ChevronDown, Compass, Dices, Layers, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X } from 'lucide-react';
+import { CalendarDays, ChevronDown, Compass, Dices, Layers, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X, MessageCircle } from 'lucide-react';
 import { applyTheme, type Theme } from '../lib/themes';
 import { useActiveTheme } from '../lib/useTheme';
 import SearchModal from './SearchModal';
@@ -150,6 +150,21 @@ const NAV = [
 
     jp: 'ガチャ',
     icon: Dices,
+    main: false
+  },
+  {
+    to: '/chat',
+
+    get label() {
+      return t('Chats');
+    },
+
+    get short() {
+      return t('Chats');
+    },
+
+    jp: 'チャット',
+    icon: MessageCircle,
     main: false
   },
   {

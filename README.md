@@ -56,6 +56,10 @@ Pra criar um tema novo no código, adicione um objeto em `PRESETS` (`src/lib/the
 
 Em `/amigos`: seguir pessoas (perfil privado ou de menor de idade recebe um **pedido**), amigos (quem segue de volta), feed automático do que os amigos assistem e leem, notificações em tempo real, busca de pessoas, bloquear e denunciar. As regras de quem vê o quê ficam no banco (`supabase/social.sql`, com RLS). Moderadores (tabela `admins`) veem as denúncias em `/moderacao`.
 
+## Chats
+
+`/chat`: uma sala por anime/mangá (também pelo botão **Chat** na página do título), uma por temporada e a Sala Geral, em tempo real. Spoiler pode ser marcado por episódio/capítulo e fica borrado pra quem ainda não chegou lá. Modo devagar, anti-repetição, termos de ódio barrados; menores de 18 leem mas não escrevem; moderadores ocultam mensagens e silenciam por 24 h (`supabase/chat.sql`).
+
 ## Mangá, manhwa e webtoons
 
 O seletor **Anime | Mangá & Webtoon** (em Descobrir, Explorar, Modo rápido, Roleta, Minha lista e na busca) troca o site para leitura. Dá para filtrar por categoria: mangá (Japão), manhwa (Coreia), manhua (China), webtoon (tag *Long Strip* do AniList, de rolagem vertical) e light novel. O progresso conta capítulos. A sincronização com o AniList e a importação/exportação do MAL tratam anime e mangá separadamente.

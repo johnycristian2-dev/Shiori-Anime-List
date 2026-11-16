@@ -380,7 +380,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'chat',
         icon: '💬',
-        status: 'pendente',
+        status: 'feito',
 
         get title() {
           return t('Comunidade com chats');

@@ -33,7 +33,7 @@ export default function AccountButton() {
   if (!logged)
     return (
       <div className="relative flex items-center gap-1.5" ref={box}>
-        <button className="manga-btn !px-3 !py-2 text-sm" onClick={() => openAuth('signin')}>
+        <button className="manga-btn !px-3 !py-2 text-sm" onClick={() => openAuth('signin')} aria-label={t('Entrar')}>
           <LogIn size={16} /> <span className="hidden sm:inline">{t('Entrar')}</span>
         </button>
         <MiniMenu open={open} setOpen={setOpen} lang={lang} setLang={setLang} />

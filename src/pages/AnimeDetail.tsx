@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { CalendarClock, ExternalLink, Heart, Palette, Play, Star, Timer, Tv, Users } from 'lucide-react';
+import { CalendarClock, ExternalLink, Heart, MessageCircle, Palette, Play, Star, Timer, Tv, Users } from 'lucide-react';
 import { themeFromColor } from '../lib/themes';
 import { useEffect, useState } from 'react';
 import { SectionTitle } from '../components/ui';
@@ -212,6 +212,11 @@ export default function AnimeDetail() {
             >
               <Palette size={16} />{' '}{t('Usar como tema')}
             </button>
+            {CLOUD_ENABLED && (
+              <Link to={`/chat/${encodeURIComponent(`media:${m.id}`)}`} className="manga-btn">
+                <MessageCircle size={16} /> {t('Chat')}
+              </Link>
+            )}
             {!manga && (
               <Link to={`/maratona/${m.id}`} className="manga-btn yellow">
                 <Timer size={16} />{' '}{t('Planejar maratona')}
