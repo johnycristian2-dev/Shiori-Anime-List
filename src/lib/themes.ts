@@ -86,7 +86,7 @@ export const PRESETS: Theme[] = [
     dark: true,
     pattern: 'halftone',
     petals: 'sakura',
-    colors: { bg: '#0c0a1d', bg2: '#141030', panel: '#1a1538', panel2: '#231c4a', ink: '#f5f1ff', muted: '#a59fca', line: '#2e2660', pink: '#ff4f9a', cyan: '#3de2ff', yellow: '#ffe14d', shadow: '#000000' }
+    colors: { bg: '#0c0a1d', bg2: '#141030', panel: '#1a1538', panel2: '#231c4a', ink: '#f5f1ff', muted: '#a59fca', line: '#2e2660', pink: '#cbb2ff', cyan: '#3de2ff', yellow: '#ffe14d', shadow: '#000000' }
   },
   {
     id: 'sakura',

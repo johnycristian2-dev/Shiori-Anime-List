@@ -175,7 +175,7 @@ function Option({ on, onClick, emoji, title, sub }: { on: boolean; onClick: () =
     <button
       onClick={onClick}
       className={`panel flex items-center gap-3 p-4 text-left transition hover:-translate-y-0.5 ${
-        on ? '!border-black !bg-pink text-white shadow-[4px_4px_0_var(--shadow)]' : 'hover:border-pink'
+        on ? '!border-black !bg-pink text-[var(--on-pink)] shadow-[4px_4px_0_var(--shadow)]' : 'hover:border-pink'
       }`}
     >
       <span className="text-3xl">{emoji}</span>

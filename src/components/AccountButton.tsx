@@ -51,7 +51,7 @@ export default function AccountButton() {
         <span className="relative">
           {loading && !profile ? <Spinner className="h-9 w-9 p-2" /> : <Avatar url={profile?.avatar_url} name={name} size={36} />}
           {badge > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full border-2 border-black bg-pink px-1 text-[10px] font-black text-white">
+            <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full border-2 border-black bg-pink px-1 text-[10px] font-black text-[var(--on-pink)]">
               {badge > 9 ? '9+' : badge}
             </span>
           )}
@@ -105,7 +105,7 @@ function Item({ to, icon: Icon, label, onClick, badge }: { to: string; icon: typ
       className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold hover:bg-panel-2 ${isActive ? 'text-pink' : ''}`}
     >
       <Icon size={16} /> <span className="flex-1">{label}</span>
-      {!!badge && <span className="rounded-full bg-pink px-1.5 text-[10px] font-black text-white">{badge}</span>}
+      {!!badge && <span className="rounded-full bg-pink px-1.5 text-[10px] font-black text-[var(--on-pink)]">{badge}</span>}
     </NavLink>
   );
 }

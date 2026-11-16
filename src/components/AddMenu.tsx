@@ -123,7 +123,7 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
                   }}
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm font-bold hover:bg-panel-2"
                 >
-                  <span className={`grid h-4 w-4 place-items-center rounded border-2 border-black ${on ? 'bg-pink text-white' : 'bg-panel'}`}>
+                  <span className={`grid h-4 w-4 place-items-center rounded border-2 border-black ${on ? 'bg-pink text-[var(--on-pink)]' : 'bg-panel'}`}>
                     {on && <Check size={10} strokeWidth={4} />}
                   </span>
                   <span>{l.emoji}</span>

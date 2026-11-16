@@ -95,7 +95,7 @@ function AiringCard({ a, now }: { a: AiringItem; now: number }) {
       </Link>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-xs font-black">
-          <span className="rounded-md bg-pink px-1.5 py-0.5 text-white">{time}</span>
+          <span className="rounded-md bg-pink px-1.5 py-0.5 text-[var(--on-pink)]">{time}</span>
           <span className="text-cyan">{t('Ep')}{' '}{a.episode}{a.media.episodes ? `/${a.media.episodes}` : ''}</span>
           {!aired && (
             <span className="inline-flex items-center gap-1 text-muted">
@@ -184,7 +184,7 @@ export default function Calendar() {
               key={d.pt}
               onClick={() => setDay(i)}
               className={`rounded-xl border-2 py-2 text-center transition ${
-                day === i ? 'border-black bg-pink text-white shadow-[3px_3px_0_var(--shadow)]' : 'border-line bg-panel hover:border-pink'
+                day === i ? 'border-black bg-pink text-[var(--on-pink)] shadow-[3px_3px_0_var(--shadow)]' : 'border-line bg-panel hover:border-pink'
               }`}
             >
               <div className="font-jp text-lg font-black leading-none">{d.jp}</div>

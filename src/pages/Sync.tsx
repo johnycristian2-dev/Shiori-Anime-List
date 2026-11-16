@@ -443,6 +443,12 @@ export default function Sync() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <span className="w-24 font-bold text-ink">{t('Palavrões')}</span>
+            <button className={`chip ${ui.cleanText ? 'on' : ''}`} onClick={() => ui.setCleanText(!ui.cleanText)}>
+              {ui.cleanText ? t('Escondidos (p***a)') : t('Mostrando tudo')}
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <span className="w-24 font-bold text-ink">{t('Pétalas')}</span>
             <button className={`chip ${ui.petals ? 'on' : ''}`} onClick={() => ui.setPetals(!ui.petals)}>
               {ui.petals ? t('Ligadas 🌸') : t('Desligadas')}

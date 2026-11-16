@@ -9,7 +9,7 @@ import { t, locale } from './i18n';
 
 const W = 1080;
 const H = 1350;
-const PINK = '#ff4f9a';
+const PINK = '#cbb2ff';
 const CYAN = '#3de2ff';
 const YELLOW = '#ffe14d';
 

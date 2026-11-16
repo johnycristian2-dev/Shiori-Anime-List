@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Download, Image as ImageIcon, Pencil, Share2, UserPlus, X } from 'lucide-react';
 import ProfileHeader from '../components/ProfileHeader';
 import { FollowCounts } from '../components/Social';
+import { PostList } from '../components/Posts';
+import { listPosts } from '../sync/posts';
 import { openAuth, useAccount } from '../sync/account';
 import { useCloudUser } from '../sync/cloud';
 import AnimeCard from '../components/AnimeCard';
@@ -225,6 +227,17 @@ export default function Profile() {
         </div>
       </div>
 
+      {logged && cloudUser && (
+        <section className="mb-10">
+          <SectionTitle title={t('Meus posts e reviews')} jp="感想" action={<Link to="/amigos">{t('Publicar no feed →')}</Link>} />
+          <PostList
+            queryKey={['posts', 'user', cloudUser.id]}
+            load={(before) => listPosts({ userId: cloudUser.id, before })}
+            empty={<p className="panel p-5 text-center text-sm font-bold text-muted">{t('Você ainda não publicou nada. Escreva uma review na página de um anime!')}</p>}
+          />
+        </section>
+      )}
+
       <SectionTitle title={t('Conquistas')} jp="実績" action={<span className="text-muted">{unlocked.length}/{ACHIEVEMENTS.length}</span>} />
       <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ACHIEVEMENTS.map((a) => {
@@ -235,7 +248,7 @@ export default function Profile() {
               key={a.id}
               className={`panel relative p-4 text-center transition ${ok ? (a.hidden ? 'border-pink shadow-[4px_4px_0_var(--pink)]' : 'border-yellow shadow-[4px_4px_0_var(--yellow)]') : 'opacity-45 grayscale'}`}
             >
-              {a.hidden && ok && <span className="absolute right-2 top-2 rounded bg-pink px-1 text-[9px] font-black text-white">{t('RARA')}</span>}
+              {a.hidden && ok && <span className="absolute right-2 top-2 rounded bg-pink px-1 text-[9px] font-black text-[var(--on-pink)]">{t('RARA')}</span>}
               <div className="text-3xl">{secret ? '❓' : a.icon}</div>
               <div className="mt-1 font-extrabold">{secret ? '???' : a.name}</div>
               <div className="text-[11px] font-bold text-muted">{secret ? t('Conquista secreta') : a.desc}</div>

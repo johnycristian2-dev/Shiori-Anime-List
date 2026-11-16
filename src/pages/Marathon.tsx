@@ -157,7 +157,7 @@ export default function Marathon() {
                   <button
                     key={w.d}
                     onClick={() => setWeekdays((x) => (on ? (x.length > 1 ? x.filter((d) => d !== w.d) : x) : [...x, w.d]))}
-                    className={`h-10 flex-1 rounded-lg border-2 font-black ${on ? 'border-black bg-pink text-white' : 'border-line bg-panel-2 text-muted'}`}
+                    className={`h-10 flex-1 rounded-lg border-2 font-black ${on ? 'border-black bg-pink text-[var(--on-pink)]' : 'border-line bg-panel-2 text-muted'}`}
                   >
                     {w.l}
                   </button>
@@ -230,7 +230,7 @@ export default function Marathon() {
           const e = entries[p.media.id];
           return (
             <div key={p.media.id} className={`panel relative flex gap-3 p-2.5 ${p.skipped ? 'opacity-55' : ''} ${p.media.main ? '' : 'border-dashed'}`}>
-              <span className="absolute -left-[33px] top-4 grid h-6 w-6 place-items-center rounded-full border-2 border-black bg-pink text-[10px] font-black text-white">
+              <span className="absolute -left-[33px] top-4 grid h-6 w-6 place-items-center rounded-full border-2 border-black bg-pink text-[10px] font-black text-[var(--on-pink)]">
                 {i + 1}
               </span>
               <Link to={`/anime/${p.media.id}`} className="shrink-0">

@@ -354,7 +354,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'posts',
         icon: '📝',
-        status: 'pendente',
+        status: 'feito',
 
         get title() {
           return t('Postagens e reviews');

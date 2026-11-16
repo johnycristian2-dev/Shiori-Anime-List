@@ -197,7 +197,7 @@ export default function Roulette() {
                   {r.name}
                 </div>
                 {isDaily && (
-                  <div className="absolute right-3 top-3 rounded-lg border-2 border-black bg-pink px-2 py-1 text-xs font-black text-white rotate-3">
+                  <div className="absolute right-3 top-3 rounded-lg border-2 border-black bg-pink px-2 py-1 text-xs font-black text-[var(--on-pink)] rotate-3">
                     {t('Giro do dia 🎁')}
                   </div>
                 )}

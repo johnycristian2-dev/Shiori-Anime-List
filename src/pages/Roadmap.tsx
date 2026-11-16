@@ -21,7 +21,7 @@ export default function Roadmap() {
           const n = phase.items.filter((i) => i.status === 'feito').length;
           return (
             <section key={phase.version} className="relative">
-              <span className="absolute -left-[38px] top-1 grid h-7 w-7 place-items-center rounded-full border-[3px] border-black bg-pink text-[10px] font-black text-white sm:-left-[46px]">
+              <span className="absolute -left-[38px] top-1 grid h-7 w-7 place-items-center rounded-full border-[3px] border-black bg-pink text-[10px] font-black text-[var(--on-pink)] sm:-left-[46px]">
                 {phase.version.slice(1)}
               </span>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-3">

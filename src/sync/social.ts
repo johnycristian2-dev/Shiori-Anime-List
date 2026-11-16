@@ -49,7 +49,8 @@ export interface Activity {
 export interface Notification {
   id: number;
   actor: string | null;
-  kind: 'follow' | 'request' | 'accepted';
+  post_id?: number | null;
+  kind: 'follow' | 'request' | 'accepted' | 'like' | 'comment';
   read: boolean;
   created_at: string;
 }
@@ -190,7 +191,7 @@ export async function listBlocked() {
   return ids.map((id) => (ps ?? []).find((p) => p.user_id === id) ?? { user_id: id, username: '???', display_name: null, avatar_url: null }) as MiniProfile[];
 }
 
-export async function report(p: { targetUser: string; kind: 'profile' | 'activity'; targetId?: string; reason: ReportReason; details?: string }) {
+export async function report(p: { targetUser: string; kind: 'profile' | 'activity' | 'post' | 'comment'; targetId?: string; reason: ReportReason; details?: string }) {
   const { error } = await sb()
     .from('reports')
     .insert({ target_user: p.targetUser, target_kind: p.kind, target_id: p.targetId ?? null, reason: p.reason, details: p.details?.trim().slice(0, 500) || null });
@@ -223,7 +224,7 @@ export async function loadFeed(before?: string) {
   if (error) throw friendly(error);
   const items = (data ?? []) as Activity[];
   const profiles = await miniProfiles(items.map((a) => a.user_id));
-  return { items, profiles, followingCount: ids.length - 1 };
+  return { items, profiles, followingCount: ids.length - 1, ids };
 }
 
 export async function deleteActivity(id: number) {
@@ -239,11 +240,16 @@ export async function friendsWithMedia(mediaId: number) {
 
 // ───────────── Notificações ─────────────
 export async function loadNotifications() {
-  const { data, error } = await sb().from('notifications').select('id,actor,kind,read,created_at').eq('user_id', me()).order('created_at', { ascending: false }).limit(40);
+  const { data, error } = await sb().from('notifications').select('id,actor,kind,read,created_at,post_id').eq('user_id', me()).order('created_at', { ascending: false }).limit(40);
   if (error) throw friendly(error);
   const items = (data ?? []) as Notification[];
-  const profiles = await miniProfiles(items.map((n) => n.actor ?? '').filter(Boolean));
-  return { items, profiles };
+  const postIds = [...new Set(items.map((n) => n.post_id).filter((x): x is number => !!x))];
+  const [profiles, posts] = await Promise.all([
+    miniProfiles(items.map((n) => n.actor ?? '').filter(Boolean)),
+    postIds.length ? sb().from('posts').select('id,kind,media_id,media,body').in('id', postIds) : Promise.resolve({ data: [] }),
+  ]);
+  const postMap = Object.fromEntries(((posts.data ?? []) as { id: number; kind: string; media_id: number | null; media: ActivityMedia | null; body: string }[]).map((p) => [p.id, p]));
+  return { items, profiles, posts: postMap };
 }
 
 export async function markAllRead() {

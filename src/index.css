@@ -10,7 +10,7 @@
   --ink: #f5f1ff;
   --muted: #a59fca;
   --line: #2e2660;
-  --pink: #ff4f9a;
+  --pink: #cbb2ff;
   --cyan: #3de2ff;
   --yellow: #ffe14d;
   --shadow: #000000;
@@ -77,7 +77,7 @@ body {
   --pattern-ink: color-mix(in srgb, var(--ink) 7%, transparent);
   --pattern-1: radial-gradient(var(--pattern-ink) 1px, transparent 1.4px);
   --pattern-size-1: 16px 16px;
-  --on-pink: #ffffff;
+  --on-pink: #1a1240;
 }
 [data-pattern='halftone'] {
   --pattern-1: radial-gradient(var(--pattern-ink) 1px, transparent 1.4px);
@@ -339,7 +339,7 @@ body {
 .petal {
   position: absolute;
   top: -6%;
-  background: radial-gradient(circle at 30% 30%, #ffd1e3, #ff8dbb 70%);
+  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--pink) 35%, #fff), var(--pink) 70%);
   border-radius: 150% 0 150% 0;
   opacity: 0.75;
   animation-name: fall;

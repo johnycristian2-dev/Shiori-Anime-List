@@ -54,7 +54,7 @@ export default function Wrapped() {
     if (s.isEmpty) return [];
     const out: ReactNode[] = [];
     out.push(
-      <Slide bg="bg-pink text-white" jp="年間">
+      <Slide bg="bg-pink text-[var(--on-pink)]" jp="年間">
         <div className="font-jp text-lg font-black opacity-80">{year}年 まとめ</div>
         <h2 className="stroke-title mt-2 break-words font-display text-4xl leading-none sm:text-5xl">{t('Sua retrospectiva')}{' '}{year}</h2>
         <p className="mt-4 text-lg font-extrabold">{nickname ? `${nickname}, ` : ''}{t('bora ver seu ano em anime? 👉')}</p>
@@ -110,7 +110,7 @@ export default function Wrapped() {
     if (s.mostWatched?.entry) {
       const e = s.mostWatched.entry;
       out.push(
-        <Slide bg="bg-pink text-white" jp="一気見">
+        <Slide bg="bg-pink text-[var(--on-pink)]" jp="一気見">
           <div className="text-lg font-black">{t('O anime que você mais maratonou')}</div>
           <div className="mt-4 flex items-center gap-5">
             {e.cover && <img src={e.cover} alt="" className="w-28 rounded-xl border-[3px] border-black shadow-[5px_5px_0_#000] sm:w-36" />}

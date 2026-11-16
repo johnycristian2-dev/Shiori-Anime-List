@@ -7,11 +7,13 @@ import { t } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { useCloudUser } from '../sync/cloud';
 import { amIAdmin, loadReports, REPORT_REASONS, setReportStatus } from '../sync/social';
+import { reportedContent, setCommentHidden, setPostHidden } from '../sync/posts';
 
 const KIND: Record<string, () => string> = {
   profile: () => t('Perfil'),
   activity: () => t('Atividade do feed'),
   post: () => t('Post'),
+  comment: () => t('Comentário'),
   message: () => t('Mensagem'),
 };
 
@@ -85,6 +87,7 @@ export default function Moderation() {
                 </div>
               </div>
               {r.details && <p className="rounded-[var(--radius-sm)] bg-panel-2 p-2.5 text-sm">{r.details}</p>}
+              {(r.target_kind === 'post' || r.target_kind === 'comment') && <Reported kind={r.target_kind} id={r.target_id} />}
               <div className="flex flex-wrap gap-2">
                 {r.status === 'open' ? (
                   <>
@@ -109,5 +112,34 @@ export default function Moderation() {
         {t('Para suspender uma conta: Supabase → Authentication → Users → o usuário → Ban user. Para apagar: Delete user (apaga tudo dele).')}
       </p>
     </>
+  );
+}
+
+function Reported({ kind, id }: { kind: string; id: string | null }) {
+  const toast = useUI((s) => s.toast);
+  const q = useQuery({ queryKey: ['reported', kind, id], queryFn: () => reportedContent(kind, id) });
+  if (q.isLoading) return <Spinner className="h-5 w-5 text-pink" />;
+  if (!q.data) return <p className="text-xs font-bold text-muted">{t('O conteúdo já foi apagado.')}</p>;
+  const c = q.data;
+  return (
+    <div className="space-y-2 rounded-[var(--radius-sm)] border-2 border-red-400/40 p-3">
+      <div className="text-[10px] font-black uppercase tracking-wider text-red-300">{kind === 'post' ? t('Post denunciado') : t('Comentário denunciado')}</div>
+      <p className="whitespace-pre-line break-words text-sm">{c.body}</p>
+      <button
+        className="manga-btn ghost !py-1 text-xs"
+        onClick={async () => {
+          try {
+            if (kind === 'post') await setPostHidden(c.id, !c.hidden);
+            else await setCommentHidden(c.id, !c.hidden);
+            toast(c.hidden ? t('Visível de novo') : t('Ocultado para todos'));
+            q.refetch();
+          } catch (e) {
+            toast((e as Error).message, 'err');
+          }
+        }}
+      >
+        {c.hidden ? t('Mostrar de novo') : t('Ocultar para todos')}
+      </button>
+    </div>
   );
 }

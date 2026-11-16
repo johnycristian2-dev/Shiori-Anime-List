@@ -18,7 +18,7 @@ export default function Avatar({ url, name, size = 36, className = '' }: { url?:
   ) : (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center rounded-[calc(var(--radius-sm)*0.8)] border-2 border-black bg-pink font-display text-white ${className}`}
+      className={`grid shrink-0 place-items-center rounded-[calc(var(--radius-sm)*0.8)] border-2 border-black bg-pink font-display text-[var(--on-pink)] ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.45, color: 'var(--on-pink, #fff)' }}
     >
       {initial}

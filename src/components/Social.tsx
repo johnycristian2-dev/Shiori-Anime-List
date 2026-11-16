@@ -209,7 +209,7 @@ export function SocialActions({ user, onBlocked }: { user: MiniProfile; onBlocke
   );
 }
 
-export function ReportDialog({ user, kind, targetId, onClose }: { user: MiniProfile; kind: 'profile' | 'activity'; targetId?: string; onClose: () => void }) {
+export function ReportDialog({ user, kind, targetId, onClose }: { user: MiniProfile; kind: 'profile' | 'activity' | 'post' | 'comment'; targetId?: string; onClose: () => void }) {
   const toast = useUI((s) => s.toast);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState('');

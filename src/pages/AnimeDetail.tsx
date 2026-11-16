@@ -8,6 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import Avatar from '../components/Avatar';
 import { useCloudUser } from '../sync/cloud';
 import { friendsWithMedia } from '../sync/social';
+import { MediaPosts } from '../components/Posts';
+import { CLOUD_ENABLED } from '../lib/supabase';
 import { activeLists } from '../store/list';
 import { useMedia } from '../api/hooks';
 import AnimeRow from '../components/AnimeRow';
@@ -204,7 +206,7 @@ export default function AnimeDetail() {
             <button
               className="manga-btn cyan"
               onClick={() => {
-                setAnimeTheme(themeFromColor(m.coverImage.color ?? '#ff4f9a', { id: 'anime', name: title(m), image: m.bannerImage ?? cover }));
+                setAnimeTheme(themeFromColor(m.coverImage.color ?? '#cbb2ff', { id: 'anime', name: title(m), image: m.bannerImage ?? cover }));
                 toast(t('Tema de {0} aplicado 🎨 — volte em Temas quando quiser trocar', title(m)));
               }}
             >
@@ -234,6 +236,12 @@ export default function AnimeDetail() {
 
       <div className="mt-12">
         <FriendsOnMedia mediaId={m.id} manga={manga} />
+        {CLOUD_ENABLED && (
+          <section className="mb-10">
+            <SectionTitle title={t('Reviews e reações')} jp="感想" />
+            <MediaPosts media={m} />
+          </section>
+        )}
         {m.characters.edges.length > 0 && (
           <section className="mb-10">
             <SectionTitle title={manga ? t('Personagens') : t('Personagens e dubladores')} jp="キャラクター" />

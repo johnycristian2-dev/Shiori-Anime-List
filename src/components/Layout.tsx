@@ -280,7 +280,7 @@ const MOBILE = [NAV[0], NAV[1], NAV[2], NAV[4]];
 export function Logo() {
   return (
     <NavLink to="/" className="flex items-center gap-2.5">
-      <span className="grid h-10 w-10 place-items-center rounded-xl border-[2.5px] border-black bg-pink font-jp text-2xl font-black text-white shadow-[3px_3px_0_#000] -rotate-6">
+      <span className="grid h-10 w-10 place-items-center rounded-xl border-[2.5px] border-black bg-pink font-jp text-2xl font-black text-[var(--on-pink)] shadow-[3px_3px_0_#000] -rotate-6">
         栞
       </span>
       <span className="leading-none">
@@ -374,7 +374,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 end={to === '/'}
                 className={({ isActive }) =>
                   `group relative whitespace-nowrap rounded-xl px-3 py-2 text-sm font-extrabold transition ${
-                    isActive ? 'bg-pink text-white shadow-[3px_3px_0_var(--shadow)]' : 'text-muted hover:text-ink'
+                    isActive ? 'bg-pink text-[var(--on-pink)] shadow-[3px_3px_0_var(--shadow)]' : 'text-muted hover:text-ink'
                   }`
                 }
               >
@@ -446,7 +446,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             >
               {({ isActive }) => (
                 <>
-                  <span className={`grid h-8 w-8 place-items-center rounded-lg transition ${isActive ? 'bg-pink text-white' : ''}`}>
+                  <span className={`grid h-8 w-8 place-items-center rounded-lg transition ${isActive ? 'bg-pink text-[var(--on-pink)]' : ''}`}>
                     <Icon size={18} />
                   </span>
                   <span className="truncate">{short}</span>

@@ -27,6 +27,9 @@ interface UIState {
   setLang: (l: 'pt' | 'en' | 'ja') => void;
   /** Modo do site: anime ou leitura (mangá, manhwa, webtoon…) */
   kind: 'ANIME' | 'MANGA';
+  /** Esconde palavrões em posts e comentários (p***a) */
+  cleanText: boolean;
+  setCleanText: (v: boolean) => void;
   setKind: (k: 'ANIME' | 'MANGA') => void;
   petals: boolean;
   nickname: string;
@@ -66,6 +69,8 @@ export const useUI = create<UIState>()(
       lang: (typeof navigator !== 'undefined' && navigator.language?.startsWith('ja') ? 'ja' : typeof navigator !== 'undefined' && navigator.language?.startsWith('en') ? 'en' : 'pt') as 'pt' | 'en' | 'ja',
       setLang: (lang) => set({ lang }),
       kind: 'ANIME',
+      cleanText: true,
+      setCleanText: (cleanText) => set({ cleanText }),
       setKind: (kind) => set({ kind }),
       petals: true,
       nickname: '',
@@ -98,6 +103,7 @@ export const useUI = create<UIState>()(
         titleLang: s.titleLang,
         lang: s.lang,
         kind: s.kind,
+        cleanText: s.cleanText,
         petals: s.petals,
         nickname: s.nickname,
         notify: s.notify,

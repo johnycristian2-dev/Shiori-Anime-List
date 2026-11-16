@@ -3,28 +3,28 @@
 <div style="margin:0;padding:32px 12px;background:#0c0a1d;font-family:Arial,Helvetica,sans-serif">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto">
     <tr><td style="padding:0 0 16px;text-align:center">
-      <span style="display:inline-block;padding:6px 12px;border:2px solid #000;border-radius:10px;background:#ff4f9a;color:#fff;font-size:20px;font-weight:900">栞</span>
+      <span style="display:inline-block;padding:6px 12px;border:2px solid #000;border-radius:10px;background:#cbb2ff;color:#1a1240;font-size:20px;font-weight:900">栞</span>
       <span style="margin-left:8px;font-size:20px;font-weight:900;color:#ffffff;vertical-align:middle">SHIORI</span>
     </td></tr>
-    <tr><td style="padding:28px;border:3px solid #000;border-radius:18px;background:#1a1530;box-shadow:6px 6px 0 #ff4f9a;text-align:center">
+    <tr><td style="padding:28px;border:3px solid #000;border-radius:18px;background:#1a1530;box-shadow:6px 6px 0 #cbb2ff;text-align:center">
           {{ if eq $l "en" }}
           <h1 style="margin:0 0 8px;font-size:22px;color:#ffffff">Set a new password</h1>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#c9c3e6">Enter this code in the Shiori window to set a new password:</p>
-          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#ff4f9a;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#ffffff;font-family:'Courier New',monospace">{{ .Token }}</div>
+          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#cbb2ff;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#1a1240;font-family:'Courier New',monospace">{{ .Token }}</div>
           <p style="margin:0 0 10px;font-size:13px;color:#a59fca">Or click the button:</p>
           <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border:2px solid #3de2ff;border-radius:12px;color:#3de2ff;font-weight:800;text-decoration:none">Set new password</a>
           <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#7d77a3">Didn't ask for this? You can ignore it, nothing changes.</p>
           {{ else if eq $l "ja" }}
           <h1 style="margin:0 0 8px;font-size:22px;color:#ffffff">パスワードの再設定</h1>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#c9c3e6">Shioriの画面にこのコードを入力して、新しいパスワードを設定してください：</p>
-          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#ff4f9a;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#ffffff;font-family:'Courier New',monospace">{{ .Token }}</div>
+          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#cbb2ff;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#1a1240;font-family:'Courier New',monospace">{{ .Token }}</div>
           <p style="margin:0 0 10px;font-size:13px;color:#a59fca">またはボタンをクリック：</p>
           <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border:2px solid #3de2ff;border-radius:12px;color:#3de2ff;font-weight:800;text-decoration:none">パスワードを再設定</a>
           <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#7d77a3">心当たりがない場合は無視してください。何も変更されません。</p>
           {{ else }}
           <h1 style="margin:0 0 8px;font-size:22px;color:#ffffff">Criar uma senha nova</h1>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#c9c3e6">Digite este código na janela do Shiori para criar uma senha nova:</p>
-          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#ff4f9a;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#ffffff;font-family:'Courier New',monospace">{{ .Token }}</div>
+          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#cbb2ff;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#1a1240;font-family:'Courier New',monospace">{{ .Token }}</div>
           <p style="margin:0 0 10px;font-size:13px;color:#a59fca">Ou clique no botão:</p>
           <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border:2px solid #3de2ff;border-radius:12px;color:#3de2ff;font-weight:800;text-decoration:none">Criar senha nova</a>
           <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#7d77a3">Não pediu para trocar a senha? Pode ignorar, nada muda.</p>

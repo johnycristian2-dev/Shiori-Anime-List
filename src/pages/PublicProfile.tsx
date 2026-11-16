@@ -5,6 +5,9 @@ import { Lock, Users } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import { FollowCounts, SocialActions } from '../components/Social';
 import { profileCard } from '../sync/social';
+import { PostList } from '../components/Posts';
+import { listPosts } from '../sync/posts';
+import { CLOUD_ENABLED } from '../lib/supabase';
 import AnimeCard from '../components/AnimeCard';
 import { EmptyState, ErrorBox, SectionTitle, Spinner } from '../components/ui';
 import { ACHIEVEMENTS } from '../lib/profile';
@@ -112,6 +115,17 @@ export default function PublicProfile() {
             </span>
           ))}
         </div>
+      )}
+
+      {CLOUD_ENABLED && (
+        <section className="mb-10">
+          <SectionTitle title={t('Posts e reviews')} jp="感想" />
+          <PostList
+            queryKey={['posts', 'user', p.user_id]}
+            load={(before) => listPosts({ userId: p.user_id, before })}
+            empty={<p className="panel p-5 text-center text-sm font-bold text-muted">{t('Nenhum post ainda.')}</p>}
+          />
+        </section>
       )}
 
       <SectionTitle title={t('Lista de {0}', name)} jp="リスト" />

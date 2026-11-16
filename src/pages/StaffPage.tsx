@@ -69,7 +69,7 @@ export default function StaffPage() {
           {s.name.native && <div className="font-jp text-xl font-bold text-muted">{s.name.native}</div>}
           <div className="mt-4 flex flex-wrap gap-2">
             {s.favourites != null && (
-              <span className="inline-flex items-center gap-1 rounded-lg border-2 border-black bg-pink px-2 py-1 text-sm font-black text-white">
+              <span className="inline-flex items-center gap-1 rounded-lg border-2 border-black bg-pink px-2 py-1 text-sm font-black text-[var(--on-pink)]">
                 <Heart size={14} fill="currentColor" /> {s.favourites.toLocaleString(locale())}{' '}{t('favoritos')}
               </span>
             )}

@@ -59,11 +59,11 @@ Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande
 
 - [x] 🔴 **Conta e perfil de verdade** — ✅ botão Entrar/Criar conta no canto superior direito (e-mail + senha, link mágico, esqueci a senha, Google opcional), apelido único verificado na hora, `/perfil/editar` com foto e banner (envio com redução/WebP no aparelho ou personagem/banner do AniList), bio, anime favorito, público/privado, troca de senha e excluir conta (LGPD), página `/termos`.
 - [ ] 🟡 **Conquistas no perfil** — medalhas públicas, raridade (% de usuários que têm) e progresso das secretas.
-- [ ] 🟡 **Postagens e reviews** — review com nota, post curto, reação por episódio; curtidas e comentários.
+- [x] 🟡 **Postagens e reviews** — ✅ review com nota (uma por título, editável), reação por episódio/capítulo com spoiler escondido pelo seu progresso, post livre; curtidas e comentários com notificação; filtro de palavrões (mascara) e termos de ódio barrados no servidor; moderador oculta posts (`supabase/posts.sql`).
 - [x] 🟡 **Seguir, amigos e feed** — ✅ seguir (perfil privado/menor = pedido), amigos = seguem um ao outro, feed automático do que assistem/leem, notificações em tempo real, "amigos que têm na lista" na página do título, busca de pessoas (`/amigos`).
 - [ ] 🔴 **Comunidade com chats** — salas por anime e por temporada (Supabase Realtime), aviso/ocultação de spoiler.
 - [~] 🔴 **Verificação de idade** — ✅ data de nascimento obrigatória no cadastro (mín. 13 anos, guardada só nos dados privados da conta). Falta: data/faixa etária no cadastro, conteúdo adulto (gênero Hentai/Ecchi, `isAdult`) escondido por padrão, restrições pra menores; estudar ECA Digital (Lei 15.211/2025) e LGPD antes de abrir chats.
-- [~] 🔴 **Moderação e segurança** — ✅ bloquear, denunciar (anônimo), limite de ações por minuto, tela `/moderacao` para administradores, menores com perfil privado e fora da busca. Falta: filtro de palavrões (vem junto com posts/chat).
+- [~] 🔴 **Moderação e segurança** — ✅ bloquear, denunciar (anônimo), limite de ações por minuto, tela `/moderacao` para administradores, menores com perfil privado e fora da busca. ✅ filtro de palavrões e de termos de ódio nos posts. Falta: aplicar nos chats.
 
 ---
 

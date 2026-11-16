@@ -267,7 +267,7 @@ export default function AuthModal() {
               setMode(m);
               setError('');
             }}
-            className={`rounded-[calc(var(--radius-sm)*0.7)] py-2 text-sm font-extrabold transition ${mode === m ? 'bg-pink text-white' : 'text-muted hover:text-ink'}`}
+            className={`rounded-[calc(var(--radius-sm)*0.7)] py-2 text-sm font-extrabold transition ${mode === m ? 'bg-pink text-[var(--on-pink)]' : 'text-muted hover:text-ink'}`}
             style={mode === m ? { color: 'var(--on-pink, #fff)' } : undefined}
           >
             {m === 'signin' ? t('Entrar') : t('Criar conta')}

@@ -4,6 +4,9 @@ import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import { Bell, Check, Search, ShieldCheck, UserPlus, Users, X } from 'lucide-react';
 import { EmptyState, ErrorBox, SectionTitle, Spinner, useDebounced } from '../components/ui';
 import { ActivityItem, SocialActions, timeAgo, UserLink } from '../components/Social';
+import { PostCard, PostComposer } from '../components/Posts';
+import { listPosts, type Post } from '../sync/posts';
+import { mediaPath } from '../lib/media';
 import { t } from '../lib/i18n';
 import { CLOUD_ENABLED } from '../lib/supabase';
 import { useUI } from '../store/ui';
@@ -18,38 +21,74 @@ import {
   removeFollower,
   searchProfiles,
   useSocial,
+  type Activity,
   type MiniProfile,
 } from '../sync/social';
 
 type Tab = 'feed' | 'friends' | 'requests' | 'following' | 'followers' | 'alerts' | 'search';
 
+type FeedItem = { at: string; activity?: Activity; post?: Post; author?: MiniProfile; liked?: boolean };
+
+/** Linha do tempo: atividades automáticas + posts de quem você segue, misturados por data */
+async function loadTimeline(before?: string) {
+  const act = await loadFeed(before);
+  const posts = await listPosts({ userIds: act.ids, before, limit: 20 });
+  const items: FeedItem[] = [
+    ...act.items.map((a) => ({ at: a.created_at, activity: a, author: act.profiles[a.user_id] })),
+    ...posts.posts.map((p) => ({ at: p.created_at, post: p, author: posts.profiles[p.user_id], liked: posts.liked.has(p.id) })),
+  ].sort((x, y) => (x.at < y.at ? 1 : -1));
+  // Pagina pelo mais antigo que ainda cabe nas duas listas
+  const full = act.items.length === 30 || posts.posts.length === 20;
+  const cut = full ? [act.items.length === 30 ? act.items[29].created_at : '', posts.posts.length === 20 ? posts.posts[19].created_at : ''].filter(Boolean).sort().reverse()[0] : undefined;
+  return { items: cut ? items.filter((i) => i.at >= cut) : items, next: cut, followingCount: act.followingCount };
+}
+
 function Feed() {
+  const qc = useQueryClient();
   const q = useInfiniteQuery({
     queryKey: ['feed'],
-    queryFn: ({ pageParam }) => loadFeed(pageParam || undefined),
+    queryFn: ({ pageParam }) => loadTimeline(pageParam || undefined),
     initialPageParam: '',
-    getNextPageParam: (last) => (last.items.length === 30 ? last.items[last.items.length - 1].created_at : undefined),
+    getNextPageParam: (last) => last.next,
     refetchInterval: 60_000,
   });
-  if (q.isLoading) return <Center />;
-  if (q.error) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
+  const refresh = () => qc.invalidateQueries({ queryKey: ['feed'] });
   const pages = q.data?.pages ?? [];
-  const items = pages.flatMap((p) => p.items.map((a) => ({ a, p: p.profiles[a.user_id] })));
-  if (!items.length)
-    return (
-      <EmptyState jp="静か" title={pages[0]?.followingCount ? t('Nada por aqui ainda') : t('Seu feed começa quando você segue alguém')}>
-        <p className="text-sm text-muted">{t('Quando seus amigos começarem, terminarem ou derem nota em algo, aparece aqui.')}</p>
-      </EmptyState>
-    );
+  const seen = new Set<string>();
+  const items = pages
+    .flatMap((p) => p.items)
+    .filter((i) => {
+      const k = i.post ? `p${i.post.id}` : `a${i.activity!.id}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
   return (
-    <div className="space-y-2.5">
-      {items.map(({ a, p }) => (
-        <ActivityItem key={a.id} a={a} p={p} onDeleted={() => q.refetch()} />
-      ))}
-      {q.hasNextPage && (
-        <button className="manga-btn ghost mx-auto flex" onClick={() => q.fetchNextPage()} disabled={q.isFetchingNextPage}>
-          {q.isFetchingNextPage ? <Spinner className="h-4 w-4" /> : t('Carregar mais')}
-        </button>
+    <div className="space-y-3">
+      <PostComposer onPosted={refresh} />
+      {q.isLoading ? (
+        <Center />
+      ) : q.error ? (
+        <ErrorBox error={q.error} onRetry={() => q.refetch()} />
+      ) : !items.length ? (
+        <EmptyState jp="静か" title={pages[0]?.followingCount ? t('Nada por aqui ainda') : t('Seu feed começa quando você segue alguém')}>
+          <p className="text-sm text-muted">{t('Quando seus amigos começarem, terminarem ou derem nota em algo, aparece aqui.')}</p>
+        </EmptyState>
+      ) : (
+        <>
+          {items.map((i) =>
+            i.post ? (
+              <PostCard key={`p${i.post.id}`} post={i.post} author={i.author} liked={!!i.liked} onChanged={refresh} />
+            ) : (
+              <ActivityItem key={`a${i.activity!.id}`} a={i.activity!} p={i.author} onDeleted={refresh} />
+            ),
+          )}
+          {q.hasNextPage && (
+            <button className="manga-btn ghost mx-auto flex" onClick={() => q.fetchNextPage()} disabled={q.isFetchingNextPage}>
+              {q.isFetchingNextPage ? <Spinner className="h-4 w-4" /> : t('Carregar mais')}
+            </button>
+          )}
+        </>
       )}
     </div>
   );
@@ -86,11 +125,35 @@ function Alerts() {
     <div className="space-y-2">
       {items.map((n) => {
         const p = n.actor ? q.data!.profiles[n.actor] : undefined;
-        const text = n.kind === 'follow' ? t('começou a seguir você') : n.kind === 'request' ? t('quer seguir você') : t('aceitou seu pedido');
+        const post = n.post_id ? q.data!.posts[n.post_id] : undefined;
+        const text =
+          n.kind === 'follow'
+            ? t('começou a seguir você')
+            : n.kind === 'request'
+              ? t('quer seguir você')
+              : n.kind === 'like'
+                ? t('curtiu seu post')
+                : n.kind === 'comment'
+                  ? t('comentou no seu post')
+                  : t('aceitou seu pedido');
         return (
           <div key={n.id} className={`panel flex flex-wrap items-center gap-3 p-3 ${n.read ? '' : 'border-pink!'}`}>
             <UserLink p={p} size={36} />
-            <span className="text-sm text-muted">{text}</span>
+            <span className="text-sm text-muted">
+              {text}
+              {post && (
+                <>
+                  {' '}
+                  {post.media_id ? (
+                    <Link to={mediaPath({ id: post.media_id, type: post.media?.type })} className="font-bold text-ink hover:text-pink">
+                      “{post.body.slice(0, 50)}{post.body.length > 50 ? '…' : ''}”
+                    </Link>
+                  ) : (
+                    <span className="font-bold text-ink">“{post.body.slice(0, 50)}{post.body.length > 50 ? '…' : ''}”</span>
+                  )}
+                </>
+              )}
+            </span>
             <span className="ml-auto text-[11px] font-bold text-muted">{timeAgo(n.created_at)}</span>
             {n.kind === 'request' && n.actor && (
               <RequestButtons
@@ -212,7 +275,7 @@ export default function Friends() {
             {x.id === 'search' && <Search size={13} />}
             {x.id === 'friends' && <Users size={13} />}
             {x.label}
-            {x.n != null && <span className={`rounded-full px-1.5 text-[10px] font-black ${x.hot ? 'bg-pink text-white' : 'opacity-70'}`}>{x.n}</span>}
+            {x.n != null && <span className={`rounded-full px-1.5 text-[10px] font-black ${x.hot ? 'bg-pink text-[var(--on-pink)]' : 'opacity-70'}`}>{x.n}</span>}
           </button>
         ))}
       </div>

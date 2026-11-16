@@ -333,7 +333,7 @@ export default function Explore() {
           onChange={(e) => set('search', e.target.value)}
         />
         <button className="manga-btn ghost lg:hidden" onClick={() => setOpen(true)}>
-          <SlidersHorizontal size={16} /> {activeCount > 0 && <span className="rounded-full bg-pink px-1.5 text-xs text-white">{activeCount}</span>}
+          <SlidersHorizontal size={16} /> {activeCount > 0 && <span className="rounded-full bg-pink px-1.5 text-xs text-[var(--on-pink)]">{activeCount}</span>}
         </button>
       </div>
 
