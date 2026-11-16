@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Image as ImageIcon, Share2, X } from 'lucide-react';
+import { Download, Image as ImageIcon, Pencil, Share2, UserPlus, X } from 'lucide-react';
+import ProfileHeader from '../components/ProfileHeader';
+import { openAuth, useAccount } from '../sync/account';
+import { useCloudUser } from '../sync/cloud';
 import AnimeCard from '../components/AnimeCard';
 import { EmptyState, SectionTitle, Spinner } from '../components/ui';
 import { ACHIEVEMENTS, computeStats, rankOf, RANKS } from '../lib/profile';
@@ -39,6 +42,9 @@ export default function Profile() {
   const nickname = useUI((s) => s.nickname);
   const setNickname = useUI((s) => s.setNickname);
   const toast = useUI((s) => s.toast);
+  const cloudUser = useCloudUser((s) => s.user);
+  const account = useAccount((s) => s.profile);
+  const logged = !!cloudUser && !cloudUser.is_anonymous;
   const all = useMemo(() => Object.values(entries), [entries]);
   const stats = useMemo(() => computeStats(all), [all]);
   const rank = rankOf(stats.completed);
@@ -54,6 +60,7 @@ export default function Profile() {
 
   const titleOf = (e: ListEntry) => pickTitle({ romaji: e.title, english: e.titleEnglish, native: e.titleNative }, lang);
   const favorites = all.filter((e) => e.favorite).sort((a, b) => b.score - a.score);
+  const favEntry = (account?.favorite_id ? entries[account.favorite_id] : undefined) ?? favorites[0];
   const picks = useMemo(
     () =>
       [...all]
@@ -85,12 +92,17 @@ export default function Profile() {
     }
   };
 
-  if (!all.length)
+  if (!all.length && !logged)
     return (
       <>
         <SectionTitle title={t('Perfil')} jp="プロフィール" />
         <EmptyState jp="無" title={t('Seu perfil nasce com a sua lista')}>
           {t('Adicione animes pelo')}{' '}<Link to="/swipe" className="font-bold text-pink">{t('modo rápido')}</Link>{' '}{t('e volte aqui.')}
+          <div className="mt-4">
+            <button className="manga-btn" onClick={() => openAuth('signup')}>
+              <UserPlus size={16} /> {t('Criar conta')}
+            </button>
+          </div>
         </EmptyState>
       </>
     );
@@ -101,12 +113,11 @@ export default function Profile() {
     <>
       <SectionTitle title={t('Perfil')} jp="プロフィール" />
 
-      {/* Cartão de rank */}
-      <section className="halftone relative mb-8 overflow-hidden rounded-3xl border-[3px] border-black bg-panel p-6 shadow-[8px_8px_0_var(--pink)] sm:p-8">
-        <div className="speedlines absolute inset-0 opacity-50" />
-        <div className="absolute -right-3 -top-6 font-jp text-[130px] font-black leading-none text-pink/15">{rank.jp}</div>
-        <div className="relative flex flex-wrap items-end gap-6">
-          <div className="flex-1">
+      <ProfileHeader
+        name={
+          logged ? (
+            account?.display_name || account?.username || nickname
+          ) : (
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
@@ -114,23 +125,36 @@ export default function Profile() {
               maxLength={24}
               className="w-full max-w-sm border-b-2 border-dashed border-line bg-transparent font-display text-3xl outline-none placeholder:text-muted focus:border-pink"
             />
-            <div className="mt-2 font-jp text-xl font-black text-pink">
-              {rank.jp} · <span className="font-display text-ink">{rank.name}</span>
-            </div>
-            <div className="mt-3 max-w-md">
-              <div className="h-4 overflow-hidden rounded-full border-2 border-black bg-panel-2">
-                <div className="h-full bg-linear-to-r from-pink via-yellow to-cyan" style={{ width: `${rank.pct * 100}%` }} />
-              </div>
-              <div className="mt-1 text-xs font-bold text-muted">
-                {rank.next ? t(
-                  '{0} completos para {1} {2}',
-                  rank.next.min - stats.completed,
-                  rank.next.name,
-                  rank.next.jp
-                ) : t('Rank máximo! 伝説')}
-              </div>
-            </div>
+          )
+        }
+        username={account?.username}
+        avatar={account?.avatar_url}
+        banner={account?.banner_url}
+        bio={account?.bio}
+        rank={rank}
+        favorite={favEntry ? { id: favEntry.mediaId, title: titleOf(favEntry), cover: favEntry.cover } : null}
+        actions={
+          logged ? (
+            <Link to="/perfil/editar" className="manga-btn ghost">
+              <Pencil size={16} /> {t('Editar perfil')}
+            </Link>
+          ) : (
+            <button className="manga-btn" onClick={() => openAuth('signup')}>
+              <UserPlus size={16} /> {t('Criar conta')}
+            </button>
+          )
+        }
+      >
+        <div className="mt-3 max-w-md">
+          <div className="h-4 overflow-hidden rounded-full border-2 border-black bg-panel-2">
+            <div className="h-full bg-linear-to-r from-pink via-yellow to-cyan" style={{ width: `${rank.pct * 100}%` }} />
           </div>
+          <div className="mt-1 text-xs font-bold text-muted">
+            {rank.next ? t('{0} completos para {1} {2}', rank.next.min - stats.completed, rank.next.name, rank.next.jp) : t('Rank máximo! 伝説')}
+          </div>
+        </div>
+        {!logged && <p className="mt-3 text-sm font-bold text-muted">{t('Com uma conta você ganha foto, banner, bio e um link de perfil pra mandar pros amigos.')}</p>}
+        <div className="mt-4 flex flex-wrap gap-2">
           <Link to="/retrospectiva" className="manga-btn ghost">
             {t('🎁 Retrospectiva do ano')}
           </Link>
@@ -138,7 +162,7 @@ export default function Profile() {
             {busy ? <Spinner className="h-4 w-4" /> : <ImageIcon size={16} />}{' '}{t('Gerar card pra compartilhar')}
           </button>
         </div>
-      </section>
+      </ProfileHeader>
 
       <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
         {[

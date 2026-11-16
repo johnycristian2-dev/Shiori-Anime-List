@@ -8,6 +8,8 @@ import { ACHIEVEMENTS } from '../lib/profile';
 import { entryToMedia } from '../lib/format';
 import { STATUS_META, STATUS_ORDER } from '../store/list';
 import { getPublicProfile, snapshotEntries } from '../sync/profile';
+import type { FullProfile } from '../sync/account';
+import ProfileHeader from '../components/ProfileHeader';
 import type { ListStatus } from '../types';
 
 import { t, locale } from '../lib/i18n';
@@ -26,37 +28,31 @@ export default function PublicProfile() {
     );
   if (q.error || !q.data) return <ErrorBox error={q.error ?? new Error(t('Perfil não encontrado'))} />;
 
-  const p = q.data;
+  const p = q.data as FullProfile;
   const snap = p.snapshot;
   const name = p.display_name || p.username;
   const shown = list
     .filter((e) => (tab === 'FAV' ? e.favorite : e.status === tab))
     .sort((a, b) => b.score - a.score || (b.averageScore ?? 0) - (a.averageScore ?? 0));
+  const fav = list.find((e) => e.mediaId === p.favorite_id) ?? list.filter((e) => e.favorite).sort((a, b) => b.score - a.score)[0];
   const unlocked = ACHIEVEMENTS.filter((a) => snap.achievements?.includes(a.id));
 
   return (
     <>
-      <section className="halftone relative mb-8 overflow-hidden rounded-3xl border-[3px] border-black bg-panel p-6 shadow-[8px_8px_0_var(--pink)] sm:p-8">
-        <div className="speedlines absolute inset-0 opacity-40" />
-        {snap.rank && <div className="absolute -right-3 -top-6 font-jp text-[130px] font-black leading-none text-pink/15">{snap.rank.jp}</div>}
-        <div className="relative flex flex-wrap items-center gap-5">
-          <div className="grid h-20 w-20 place-items-center rounded-2xl border-[3px] border-black bg-pink font-display text-4xl text-white shadow-[4px_4px_0_#000] -rotate-3">
-            {name[0]?.toUpperCase()}
-          </div>
-          <div className="flex-1">
-            <h1 className="font-display text-3xl">{name}</h1>
-            <div className="text-sm font-bold text-muted">@{p.username}</div>
-            {snap.rank && (
-              <div className="mt-1 font-jp text-lg font-black text-pink">
-                {snap.rank.jp} · <span className="font-display text-ink">{snap.rank.name}</span>
-              </div>
-            )}
-          </div>
+      <ProfileHeader
+        name={name}
+        username={p.username}
+        avatar={p.avatar_url}
+        banner={p.banner_url}
+        bio={p.bio}
+        rank={snap.rank}
+        favorite={fav ? { id: fav.mediaId, title: fav.title, cover: fav.cover } : null}
+        actions={
           <Link to={`/comparar/shiori/${p.username}`} className="manga-btn">
             <Users size={16} />{' '}{t('Comparar comigo')}
           </Link>
-        </div>
-      </section>
+        }
+      />
 
       {snap.stats && (
         <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">

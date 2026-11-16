@@ -14,6 +14,8 @@ const AnimeDetail = lazy(() => import('./pages/AnimeDetail'));
 const Sync = lazy(() => import('./pages/Sync'));
 const Calendar = lazy(() => import('./pages/Calendar'));
 const Profile = lazy(() => import('./pages/Profile'));
+const ProfileEdit = lazy(() => import('./pages/ProfileEdit'));
+const Terms = lazy(() => import('./pages/Terms'));
 const Roulette = lazy(() => import('./pages/Roulette'));
 const StudioPage = lazy(() => import('./pages/Studio'));
 const Roadmap = lazy(() => import('./pages/Roadmap'));
@@ -50,6 +52,8 @@ export default function App() {
           <Route path="/pra-voce" element={<Recommendations />} />
           <Route path="/roleta" element={<Roulette />} />
           <Route path="/perfil" element={<Profile />} />
+          <Route path="/perfil/editar" element={<ProfileEdit />} />
+          <Route path="/termos" element={<Terms />} />
           <Route path="/lista" element={<MyList />} />
           <Route path="/anime/:id" element={<AnimeDetail />} />
           <Route path="/estudio/:id" element={<StudioPage />} />

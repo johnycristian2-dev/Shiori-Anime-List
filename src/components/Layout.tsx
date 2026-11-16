@@ -13,6 +13,8 @@ import { useList } from '../store/list';
 
 import { t } from '../lib/i18n';
 import { ThemeOverlay, ThemeParticles } from './ThemeFx';
+import AccountButton from './AccountButton';
+import AuthModal from './AuthModal';
 
 const NAV = [
   {
@@ -345,11 +347,12 @@ export default function Layout({ children }: { children: ReactNode }) {
       {theme.image && <div aria-hidden className="theme-art" style={{ backgroundImage: `url("${theme.image}")` }} />}
       <Petals kind={theme.petals} />
       <ThemeOverlay kind={theme.overlay} />
+      <AuthModal />
       <header className="sticky top-0 z-40 border-b-2 border-line bg-bg/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:gap-4 sm:px-4">
           <Logo />
-          <nav className="ml-4 hidden flex-1 items-center gap-1 lg:flex">
-            {MAIN.map(({ to, label, jp }) => (
+          <nav className="ml-4 hidden flex-1 items-center gap-1 xl:flex">
+            {MAIN.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -361,7 +364,6 @@ export default function Layout({ children }: { children: ReactNode }) {
                 }
               >
                 {label}
-                <span className="ml-1.5 font-jp text-[10px] opacity-60 xl:inline hidden">{jp}</span>
                 {to === '/lista' && count > 0 && (
                   <span className="ml-1.5 rounded-full bg-yellow px-1.5 text-[10px] font-black text-black">{count}</span>
                 )}
@@ -394,25 +396,29 @@ export default function Layout({ children }: { children: ReactNode }) {
           </nav>
           <button
             onClick={() => setSearch(true)}
-            className="ml-auto flex items-center gap-2 rounded-xl border-2 border-line bg-panel px-3 py-2 text-sm font-bold text-muted transition hover:border-pink lg:ml-0"
+            className="ml-auto flex items-center gap-2 rounded-xl border-2 border-line bg-panel px-3 py-2 text-sm font-bold text-muted transition hover:border-pink xl:ml-0"
             aria-label={t('Buscar')}
           >
             <Search size={16} /> <span className="hidden sm:inline">{t('Buscar')}</span>
-            <kbd className="hidden rounded border border-line px-1.5 text-[10px] md:inline">{t('Ctrl K')}</kbd>
+            <kbd className="hidden rounded border border-line px-1.5 text-[10px] 2xl:inline">{t('Ctrl K')}</kbd>
           </button>
           <SyncBadge />
           <EpisodeBell />
-          <LangSwitch />
-          <NavLink to="/temas" className="manga-btn ghost !p-2" aria-label={t('Temas')} title={t('Tema: {0}', theme.name)}>
+          <div className="hidden sm:block">
+            <LangSwitch />
+          </div>
+          <NavLink to="/temas" className="manga-btn ghost !p-2 hidden sm:inline-flex" aria-label={t('Temas')} title={t('Tema: {0}', theme.name)}>
             <Palette size={18} />
           </NavLink>
+          <span className="hidden h-8 w-0.5 rounded bg-line sm:block" aria-hidden />
+          <AccountButton />
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-32 pt-6 lg:pb-16">{children}</main>
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-32 pt-6 xl:pb-16">{children}</main>
 
       {/* Navegação inferior no celular */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md xl:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5">
           {MOBILE.map(({ to, short, icon: Icon }) => (
             <NavLink
@@ -451,7 +457,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       </nav>
 
       {sheet && (
-        <div className="fixed inset-0 z-[60] lg:hidden" onClick={() => setSheet(false)}>
+        <div className="fixed inset-0 z-[60] xl:hidden" onClick={() => setSheet(false)}>
           <div className="absolute inset-0 bg-black/60" />
           <div
             className="pop-in absolute inset-x-0 bottom-0 rounded-t-3xl border-t-[3px] border-black bg-bg p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"

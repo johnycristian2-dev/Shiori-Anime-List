@@ -153,3 +153,86 @@ begin
     end if;
   end loop;
 end $$;
+
+-- ═══════════════ v0.7 · Conta e perfil ═══════════════
+-- Perfil com foto, banner, bio e anime favorito
+alter table public.profiles add column if not exists avatar_url  text;
+alter table public.profiles add column if not exists banner_url  text;
+alter table public.profiles add column if not exists bio         text;
+alter table public.profiles add column if not exists favorite_id int;
+alter table public.profiles add column if not exists created_at  timestamptz not null default now();
+alter table public.profiles drop constraint if exists profiles_bio_len;
+alter table public.profiles add constraint profiles_bio_len check (bio is null or char_length(bio) <= 300);
+
+-- Apelido livre? (funciona mesmo pra perfis privados, sem expor nada além de sim/não)
+create or replace function public.username_available(u text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select lower(u) ~ '^[a-z0-9_]{3,20}$' and not exists (select 1 from public.profiles where username = lower(u));
+$$;
+grant execute on function public.username_available(text) to anon, authenticated;
+
+-- Cria o perfil automaticamente no cadastro (apelido vem do formulário).
+-- Se o apelido já tiver dono, acrescenta números. Nunca bloqueia o cadastro.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  base text := lower(coalesce(new.raw_user_meta_data->>'username', ''));
+  candidate text;
+  n int := 0;
+begin
+  if new.is_anonymous then return new; end if;
+  if base !~ '^[a-z0-9_]{3,20}$' then
+    base := 'otaku_' || substr(replace(new.id::text, '-', ''), 1, 8);
+  end if;
+  candidate := base;
+  while exists (select 1 from public.profiles where username = candidate) and n < 20 loop
+    n := n + 1;
+    candidate := left(base, 16) || floor(random() * 9000 + 1000)::int;
+  end loop;
+  insert into public.profiles (user_id, username, display_name, is_public)
+  values (new.id, candidate, nullif(new.raw_user_meta_data->>'display_name', ''), true)
+  on conflict (user_id) do nothing;
+  return new;
+exception when others then
+  return new;
+end;
+$$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Fotos de perfil e banners: pasta = id do usuário, máx. 2 MB, só imagem
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('profile-images', 'profile-images', true, 2097152, array['image/webp', 'image/jpeg', 'image/png', 'image/gif'])
+on conflict (id) do update set public = true, file_size_limit = 2097152,
+  allowed_mime_types = array['image/webp', 'image/jpeg', 'image/png', 'image/gif'];
+
+drop policy if exists "imagens de perfil são públicas" on storage.objects;
+create policy "imagens de perfil são públicas" on storage.objects
+  for select using (bucket_id = 'profile-images');
+drop policy if exists "enviar a própria imagem" on storage.objects;
+create policy "enviar a própria imagem" on storage.objects
+  for insert to authenticated with check (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "trocar a própria imagem" on storage.objects;
+create policy "trocar a própria imagem" on storage.objects
+  for update to authenticated using (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "apagar a própria imagem" on storage.objects;
+create policy "apagar a própria imagem" on storage.objects
+  for delete to authenticated using (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Excluir a própria conta (LGPD). As imagens são apagadas antes pelo app (API do Storage);
+-- aqui some o usuário e, em cascata, lista, perfil e dados de watch party.
+create or replace function public.delete_my_account()
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  delete from auth.users where id = auth.uid();
+end;
+$$;
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;
+
+-- Funções internas não ficam expostas na API
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.is_party_member(text) from public, anon;
+grant execute on function public.is_party_member(text) to authenticated;

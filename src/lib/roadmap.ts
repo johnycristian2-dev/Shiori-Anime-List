@@ -328,7 +328,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'perfil',
         icon: '🪪',
-        status: 'pendente',
+        status: 'feito',
 
         get title() {
           return t('Perfil de verdade');
@@ -341,7 +341,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'conquistas',
         icon: '🏆',
-        status: 'pendente',
+        status: 'andamento',
 
         get title() {
           return t('Conquistas no perfil');
@@ -393,7 +393,7 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: 'idade',
         icon: '🔞',
-        status: 'pendente',
+        status: 'andamento',
 
         get title() {
           return t('Verificação de idade');

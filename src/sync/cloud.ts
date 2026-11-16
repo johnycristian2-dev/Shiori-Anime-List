@@ -135,7 +135,7 @@ export function startCloudSync() {
     useCloudUser.setState({ user: u, ready: true });
     // Limpa o ?code= do login e leva pra tela de Sync
     if (event === 'SIGNED_IN' && window.location.search.includes('code=')) {
-      window.history.replaceState(null, '', `${window.location.pathname}#/sync`);
+      window.history.replaceState(null, '', `${window.location.pathname}#/perfil`);
     }
     if (!changed) return;
     teardown();
