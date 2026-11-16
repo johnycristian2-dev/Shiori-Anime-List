@@ -770,3 +770,9 @@ html[data-shadow='none'] .manga-btn,
 html[data-shadow='none'] .card-frame {
   box-shadow: none;
 }
+
+/* Fileiras que rolam pro lado: esmaece a borda direita pra indicar que tem mais */
+.no-scrollbar.overflow-x-auto {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}

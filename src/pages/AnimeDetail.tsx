@@ -17,6 +17,7 @@ import { SEASON_LABEL } from '../lib/season';
 
 import { t, locale } from '../lib/i18n';
 import Synopsis from '../components/Synopsis';
+import { isManga, mangaKind, statusLabel } from '../lib/media';
 
 export default function AnimeDetail() {
   const id = Number(useParams().id);
@@ -35,9 +36,13 @@ export default function AnimeDetail() {
         <Spinner className="h-10 w-10 text-pink" />
       </div>
     );
-  if (error || !m) return <ErrorBox error={error ?? new Error(t('Anime não encontrado'))} onRetry={() => refetch()} />;
+  if (error || !m) return <ErrorBox error={error ?? new Error(t('Título não encontrado'))} onRetry={() => refetch()} />;
 
-  const relations = m.relations.edges.filter((e) => e.node.type === 'ANIME');
+  const manga = isManga(m);
+  // Mesma franquia no mesmo tipo; o outro tipo (anime ↔ mangá) vira "Adaptações"
+  const relations = m.relations.edges.filter((e) => (e.node.type ?? 'ANIME') === (m.type ?? 'ANIME'));
+  const crossovers = m.relations.edges.filter((e) => (e.node.type ?? 'ANIME') !== (m.type ?? 'ANIME'));
+  const authors = (m.staff?.edges ?? []).filter((e) => /story|art|original/i.test(e.role)).slice(0, 4);
   const recs = m.recommendations.nodes.map((n) => n.mediaRecommendation).filter((x): x is NonNullable<typeof x> => !!x);
   const franchise = relations.filter((r) => ['SEQUEL', 'PREQUEL', 'SIDE_STORY', 'PARENT'].includes(r.relationType)).map((r) => r.node);
   const streaming = m.externalLinks.filter((l) => l.type === 'STREAMING');
@@ -46,8 +51,10 @@ export default function AnimeDetail() {
   const accent = m.coverImage.color ?? 'var(--pink)';
 
   const facts = [
-    m.format && { k: t('Formato'), v: FORMAT_LABEL[m.format] },
-    m.episodes && { k: t('Episódios'), v: m.episodes },
+    m.format && { k: t('Formato'), v: manga ? mangaKind(m) : FORMAT_LABEL[m.format] },
+    !manga && m.episodes && { k: t('Episódios'), v: m.episodes },
+    manga && { k: t('Capítulos'), v: m.chapters ?? (m.status === 'RELEASING' ? t('Em lançamento') : '?') },
+    manga && m.volumes && { k: t('Volumes'), v: m.volumes },
     m.season && m.seasonYear && { k: t('Temporada'), v: `${SEASON_LABEL[m.season].pt} ${m.seasonYear}` },
     !m.season && m.seasonYear && { k: t('Ano'), v: m.seasonYear },
     m.status && { k: t('Situação'), v: MEDIA_STATUS_LABEL[m.status] },
@@ -100,10 +107,10 @@ export default function AnimeDetail() {
                   style={{ background: STATUS_META[s].color, color: '#0c0a1d' }}
                   onClick={() => {
                     add(m, s);
-                    toast(`${title(m)} → ${STATUS_META[s].label}`);
+                    toast(`${title(m)} → ${statusLabel(s, m, STATUS_META[s].label)}`);
                   }}
                 >
-                  {STATUS_META[s].label} <span className="font-jp text-xs">{STATUS_META[s].jp}</span>
+                  {statusLabel(s, m, STATUS_META[s].label)} <span className="font-jp text-xs">{STATUS_META[s].jp}</span>
                 </button>
               ))
             )}
@@ -152,6 +159,17 @@ export default function AnimeDetail() {
             </div>
           )}
 
+          {authors.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-bold">
+              <span className="text-muted">{t('Autoria:')}</span>
+              {authors.map((a) => (
+                <span key={`${a.node.id}-${a.role}`} className="chip !border-cyan !text-cyan" title={a.role}>
+                  {a.node.name.full}
+                </span>
+              ))}
+            </div>
+          )}
+
           {tags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {tags.map((t) => (
@@ -188,19 +206,21 @@ export default function AnimeDetail() {
             >
               <Palette size={16} />{' '}{t('Usar como tema')}
             </button>
-            <Link to={`/maratona/${m.id}`} className="manga-btn yellow">
-              <Timer size={16} />{' '}{t('Planejar maratona')}
-            </Link>
+            {!manga && (
+              <Link to={`/maratona/${m.id}`} className="manga-btn yellow">
+                <Timer size={16} />{' '}{t('Planejar maratona')}
+              </Link>
+            )}
             {streaming.map((l) => (
               <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="manga-btn ghost" style={l.color ? { boxShadow: `4px 4px 0 ${l.color}` } : undefined}>
                 <Tv size={15} /> {l.site}
               </a>
             ))}
-            <a href={`https://anilist.co/anime/${m.id}`} target="_blank" rel="noreferrer" className="manga-btn ghost">
+            <a href={`https://anilist.co/${manga ? 'manga' : 'anime'}/${m.id}`} target="_blank" rel="noreferrer" className="manga-btn ghost">
               <ExternalLink size={14} />{' '}{t('AniList')}
             </a>
             {m.idMal && (
-              <a href={`https://myanimelist.net/anime/${m.idMal}`} target="_blank" rel="noreferrer" className="manga-btn ghost">
+              <a href={`https://myanimelist.net/${manga ? 'manga' : 'anime'}/${m.idMal}`} target="_blank" rel="noreferrer" className="manga-btn ghost">
                 <ExternalLink size={14} />{' '}{t('MyAnimeList')}
               </a>
             )}
@@ -211,7 +231,7 @@ export default function AnimeDetail() {
       <div className="mt-12">
         {m.characters.edges.length > 0 && (
           <section className="mb-10">
-            <SectionTitle title={t('Personagens e dubladores')} jp="キャラクター" />
+            <SectionTitle title={manga ? t('Personagens') : t('Personagens e dubladores')} jp="キャラクター" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {m.characters.edges.map((c) => {
                 const va = c.voiceActors[0];
@@ -254,13 +274,21 @@ export default function AnimeDetail() {
                 <button
                   onClick={() => {
                     const n = addMany(franchise, 'PLANNING');
-                    toast(n ? t('{0} da franquia adicionados em "Quero ver"', n) : t('Já estão todos na lista'), n ? 'ok' : 'info');
+                    toast(n ? t('{0} da franquia adicionados em "{1}"', n, statusLabel('PLANNING', m, STATUS_META.PLANNING.label)) : t('Já estão todos na lista'), n ? 'ok' : 'info');
                   }}
                 >
                   {t('+ Adicionar franquia')}
                 </button>
               )
             }
+          />
+        )}
+        {crossovers.length > 0 && (
+          <AnimeRow
+            title={manga ? t('Virou anime') : t('Mangá, novel e adaptações')}
+            jp={manga ? 'アニメ化' : '原作'}
+            items={crossovers.map((r) => r.node)}
+            notes={Object.fromEntries(crossovers.map((r) => [r.node.id, RELATION_LABEL[r.relationType] ?? r.relationType]))}
           />
         )}
         {recs.length > 0 && <AnimeRow title={t('Quem curtiu, também curtiu')} jp="おすすめ" items={recs} />}

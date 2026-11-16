@@ -3,6 +3,7 @@ export const MEDIA_FIELDS = `
   title { romaji english native }
   coverImage { extraLarge large color }
   bannerImage episodes format status season seasonYear averageScore popularity genres
+  type chapters volumes countryOfOrigin
 `;
 
 export const PAGE_QUERY = `
@@ -10,16 +11,18 @@ query (
   $page: Int, $perPage: Int, $sort: [MediaSort], $genres: [String], $season: MediaSeason,
   $seasonYear: Int, $formats: [MediaFormat], $status: MediaStatus, $minScore: Int,
   $search: String, $yearFrom: FuzzyDateInt, $yearTo: FuzzyDateInt, $idMalIn: [Int], $idIn: [Int],
-  $genresNot: [String], $licensed: [Int], $epMin: Int, $epMax: Int, $country: CountryCode, $tags: [String]
+  $genresNot: [String], $licensed: [Int], $epMin: Int, $epMax: Int, $country: CountryCode, $tags: [String],
+  $type: MediaType = ANIME, $chMin: Int, $chMax: Int
 ) {
   Page(page: $page, perPage: $perPage) {
     pageInfo { hasNextPage currentPage total }
     media(
-      type: ANIME, isAdult: false, sort: $sort, genre_in: $genres, season: $season,
+      type: $type, isAdult: false, sort: $sort, genre_in: $genres, season: $season,
       seasonYear: $seasonYear, format_in: $formats, status: $status, averageScore_greater: $minScore,
       search: $search, startDate_greater: $yearFrom, startDate_lesser: $yearTo,
       idMal_in: $idMalIn, id_in: $idIn, genre_not_in: $genresNot, licensedById_in: $licensed,
-      episodes_greater: $epMin, episodes_lesser: $epMax, countryOfOrigin: $country, tag_in: $tags
+      episodes_greater: $epMin, episodes_lesser: $epMax, countryOfOrigin: $country, tag_in: $tags,
+      chapters_greater: $chMin, chapters_lesser: $chMax
     ) { ${MEDIA_FIELDS} description(asHtml: false) }
   }
 }`;
@@ -34,9 +37,20 @@ query ($season: MediaSeason, $year: Int, $nextSeason: MediaSeason, $nextYear: In
   upcoming: Page(perPage: 20) { media(type: ANIME, isAdult: false, season: $nextSeason, seasonYear: $nextYear, sort: POPULARITY_DESC) { ${MEDIA_FIELDS} } }
 }`;
 
+/** Tela Descobrir no modo leitura (mangá, manhwa, webtoon…) */
+export const MANGA_DISCOVER_QUERY = `
+query {
+  trending: Page(perPage: 20) { media(type: MANGA, isAdult: false, sort: TRENDING_DESC) { ${MEDIA_FIELDS} description(asHtml: false) } }
+  releasing: Page(perPage: 20) { media(type: MANGA, isAdult: false, status: RELEASING, sort: POPULARITY_DESC) { ${MEDIA_FIELDS} } }
+  manhwa: Page(perPage: 20) { media(type: MANGA, isAdult: false, countryOfOrigin: KR, sort: TRENDING_DESC) { ${MEDIA_FIELDS} } }
+  webtoon: Page(perPage: 20) { media(type: MANGA, isAdult: false, tag_in: ["Long Strip"], sort: POPULARITY_DESC) { ${MEDIA_FIELDS} } }
+  top: Page(perPage: 20) { media(type: MANGA, isAdult: false, sort: SCORE_DESC, format_in: [MANGA, ONE_SHOT]) { ${MEDIA_FIELDS} } }
+  novels: Page(perPage: 20) { media(type: MANGA, isAdult: false, format: NOVEL, sort: POPULARITY_DESC) { ${MEDIA_FIELDS} } }
+}`;
+
 export const DETAIL_QUERY = `
 query ($id: Int) {
-  Media(id: $id, type: ANIME) {
+  Media(id: $id) {
     ${MEDIA_FIELDS}
     description(asHtml: false)
     studios(isMain: true) { nodes { id name } }
@@ -53,6 +67,7 @@ query ($id: Int) {
     trailer { id site }
     relations { edges { relationType(version: 2) node { ${MEDIA_FIELDS} type } } }
     recommendations(sort: RATING_DESC, perPage: 16) { nodes { rating mediaRecommendation { ${MEDIA_FIELDS} } } }
+    staff(sort: [RELEVANCE, ID], perPage: 6) { edges { role node { id name { full native } image { large } } } }
   }
 }`;
 
@@ -68,8 +83,8 @@ export function buildRecsQuery(ids: number[]) {
 }
 
 export const USER_LIST_QUERY = `
-query ($user: String) {
-  MediaListCollection(userName: $user, type: ANIME) {
+query ($user: String, $type: MediaType = ANIME) {
+  MediaListCollection(userName: $user, type: $type) {
     lists { entries { status score(format: POINT_10) progress media { ${MEDIA_FIELDS} } } }
   }
 }`;
@@ -116,8 +131,8 @@ query ($ids: [Int], $from: Int, $to: Int, $page: Int) {
 
 /** Lista do usuário logado no AniList, com data de atualização de cada anime. */
 export const VIEWER_LIST_QUERY = `
-query ($userId: Int) {
-  MediaListCollection(userId: $userId, type: ANIME) {
+query ($userId: Int, $type: MediaType = ANIME) {
+  MediaListCollection(userId: $userId, type: $type) {
     lists { entries { status score(format: POINT_10) progress updatedAt media { ${MEDIA_FIELDS} } } }
   }
 }`;

@@ -50,6 +50,10 @@ Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande
 - [x] 🟡 **Idiomas + sinopses traduzidas** — ✅ site em Português, English e 日本語 (`src/lib/i18n`); sinopses traduzidas por `api/translate.ts` (Vercel Function → AI Gateway, sem chave no front) com cache na CDN e no navegador por `mediaId`.
 - [ ] 🟢 **Testes e lint no deploy** — Vitest + Testing Library pros stores e `lib/` (mal.ts, profile.ts), ESLint, e rodar ambos no workflow antes do build.
 
+## v0.7 · Leitura 読書
+- [x] 🔴 **Mangá, manhwa, manhua, webtoon e light novel** — ✅ seletor Anime | Mangá & Webtoon em Descobrir, Explorar, Modo rápido, Roleta, Minha lista e busca; categorias (webtoon = tag *Long Strip* do AniList); páginas `/manga/:id` com capítulos, volumes e autoria; progresso por capítulo; "Lendo / Quero ler"; sync e importação do AniList e do MAL com mangá; exportação separada pro MAL.
+- [x] 🟡 **E-mail com código** — ✅ confirmação, login sem senha e senha nova por código de 6 dígitos digitado no próprio site, com reenviar; modelos PT/EN/JA em `supabase/email-templates/` e guia em `docs/EMAIL.md`.
+
 ## v0.7 · Comunidade 仲間
 > Objetivo: login, perfil caprichado e um lugar pra conversar sobre anime com segurança.
 

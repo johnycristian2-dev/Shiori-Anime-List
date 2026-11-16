@@ -160,6 +160,18 @@ export const FORMAT_LABEL: Record<MediaFormat, string> = {
 
   get MUSIC() {
     return t('Clipe');
+  },
+
+  get MANGA() {
+    return t('Mangá');
+  },
+
+  get NOVEL() {
+    return t('Light novel');
+  },
+
+  get ONE_SHOT() {
+    return t('One-shot');
   }
 };
 

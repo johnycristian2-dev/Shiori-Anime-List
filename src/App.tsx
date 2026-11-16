@@ -56,6 +56,7 @@ export default function App() {
           <Route path="/termos" element={<Terms />} />
           <Route path="/lista" element={<MyList />} />
           <Route path="/anime/:id" element={<AnimeDetail />} />
+          <Route path="/manga/:id" element={<AnimeDetail />} />
           <Route path="/estudio/:id" element={<StudioPage />} />
           <Route path="/sync" element={<Sync />} />
           <Route path="/roadmap" element={<Roadmap />} />

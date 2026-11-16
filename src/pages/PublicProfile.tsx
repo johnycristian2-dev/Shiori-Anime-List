@@ -60,6 +60,7 @@ export default function PublicProfile() {
             { k: t('Animes'), v: snap.stats.total, c: 'text-pink' },
             { k: t('Completos'), v: snap.stats.completed, c: 'text-[#7cff8a]' },
             { k: t('Episódios'), v: snap.stats.eps.toLocaleString(locale()), c: 'text-cyan' },
+            ...(snap.stats.chapters ? [{ k: t('Capítulos lidos'), v: snap.stats.chapters.toLocaleString(locale()), c: 'text-cyan' }] : []),
             { k: t('Horas (aprox.)'), v: `≈${snap.stats.hours}h`, c: 'text-yellow' },
             { k: t('Nota média'), v: snap.stats.mean || '—', c: 'text-pink' },
           ].map((s) => (

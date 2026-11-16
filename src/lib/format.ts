@@ -10,7 +10,9 @@ export function pickTitle(t: Title, lang: 'romaji' | 'english' | 'native') {
 /** Hook que devolve uma função para pegar o título no idioma preferido. */
 export function useTitle() {
   const lang = useUI((s) => s.titleLang);
-  return (m: { title: Title }) => pickTitle(m.title, lang);
+  return (m: { title: Title; countryOfOrigin?: string | null }) =>
+    // Romaji de coreano/chinês é difícil de ler: em manhwa/manhua prefere o nome em inglês
+    pickTitle(m.title, lang === 'romaji' && m.countryOfOrigin && m.countryOfOrigin !== 'JP' ? 'english' : lang);
 }
 
 export function stripHtml(s: string | null | undefined) {
@@ -40,6 +42,10 @@ export function entryToMedia(e: ListEntry): Media {
     averageScore: e.averageScore,
     popularity: null,
     genres: e.genres,
+    type: e.type ?? 'ANIME',
+    chapters: e.chapters ?? null,
+    volumes: e.volumes ?? null,
+    countryOfOrigin: e.country ?? null,
   };
 }
 

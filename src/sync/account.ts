@@ -4,7 +4,7 @@
  */
 import { create } from 'zustand';
 import { redirectUrl, supabase } from '../lib/supabase';
-import { t } from '../lib/i18n';
+import { getLang, t } from '../lib/i18n';
 import { useCloudUser } from './cloud';
 import { buildSnapshot, USERNAME_RE, type Profile } from './profile';
 
@@ -58,7 +58,7 @@ export async function signUp(p: { email: string; password: string; username: str
     options: {
       emailRedirectTo: redirectUrl(),
       // data de nascimento fica só nos dados privados da conta, nunca no perfil público
-      data: { username, display_name: p.displayName.trim(), birthdate: p.birthdate },
+      data: { username, display_name: p.displayName.trim(), birthdate: p.birthdate, lang: getLang() },
     },
   });
   if (error) throw friendly(error);
@@ -76,9 +76,36 @@ export async function signInGoogle() {
   if (error) throw friendly(error);
 }
 
-export async function sendMagicLink(email: string) {
+/** Manda um código de 6 dígitos (e um link de reserva) pra entrar sem senha */
+export async function sendLoginCode(email: string) {
   const { error } = await sb().auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: redirectUrl(), shouldCreateUser: false } });
-  if (error) throw friendly(error);
+  if (error) {
+    if (/Signups not allowed for otp/i.test(error.message)) throw new Error(t('Não existe conta com esse e-mail. Crie uma conta.'));
+    throw friendly(error);
+  }
+}
+
+export type CodeType = 'signup' | 'email' | 'recovery';
+
+/** Confere o código que chegou por e-mail. Se der certo, a pessoa já fica logada. */
+export async function verifyCode(email: string, code: string, type: CodeType) {
+  const token = code.replace(/\D/g, '');
+  if (token.length < 6) throw new Error(t('Digite o código completo.'));
+  const { error } = await sb().auth.verifyOtp({ email: email.trim(), token, type });
+  if (error) {
+    if (/expired|invalid/i.test(error.message)) throw new Error(t('Código inválido ou expirado. Peça um novo.'));
+    throw friendly(error);
+  }
+  if (type === 'recovery') useAccount.setState({ recovery: true });
+}
+
+/** Reenvia o código certo pra cada situação */
+export async function resendCode(email: string, type: CodeType) {
+  if (type === 'signup') {
+    const { error } = await sb().auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: redirectUrl() } });
+    if (error) throw friendly(error);
+  } else if (type === 'recovery') await resetPassword(email);
+  else await sendLoginCode(email);
 }
 
 export async function resetPassword(email: string) {

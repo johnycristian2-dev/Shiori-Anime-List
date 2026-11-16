@@ -8,13 +8,16 @@ import { DECADES, FORMAT_LABEL, genrePt } from '../lib/labels';
 import { currentSeason } from '../lib/season';
 import { stripHtml, useTitle } from '../lib/format';
 import { useList } from '../store/list';
-import type { BrowseFilters, ListEntry, Media } from '../types';
+import type { BrowseFilters, ListEntry, Media, MediaType } from '../types';
 
 import { t } from '../lib/i18n';
 import Synopsis from '../components/Synopsis';
+import KindSwitch from '../components/KindSwitch';
+import { isManga, mangaKind, mediaPath, unitShort } from '../lib/media';
+import { useUI } from '../store/ui';
 
 type Decision = 'PLANNING' | 'COMPLETED' | 'SKIP';
-type Source = 'trending' | 'top' | 'popular' | 'season' | 'genre' | 'decade';
+type Source = 'trending' | 'top' | 'popular' | 'season' | 'genre' | 'decade' | 'manhwa' | 'webtoon';
 
 const SOURCES: { id: Source; label: string }[] = [
   {
@@ -59,10 +62,24 @@ const SOURCES: { id: Source; label: string }[] = [
       return t('Década');
     }
   },
+  {
+    id: 'manhwa',
+
+    get label() {
+      return t('Manhwa');
+    }
+  },
+  {
+    id: 'webtoon',
+
+    get label() {
+      return t('Webtoon');
+    }
+  },
 ];
 
-function buildFilters(src: Source, genre: string, decade: number): BrowseFilters {
-  const base: BrowseFilters = { sort: 'POPULARITY_DESC', genres: [], formats: [] };
+function buildFilters(src: Source, genre: string, decade: number, type: MediaType): BrowseFilters {
+  const base: BrowseFilters = { sort: 'POPULARITY_DESC', genres: [], formats: [], type };
   switch (src) {
     case 'top':
       return { ...base, sort: 'SCORE_DESC' };
@@ -76,6 +93,10 @@ function buildFilters(src: Source, genre: string, decade: number): BrowseFilters
       return { ...base, genres: [genre] };
     case 'decade':
       return { ...base, yearFrom: decade, yearTo: decade + 9 };
+    case 'manhwa':
+      return { ...base, country: 'KR', sort: 'TRENDING_DESC' };
+    case 'webtoon':
+      return { ...base, tags: ['Long Strip'] };
     default:
       return base;
   }
@@ -131,18 +152,23 @@ function SwipeCard({ media, onDecide, decision }: { media: Media; onDecide: (d: 
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />
 
         <motion.div style={{ opacity: likeOp }} className="absolute left-5 top-6 -rotate-12 rounded-xl border-4 border-yellow px-3 py-1 font-display text-2xl text-yellow">
-          {t('QUERO VER')}
+          {isManga(media) ? t('QUERO LER') : t('QUERO VER')}
         </motion.div>
         <motion.div style={{ opacity: nopeOp }} className="absolute right-5 top-6 rotate-12 rounded-xl border-4 border-red-400 px-3 py-1 font-display text-2xl text-red-400">
           {t('PULAR')}
         </motion.div>
         <motion.div style={{ opacity: seenOp }} className="absolute inset-x-0 top-1/3 mx-auto w-fit rounded-xl border-4 border-[#7cff8a] px-3 py-1 font-display text-2xl text-[#7cff8a]">
-          {t('JÁ VI! 完了')}
+          {isManga(media) ? t('JÁ LI! 完読') : t('JÁ VI! 完了')}
         </motion.div>
 
         <div className="absolute inset-x-0 bottom-0 p-5 text-white">
           <div className="mb-1 text-xs font-black uppercase tracking-wider text-white/70">
-            {[media.format && FORMAT_LABEL[media.format], media.seasonYear, media.episodes && `${media.episodes} ep`, media.averageScore && `★ ${media.averageScore}`]
+            {[
+              isManga(media) ? mangaKind(media) : media.format && FORMAT_LABEL[media.format],
+              media.seasonYear,
+              isManga(media) ? media.chapters && `${media.chapters} ${unitShort(media)}` : media.episodes && `${media.episodes} ep`,
+              media.averageScore && `★ ${media.averageScore}`,
+            ]
               .filter(Boolean)
               .join(' · ')}
           </div>
@@ -173,7 +199,13 @@ export default function Swipe() {
   const [decision, setDecision] = useState<Decision>('SKIP');
   const [history, setHistory] = useState<{ media: Media; prev?: ListEntry; d: Decision }[]>([]);
   const [stats, setStats] = useState({ PLANNING: 0, COMPLETED: 0, SKIP: 0 });
-  const filters = useMemo(() => buildFilters(src, genre, decade), [src, genre, decade]);
+  const kind = useUI((s) => s.kind);
+  const manga = kind === 'MANGA';
+  const sources = SOURCES.filter((x) => (manga ? x.id !== 'season' : x.id !== 'manhwa' && x.id !== 'webtoon'));
+  useEffect(() => {
+    if (!sources.some((x) => x.id === src)) setSrc('popular');
+  }, [kind]); // eslint-disable-line react-hooks/exhaustive-deps
+  const filters = useMemo(() => buildFilters(src, genre, decade, kind), [src, genre, decade, kind]);
   const q = useBrowse(filters, 50);
   const { data: genres } = useGenres();
 
@@ -232,8 +264,11 @@ export default function Swipe() {
     <div className="mx-auto max-w-md">
       <SectionTitle title={t('Modo rápido')} jp="速攻モード" />
 
-      <div className="no-scrollbar -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
-        {SOURCES.map((s) => (
+      <div className="mb-3">
+        <KindSwitch />
+      </div>
+      <div className="mb-3 flex flex-wrap gap-2">
+        {sources.map((s) => (
           <button key={s.id} className={`chip ${src === s.id ? 'on' : ''}`} onClick={() => setSrc(s.id)}>
             {s.label}
           </button>
@@ -259,8 +294,8 @@ export default function Swipe() {
       )}
 
       <div className="mb-3 grid grid-cols-3 gap-2 text-center text-[11px] font-black">
-        <div className="panel py-1.5"><span className="text-pink">♥</span> {stats.PLANNING}{' '}{t('quero ver')}</div>
-        <div className="panel py-1.5"><span className="text-cyan">✓</span> {stats.COMPLETED}{' '}{t('já vi')}</div>
+        <div className="panel py-1.5"><span className="text-pink">♥</span> {stats.PLANNING} {manga ? t('quero ler') : t('quero ver')}</div>
+        <div className="panel py-1.5"><span className="text-cyan">✓</span> {stats.COMPLETED} {manga ? t('já li') : t('já vi')}</div>
         <div className="panel py-1.5 text-muted">✕ {stats.SKIP}{' '}{t('pulados')}</div>
       </div>
 
@@ -300,20 +335,20 @@ export default function Swipe() {
         <button className="manga-btn !h-16 !w-16 !rounded-full !bg-red-400 !p-0 text-black" onClick={() => decide('SKIP')} disabled={!top} aria-label={t('Pular')}>
           <X size={28} strokeWidth={3} />
         </button>
-        <button className="manga-btn !h-16 !w-16 !rounded-full !bg-[#7cff8a] !p-0 text-black" onClick={() => decide('COMPLETED')} disabled={!top} aria-label={t('Já vi')}>
+        <button className="manga-btn !h-16 !w-16 !rounded-full !bg-[#7cff8a] !p-0 text-black" onClick={() => decide('COMPLETED')} disabled={!top} aria-label={manga ? t('Já li') : t('Já vi')}>
           <Eye size={26} strokeWidth={3} />
         </button>
-        <button className="manga-btn yellow !h-16 !w-16 !rounded-full !p-0" onClick={() => decide('PLANNING')} disabled={!top} aria-label={t('Quero ver')}>
+        <button className="manga-btn yellow !h-16 !w-16 !rounded-full !p-0" onClick={() => decide('PLANNING')} disabled={!top} aria-label={manga ? t('Quero ler') : t('Quero ver')}>
           <Heart size={26} strokeWidth={3} />
         </button>
         {top && (
-          <Link to={`/anime/${top.id}`} className="manga-btn ghost !h-12 !w-12 !rounded-full !p-0" aria-label={t('Detalhes')}>
+          <Link to={mediaPath(top)} className="manga-btn ghost !h-12 !w-12 !rounded-full !p-0" aria-label={t('Detalhes')}>
             <ArrowUp size={18} className="rotate-45" />
           </Link>
         )}
       </div>
       <p className="mt-4 text-center text-xs font-bold text-muted">
-        {t('Teclado: ← pular · ↑ já vi · → quero ver · Backspace desfaz')}
+        {manga ? t('Teclado: ← pular · ↑ já li · → quero ler · Backspace desfaz') : t('Teclado: ← pular · ↑ já vi · → quero ver · Backspace desfaz')}
       </p>
     </div>
   );

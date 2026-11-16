@@ -5,6 +5,7 @@ import type { ListStatus, Media } from '../types';
 import { activeLists, STATUS_META, STATUS_ORDER, useList } from '../store/list';
 import { useUI } from '../store/ui';
 import { useTitle } from '../lib/format';
+import { statusLabel } from '../lib/media';
 
 import { t } from '../lib/i18n';
 
@@ -60,11 +61,11 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
 
   const choose = (s: ListStatus) => {
     add(media, s);
-    toast(`${title(media)} → ${STATUS_META[s].label}`);
+    toast(`${title(media)} → ${statusLabel(s, media, STATUS_META[s].label)}`);
     setPos(null);
   };
 
-  const meta = entry ? STATUS_META[entry.status] : null;
+  const meta = entry ? { ...STATUS_META[entry.status], label: statusLabel(entry.status, media, STATUS_META[entry.status].label) } : null;
 
   return (
     <>
@@ -94,7 +95,7 @@ export default function AddMenu({ media, compact = false }: { media: Media; comp
                 }`}
               >
                 <span className="h-3 w-3 rounded-full border-2 border-black" style={{ background: STATUS_META[s].color }} />
-                <span className="flex-1">{STATUS_META[s].label}</span>
+                <span className="flex-1">{statusLabel(s, media, STATUS_META[s].label)}</span>
                 <span className="font-jp text-xs text-muted">{STATUS_META[s].jp}</span>
               </button>
             ))}

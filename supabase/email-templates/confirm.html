@@ -1,0 +1,35 @@
+<!-- Shiori 栞 · modelo "confirm" do Supabase Auth (PT / EN / JA conforme o idioma do cadastro) -->
+{{ $l := or .Data.lang "pt" }}
+<div style="margin:0;padding:32px 12px;background:#0c0a1d;font-family:Arial,Helvetica,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto">
+    <tr><td style="padding:0 0 16px;text-align:center">
+      <span style="display:inline-block;padding:6px 12px;border:2px solid #000;border-radius:10px;background:#ff4f9a;color:#fff;font-size:20px;font-weight:900">栞</span>
+      <span style="margin-left:8px;font-size:20px;font-weight:900;color:#ffffff;vertical-align:middle">SHIORI</span>
+    </td></tr>
+    <tr><td style="padding:28px;border:3px solid #000;border-radius:18px;background:#1a1530;box-shadow:6px 6px 0 #ff4f9a;text-align:center">
+          {{ if eq $l "en" }}
+          <h1 style="margin:0 0 8px;font-size:22px;color:#ffffff">Just confirm your email!</h1>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#c9c3e6">Enter this code in the Shiori window to activate your account:</p>
+          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#ff4f9a;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#ffffff;font-family:'Courier New',monospace">{{ .Token }}</div>
+          <p style="margin:0 0 10px;font-size:13px;color:#a59fca">Or click the button:</p>
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border:2px solid #3de2ff;border-radius:12px;color:#3de2ff;font-weight:800;text-decoration:none">Confirm email</a>
+          <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#7d77a3">Didn't sign up for Shiori? You can ignore this email.</p>
+          {{ else if eq $l "ja" }}
+          <h1 style="margin:0 0 8px;font-size:22px;color:#ffffff">メールアドレスの確認</h1>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#c9c3e6">Shioriの画面にこのコードを入力して、アカウントを有効にしてください：</p>
+          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#ff4f9a;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#ffffff;font-family:'Courier New',monospace">{{ .Token }}</div>
+          <p style="margin:0 0 10px;font-size:13px;color:#a59fca">またはボタンをクリック：</p>
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border:2px solid #3de2ff;border-radius:12px;color:#3de2ff;font-weight:800;text-decoration:none">メールアドレスを確認</a>
+          <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#7d77a3">Shioriに登録していない場合は、このメールを無視してください。</p>
+          {{ else }}
+          <h1 style="margin:0 0 8px;font-size:22px;color:#ffffff">Falta só confirmar seu e-mail!</h1>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#c9c3e6">Use este código na janela do Shiori para ativar sua conta:</p>
+          <div style="margin:0 0 20px;padding:18px 0;border:3px solid #000;border-radius:14px;background:#ff4f9a;box-shadow:5px 5px 0 #000;text-align:center;font-size:36px;font-weight:900;letter-spacing:10px;color:#ffffff;font-family:'Courier New',monospace">{{ .Token }}</div>
+          <p style="margin:0 0 10px;font-size:13px;color:#a59fca">Ou clique no botão:</p>
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 22px;border:2px solid #3de2ff;border-radius:12px;color:#3de2ff;font-weight:800;text-decoration:none">Confirmar e-mail</a>
+          <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#7d77a3">Não criou uma conta no Shiori? Pode ignorar este e-mail.</p>
+          {{ end }}
+    </td></tr>
+    <tr><td style="padding:16px 0 0;text-align:center;font-size:11px;color:#7d77a3">Shiori 栞 · shiori-anime-list.vercel.app</td></tr>
+  </table>
+</div>

@@ -164,11 +164,12 @@ export default function Profile() {
         </div>
       </ProfileHeader>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className={`mb-8 grid grid-cols-2 gap-3 ${stats.mangaCount ? 'md:grid-cols-3 lg:grid-cols-6' : 'md:grid-cols-5'}`}>
         {[
-          { k: t('Animes'), v: stats.total, c: 'text-pink' },
+          { k: stats.mangaCount ? t('Títulos') : t('Animes'), v: stats.total, c: 'text-pink' },
           { k: t('Completos'), v: stats.completed, c: 'text-[#7cff8a]' },
           { k: t('Episódios'), v: stats.eps.toLocaleString(locale()), c: 'text-cyan' },
+          ...(stats.mangaCount ? [{ k: t('Capítulos lidos'), v: stats.chapters.toLocaleString(locale()), c: 'text-cyan' }] : []),
           { k: t('Horas (aprox.)'), v: `≈${stats.hours.toLocaleString(locale())}h`, c: 'text-yellow' },
           { k: t('Nota média'), v: stats.mean ? stats.mean.toFixed(1) : '—', c: 'text-pink' },
         ].map((s) => (

@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { gql } from './anilist';
-import { AIRING_QUERY, buildRecsQuery, CHARACTER_QUERY, DETAIL_QUERY, DISCOVER_QUERY, GENRES_QUERY, PAGE_QUERY, STAFF_QUERY, STUDIO_QUERY } from './queries';
+import { AIRING_QUERY, buildRecsQuery, CHARACTER_QUERY, DETAIL_QUERY, DISCOVER_QUERY, GENRES_QUERY, MANGA_DISCOVER_QUERY, PAGE_QUERY, STAFF_QUERY, STUDIO_QUERY } from './queries';
 import type { AiringItem, BrowseFilters, CharacterDetail, Media, MediaDetail, MediaPage, PageInfo, StaffDetail, Studio } from '../types';
 import { currentSeason, nextSeason } from '../lib/season';
 import { HIDDEN_GENRES } from '../lib/labels';
@@ -19,10 +19,19 @@ export function filtersToVars(f: BrowseFilters) {
     yearTo: f.yearTo ? (f.yearTo + 1) * 10000 : undefined,
     genresNot: f.excludeGenres,
     licensed: f.streaming,
-    epMin: f.length === 'medium' ? 13 : f.length === 'long' ? 26 : undefined,
-    epMax: f.length === 'short' ? 14 : f.length === 'medium' ? 27 : undefined,
+    // "tamanho": episódios no anime, capítulos no mangá
+    ...(f.type === 'MANGA'
+      ? {
+          chMin: f.length === 'medium' ? 40 : f.length === 'long' ? 150 : undefined,
+          chMax: f.length === 'short' ? 41 : f.length === 'medium' ? 151 : undefined,
+        }
+      : {
+          epMin: f.length === 'medium' ? 13 : f.length === 'long' ? 26 : undefined,
+          epMax: f.length === 'short' ? 14 : f.length === 'medium' ? 27 : undefined,
+        }),
     country: f.country,
     tags: f.tags,
+    type: f.type ?? 'ANIME',
   };
 }
 
@@ -62,6 +71,19 @@ export function useDiscover() {
         nextYear: nxt.year,
       }),
   });
+}
+
+export interface MangaDiscoverData {
+  trending: { media: Media[] };
+  releasing: { media: Media[] };
+  manhwa: { media: Media[] };
+  webtoon: { media: Media[] };
+  top: { media: Media[] };
+  novels: { media: Media[] };
+}
+
+export function useMangaDiscover(enabled = true) {
+  return useQuery({ queryKey: ['discover-manga'], queryFn: () => gql<MangaDiscoverData>(MANGA_DISCOVER_QUERY), enabled });
 }
 
 export function useMedia(id: number) {
@@ -142,11 +164,11 @@ export function useStudio(id: number) {
   });
 }
 
-export function useSearch(term: string) {
+export function useSearch(term: string, type: 'ANIME' | 'MANGA' = 'ANIME') {
   const t = term.trim();
   return useQuery({
-    queryKey: ['search', t],
-    queryFn: () => fetchPage({ search: t, sort: ['SEARCH_MATCH'] }, 1, 8),
+    queryKey: ['search', t, type],
+    queryFn: () => fetchPage({ search: t, sort: ['SEARCH_MATCH'], type }, 1, 8),
     enabled: t.length >= 2,
     staleTime: 1000 * 60 * 5,
   });

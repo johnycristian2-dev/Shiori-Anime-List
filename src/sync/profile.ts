@@ -35,12 +35,16 @@ interface SnapEntry {
   fm: MediaFormat | null;
   ep: number | null;
   a: number | null;
+  /** M = leitura (mangá, manhwa, webtoon…) */
+  ty?: 'M';
+  ch?: number | null;
+  co?: string | null;
 }
 
 export interface Snapshot {
   v?: 1;
   rank?: { name: string; jp: string };
-  stats?: { total: number; completed: number; eps: number; hours: number; mean: number };
+  stats?: { total: number; completed: number; eps: number; hours: number; mean: number; chapters?: number };
   achievements?: string[];
   entries?: SnapEntry[];
   updatedAt?: number;
@@ -55,7 +59,7 @@ export function buildSnapshot(): Snapshot {
   return {
     v: 1,
     rank: (({ name, jp }) => ({ name, jp }))(rankOf(st.completed)),
-    stats: { total: st.total, completed: st.completed, eps: st.eps, hours: st.hours, mean: Math.round(st.mean * 10) / 10 },
+    stats: { total: st.total, completed: st.completed, eps: st.eps, hours: st.hours, mean: Math.round(st.mean * 10) / 10, chapters: st.chapters },
     achievements: ACHIEVEMENTS.filter((a) => a.test(st, gacha)).map((a) => a.id),
     entries: all.map((e) => ({
       id: e.mediaId,
@@ -72,6 +76,7 @@ export function buildSnapshot(): Snapshot {
       fm: e.format,
       ep: e.episodes,
       a: e.averageScore,
+      ...(e.type === 'MANGA' ? { ty: 'M' as const, ch: e.chapters ?? null, co: e.country ?? null } : {}),
     })),
     updatedAt: Date.now(),
   };
@@ -95,6 +100,7 @@ export function snapshotEntries(s: Snapshot): ListEntry[] {
     score: x.sc,
     progress: x.p,
     favorite: x.f,
+    ...(x.ty === 'M' ? { type: 'MANGA' as const, chapters: x.ch ?? null, country: x.co ?? null } : {}),
     addedAt: 0,
     updatedAt: 0,
   }));

@@ -25,6 +25,9 @@ interface UIState {
   titleLang: TitleLang;
   lang: 'pt' | 'en' | 'ja';
   setLang: (l: 'pt' | 'en' | 'ja') => void;
+  /** Modo do site: anime ou leitura (mangá, manhwa, webtoon…) */
+  kind: 'ANIME' | 'MANGA';
+  setKind: (k: 'ANIME' | 'MANGA') => void;
   petals: boolean;
   nickname: string;
   notify: boolean;
@@ -62,6 +65,8 @@ export const useUI = create<UIState>()(
       titleLang: 'romaji',
       lang: (typeof navigator !== 'undefined' && navigator.language?.startsWith('ja') ? 'ja' : typeof navigator !== 'undefined' && navigator.language?.startsWith('en') ? 'en' : 'pt') as 'pt' | 'en' | 'ja',
       setLang: (lang) => set({ lang }),
+      kind: 'ANIME',
+      setKind: (kind) => set({ kind }),
       petals: true,
       nickname: '',
       notify: false,
@@ -92,6 +97,7 @@ export const useUI = create<UIState>()(
         rotateFavorites: s.rotateFavorites,
         titleLang: s.titleLang,
         lang: s.lang,
+        kind: s.kind,
         petals: s.petals,
         nickname: s.nickname,
         notify: s.notify,

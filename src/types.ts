@@ -1,5 +1,6 @@
 export type MediaStatus = 'FINISHED' | 'RELEASING' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS';
-export type MediaFormat = 'TV' | 'TV_SHORT' | 'MOVIE' | 'SPECIAL' | 'OVA' | 'ONA' | 'MUSIC';
+export type MediaFormat = 'TV' | 'TV_SHORT' | 'MOVIE' | 'SPECIAL' | 'OVA' | 'ONA' | 'MUSIC' | 'MANGA' | 'NOVEL' | 'ONE_SHOT';
+export type MediaType = 'ANIME' | 'MANGA';
 export type Season = 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL';
 export type MediaSort =
   | 'POPULARITY_DESC'
@@ -32,6 +33,12 @@ export interface Media {
   popularity: number | null;
   genres: string[];
   description?: string | null;
+  /** ANIME ou MANGA (mangá, manhwa, manhua, webtoon, light novel) */
+  type?: MediaType | null;
+  chapters?: number | null;
+  volumes?: number | null;
+  /** JP, KR (manhwa), CN (manhua), TW */
+  countryOfOrigin?: string | null;
 }
 
 export interface MediaDetail extends Media {
@@ -48,8 +55,9 @@ export interface MediaDetail extends Media {
   tags: { name: string; rank: number; isMediaSpoiler: boolean }[];
   nextAiringEpisode: { episode: number; airingAt: number } | null;
   trailer: { id: string; site: string } | null;
-  relations: { edges: { relationType: string; node: Media & { type: 'ANIME' | 'MANGA' } }[] };
+  relations: { edges: { relationType: string; node: Media & { type: MediaType } }[] };
   recommendations: { nodes: { rating: number; mediaRecommendation: Media | null }[] };
+  staff?: { edges: { role: string; node: Person }[] };
 }
 
 export interface Person {
@@ -107,6 +115,11 @@ export interface ListEntry {
   notes?: string;
   addedAt: number;
   updatedAt: number;
+  /** sem campo = ANIME (listas antigas) */
+  type?: MediaType;
+  chapters?: number | null;
+  volumes?: number | null;
+  country?: string | null;
 }
 
 export interface BrowseFilters {
@@ -127,6 +140,8 @@ export interface BrowseFilters {
   length?: 'short' | 'medium' | 'long';
   country?: 'JP' | 'CN' | 'KR';
   tags?: string[];
+  /** padrão ANIME */
+  type?: MediaType;
 }
 
 /** Lista personalizada ("Pra ver com a namorada", "Clássicos"...). */

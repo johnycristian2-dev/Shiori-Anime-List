@@ -4,7 +4,7 @@ import { Check, Eye, EyeOff, KeyRound, Mail, ShieldCheck, X } from 'lucide-react
 import { CLOUD_ENABLED } from '../lib/supabase';
 import { t } from '../lib/i18n';
 import { USERNAME_RE } from '../sync/profile';
-import { ageFrom, MIN_AGE, resetPassword, sendMagicLink, setNewPassword, signIn, signInGoogle, signUp, useAccount, usernameAvailable } from '../sync/account';
+import { ageFrom, MIN_AGE, resendCode, resetPassword, sendLoginCode, setNewPassword, signIn, signInGoogle, signUp, useAccount, usernameAvailable, verifyCode, type CodeType } from '../sync/account';
 import { useUI } from '../store/ui';
 import { Spinner, useDebounced } from './ui';
 
@@ -45,6 +45,40 @@ function PasswordField({ value, onChange, placeholder, autoComplete }: { value: 
   );
 }
 
+/** 6 caixinhas pro código do e-mail (aceita colar o código inteiro) */
+function CodeInput({ value, onChange, onDone }: { value: string; onChange: (v: string) => void; onDone: (v: string) => void }) {
+  const boxes = Array.from({ length: 6 }, (_, i) => value[i] ?? '');
+  const set = (v: string) => {
+    const clean = v.replace(/\D/g, '').slice(0, 6);
+    onChange(clean);
+    if (clean.length === 6) onDone(clean);
+  };
+  return (
+    <label className="relative block">
+      <input
+        className="absolute inset-0 h-full w-full cursor-text opacity-0"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        autoFocus
+        aria-label={t('Código de 6 dígitos')}
+        value={value}
+        maxLength={6}
+        onChange={(e) => set(e.target.value)}
+      />
+      <div className="pointer-events-none grid grid-cols-6 gap-2">
+        {boxes.map((d, i) => (
+          <span
+            key={i}
+            className={`grid h-14 place-items-center rounded-[var(--radius-sm)] border-2 bg-panel-2 font-display text-2xl ${i === value.length ? 'border-pink' : d ? 'border-cyan' : 'border-line'}`}
+          >
+            {d}
+          </span>
+        ))}
+      </div>
+    </label>
+  );
+}
+
 function strength(p: string) {
   let s = 0;
   if (p.length >= 8) s++;
@@ -69,7 +103,9 @@ export default function AuthModal() {
   const [terms, setTerms] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
-  const [sent, setSent] = useState<null | 'confirm' | 'reset' | 'magic'>(null);
+  const [verify, setVerify] = useState<CodeType | null>(null);
+  const [code, setCode] = useState('');
+  const [cooldown, setCooldown] = useState(0);
   const [avail, setAvail] = useState<null | boolean>(null);
   const debUser = useDebounced(username.trim().toLowerCase(), 450);
 
@@ -77,8 +113,21 @@ export default function AuthModal() {
     if (recovery) setMode('recovery');
     else if (modal) setMode(modal);
     setError('');
-    setSent(null);
+    setVerify(null);
+    setCode('');
   }, [modal, recovery]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
+
+  const askCode = (type: CodeType) => {
+    setVerify(type);
+    setCode('');
+    setCooldown(60);
+  };
 
   useEffect(() => {
     if (mode !== 'signup' || !CLOUD_ENABLED || !USERNAME_RE.test(debUser)) return setAvail(null);
@@ -131,20 +180,58 @@ export default function AuthModal() {
       <p className="text-ink">{t('As contas ainda não foram ativadas neste site.')}</p>
       <p>{t('Enquanto isso, sua lista fica salva neste navegador e você pode exportar/importar um backup em Sincronizar.')}</p>
     </div>
-  ) : sent ? (
-    <div className="space-y-3 text-center">
-      <div className="text-5xl">📬</div>
-      <p className="font-bold">
-        {sent === 'confirm'
-          ? t('Conta criada! Enviamos um link de confirmação para {0}.', email)
-          : sent === 'reset'
-            ? t('Se existir uma conta com {0}, você vai receber um link pra criar uma senha nova.', email)
-            : t('Enviamos um link de acesso para {0}.', email)}
-      </p>
-      <p className="text-sm text-muted">{t('Abra o e-mail neste aparelho. Não chegou? Olhe o spam.')}</p>
-      <button className="manga-btn ghost" onClick={() => setSent(null)}>
-        {t('Voltar')}
-      </button>
+  ) : verify ? (
+    <div className="space-y-4">
+      <div className="text-center">
+        <div className="text-4xl">📬</div>
+        <p className="mt-2 font-bold">
+          {verify === 'signup'
+            ? t('Falta só confirmar seu e-mail!')
+            : verify === 'recovery'
+              ? t('Vamos criar uma senha nova.')
+              : t('Entrar sem senha')}
+        </p>
+        <p className="text-sm text-muted">{t('Enviamos um código de 6 dígitos para {0}. Digite aqui:', email)}</p>
+      </div>
+      <CodeInput
+        value={code}
+        onChange={setCode}
+        onDone={(c) =>
+          run('code', async () => {
+            await verifyCode(email, c, verify);
+            if (verify === 'signup') toast(t('E-mail confirmado! Bem-vindo(a) ao Shiori.'));
+            else if (verify === 'email') toast(t('Pronto, você entrou!'));
+          })()
+        }
+      />
+      {busy === 'code' && (
+        <div className="flex justify-center">
+          <Spinner className="h-5 w-5 text-pink" />
+        </div>
+      )}
+      <p className="text-center text-xs text-muted">{t('O e-mail também tem um botão que faz a mesma coisa. Não chegou? Olhe o spam ou as promoções.')}</p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <button
+          className="manga-btn ghost !py-1.5 text-sm"
+          disabled={cooldown > 0 || !!busy}
+          onClick={run('resend', async () => {
+            await resendCode(email, verify);
+            setCooldown(60);
+            toast(t('Código reenviado!'));
+          })}
+        >
+          {cooldown > 0 ? t('Reenviar em {0}s', cooldown) : t('Reenviar código')}
+        </button>
+        <button
+          className="manga-btn ghost !py-1.5 text-sm"
+          onClick={() => {
+            setVerify(null);
+            setCode('');
+          }}
+        >
+          {t('Trocar e-mail')}
+        </button>
+      </div>
     </div>
   ) : mode === 'recovery' ? (
     <form className="space-y-3" onSubmit={run('pw', async () => {
@@ -159,12 +246,12 @@ export default function AuthModal() {
   ) : mode === 'forgot' ? (
     <form className="space-y-3" onSubmit={run('reset', async () => {
       await resetPassword(email);
-      setSent('reset');
+      askCode('recovery');
     })}>
-      <p className="text-sm text-muted">{t('Digite seu e-mail e mandamos um link pra criar uma senha nova.')}</p>
+      <p className="text-sm text-muted">{t('Digite seu e-mail e mandamos um código pra criar uma senha nova.')}</p>
       <input className="field" type="email" required autoComplete="email" placeholder={t('seu@email.com')} value={email} onChange={(e) => setEmail(e.target.value)} />
       <button className="manga-btn w-full justify-center" disabled={!!busy}>
-        {busy ? <Spinner className="h-4 w-4" /> : <Mail size={16} />} {t('Enviar link')}
+        {busy ? <Spinner className="h-4 w-4" /> : <Mail size={16} />} {t('Enviar código')}
       </button>
       <button type="button" className="w-full text-center text-sm font-bold text-cyan" onClick={() => setMode('signin')}>
         {t('Voltar pra entrar')}
@@ -200,7 +287,22 @@ export default function AuthModal() {
       )}
 
       {mode === 'signin' ? (
-        <form className="space-y-3" onSubmit={run('in', () => signIn(email, password))}>
+        <form
+          className="space-y-3"
+          onSubmit={run('in', async () => {
+            try {
+              await signIn(email, password);
+            } catch (err) {
+              // conta criada mas e-mail ainda não confirmado: manda outro código e pede aqui mesmo
+              if (/Confirme seu e-mail|Confirm your email|メールアドレスを確認/.test((err as Error).message)) {
+                await resendCode(email, 'signup').catch(() => undefined);
+                askCode('signup');
+                return;
+              }
+              throw err;
+            }
+          })}
+        >
           <input className="field" type="email" required autoComplete="email" placeholder={t('seu@email.com')} value={email} onChange={(e) => setEmail(e.target.value)} />
           <PasswordField value={password} onChange={setPassword} placeholder={t('Senha')} autoComplete="current-password" />
           <button className="manga-btn w-full justify-center" disabled={!!busy}>
@@ -215,11 +317,11 @@ export default function AuthModal() {
               className="text-muted hover:text-ink"
               onClick={run('magic', async () => {
                 if (!email.includes('@')) throw new Error(t('Digite seu e-mail primeiro.'));
-                await sendMagicLink(email);
-                setSent('magic');
+                await sendLoginCode(email);
+                askCode('email');
               })}
             >
-              {t('Entrar sem senha (link por e-mail)')}
+              {t('Entrar com código por e-mail')}
             </button>
           </div>
         </form>
@@ -230,7 +332,7 @@ export default function AuthModal() {
             if (!terms) throw new Error(t('Aceite os termos para continuar.'));
             if (avail === false) throw new Error(t('Esse apelido já está em uso.'));
             const r = await signUp({ email, password, username, displayName, birthdate });
-            if (r.needsConfirm) setSent('confirm');
+            if (r.needsConfirm) askCode('signup');
             else toast(t('Bem-vindo(a) ao Shiori, {0}!', displayName || username));
           })}
         >

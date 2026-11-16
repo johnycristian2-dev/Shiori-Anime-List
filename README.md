@@ -52,6 +52,14 @@ Extras: busca global (**Ctrl+K** ou **/**), "Continuar assistindo" com botão +1
 
 Pra criar um tema novo no código, adicione um objeto em `PRESETS` (`src/lib/themes.ts`). Os testes verificam que todo tema tem texto legível.
 
+## Mangá, manhwa e webtoons
+
+O seletor **Anime | Mangá & Webtoon** (em Descobrir, Explorar, Modo rápido, Roleta, Minha lista e na busca) troca o site para leitura. Dá para filtrar por categoria: mangá (Japão), manhwa (Coreia), manhua (China), webtoon (tag *Long Strip* do AniList, de rolagem vertical) e light novel. O progresso conta capítulos. A sincronização com o AniList e a importação/exportação do MAL tratam anime e mangá separadamente.
+
+## E-mails (código de confirmação)
+
+Veja [docs/EMAIL.md](docs/EMAIL.md): cadastro, login sem senha e senha nova usam um código de 6 dígitos digitado no próprio site.
+
 ## Idiomas e sinopses traduzidas
 
 O site inteiro está em **Português, English e 日本語** (bandeira no topo ou em *Sync → Preferências*). Os textos ficam em `src/lib/i18n/{en,ja}.ts`, usando a frase em português como chave.

@@ -82,8 +82,12 @@ export function computeStats(all: ListEntry[]) {
     if (e.year) decades.set(Math.floor(e.year / 10) * 10, (decades.get(Math.floor(e.year / 10) * 10) ?? 0) + 1);
     if (e.score) scores[e.score - 1]++;
   });
-  const eps = all.reduce((n, e) => n + e.progress, 0);
-  const minutes = all.reduce((n, e) => n + e.progress * minutesPerEp(e), 0);
+  // episódios e horas contam só anime; leitura conta capítulos
+  const anime = all.filter((e) => e.type !== 'MANGA');
+  const reading = all.filter((e) => e.type === 'MANGA');
+  const eps = anime.reduce((n, e) => n + e.progress, 0);
+  const minutes = anime.reduce((n, e) => n + e.progress * minutesPerEp(e), 0);
+  const chapters = reading.reduce((n, e) => n + e.progress, 0);
   return {
     total: all.length,
     completed: by('COMPLETED'),
@@ -92,6 +96,9 @@ export function computeStats(all: ListEntry[]) {
     paused: by('PAUSED'),
     dropped: by('DROPPED'),
     eps,
+    chapters,
+    animeCount: anime.length,
+    mangaCount: reading.length,
     hours: Math.round(minutes / 60),
     mean: scored.length ? scored.reduce((n, e) => n + e.score, 0) / scored.length : 0,
     scoredCount: scored.length,

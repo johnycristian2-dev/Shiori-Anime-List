@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Flame, Info, Layers, Plus } from 'lucide-react';
-import { useAiring, useBrowse, useDiscover, useGenres } from '../api/hooks';
+import { useAiring, useBrowse, useDiscover, useGenres, useMangaDiscover } from '../api/hooks';
+import KindSwitch from '../components/KindSwitch';
+import { entryPath, MANGA_CATS, mediaPath, totalUnits } from '../lib/media';
 import AnimeRow from '../components/AnimeRow';
 import AddMenu from '../components/AddMenu';
 import { ErrorBox, SectionTitle } from '../components/ui';
 import { currentSeason, nextSeason, SEASON_LABEL } from '../lib/season';
 import { DECADES, GENRES, genrePt } from '../lib/labels';
 import { stripHtml, useTitle } from '../lib/format';
-import type { Media } from '../types';
+import type { Media, MediaType } from '../types';
 import { STATUS_META, useList } from '../store/list';
 import { useUI } from '../store/ui';
 
@@ -50,7 +52,7 @@ function Hero({ items }: { items?: Media[] }) {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <AddMenu media={m} />
-          <Link to={`/anime/${m.id}`} className="manga-btn ghost">
+          <Link to={mediaPath(m)} className="manga-btn ghost">
             <Info size={16} />{' '}{t('Detalhes')}
           </Link>
           <div className="ml-auto flex gap-1.5">
@@ -86,36 +88,42 @@ function QuizBanner() {
   );
 }
 
-function ContinueWatching() {
+function ContinueWatching({ type = 'ANIME' }: { type?: MediaType }) {
   const entries = useList((s) => s.entries);
   const update = useList((s) => s.update);
   const toast = useUI((s) => s.toast);
   const lang = useUI((s) => s.titleLang);
   const list = useMemo(
-    () => Object.values(entries).filter((e) => e.status === 'WATCHING').sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 12),
-    [entries],
+    () =>
+      Object.values(entries)
+        .filter((e) => e.status === 'WATCHING' && (e.type ?? 'ANIME') === type)
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .slice(0, 12),
+    [entries, type],
   );
+  const manga = type === 'MANGA';
   if (!list.length) return null;
   return (
     <section className="mb-10">
-      <SectionTitle title={t('Continuar assistindo')} jp="視聴中" action={<Link to="/lista">{t('Minha lista →')}</Link>} />
+      <SectionTitle title={manga ? t('Continuar lendo') : t('Continuar assistindo')} jp={manga ? '読書中' : '視聴中'} action={<Link to="/lista">{t('Minha lista →')}</Link>} />
       <div className="no-scrollbar -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3">
         {list.map((e) => {
           const name = lang === 'english' ? e.titleEnglish ?? e.title : e.title;
-          const pct = e.episodes ? (e.progress / e.episodes) * 100 : 0;
+          const total = totalUnits(e);
+          const pct = total ? (e.progress / total) * 100 : 0;
           return (
             <div key={e.mediaId} className="panel flex w-72 shrink-0 snap-start gap-3 p-2.5" style={{ borderColor: STATUS_META.WATCHING.color }}>
-              <Link to={`/anime/${e.mediaId}`} className="shrink-0">
+              <Link to={entryPath(e)} className="shrink-0">
                 <img src={e.cover ?? ''} alt="" loading="lazy" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col">
-                <Link to={`/anime/${e.mediaId}`} className="line-clamp-2 text-sm font-extrabold leading-tight hover:text-pink">
+                <Link to={entryPath(e)} className="line-clamp-2 text-sm font-extrabold leading-tight hover:text-pink">
                   {name}
                 </Link>
                 <div className="mt-auto">
                   <div className="mb-1 text-xs font-black text-muted">
-                    {t('Ep')}{' '}{e.progress}
-                    {e.episodes ? ` / ${e.episodes}` : ''}
+                    {manga ? t('Cap.') : t('Ep')} {e.progress}
+                    {total ? ` / ${total}` : ''}
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-2.5 flex-1 overflow-hidden rounded-full border-2 border-black bg-panel-2">
@@ -125,10 +133,10 @@ function ContinueWatching() {
                       className="manga-btn cyan !rounded-lg !px-2 !py-1 !text-xs"
                       onClick={() => {
                         update(e.mediaId, { progress: e.progress + 1 });
-                        if (e.episodes && e.progress + 1 >= e.episodes) toast(t('{0} completo! 完了 🎉', name));
+                        if (total && e.progress + 1 >= total) toast(t('{0} completo! 完了 🎉', name));
                       }}
                     >
-                      <Plus size={12} strokeWidth={3} />{' '}{t('1 ep')}
+                      <Plus size={12} strokeWidth={3} /> {manga ? t('1 cap.') : t('1 ep')}
                     </button>
                   </div>
                 </div>
@@ -168,10 +176,10 @@ function AiringToday() {
   );
 }
 
-function GenreSpotlight() {
+function GenreSpotlight({ type = 'ANIME' }: { type?: MediaType }) {
   const { data: genres } = useGenres();
   const [genre, setGenre] = useState('Action');
-  const filters = useMemo(() => ({ sort: 'POPULARITY_DESC' as const, genres: [genre], formats: [] }), [genre]);
+  const filters = useMemo(() => ({ sort: 'POPULARITY_DESC' as const, genres: [genre], formats: [], type }), [genre, type]);
   const q = useBrowse(filters, 20);
   const items = q.data?.pages[0]?.media;
 
@@ -191,13 +199,61 @@ function GenreSpotlight() {
         items={items}
         loading={q.isLoading}
         ranked
-        action={<Link to={`/explorar?genero=${encodeURIComponent(genre)}`}>{t('Ver tudo →')}</Link>}
+        action={<Link to={`/explorar?genero=${encodeURIComponent(genre)}${type === 'MANGA' ? '&tipo=manga' : ''}`}>{t('Ver tudo →')}</Link>}
       />
     </div>
   );
 }
 
+function MangaDiscover() {
+  const { data, isLoading, error, refetch } = useMangaDiscover();
+  if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
+  const cats = MANGA_CATS.filter((c) => c.id !== 'all');
+  return (
+    <>
+      <Hero items={data?.trending.media} />
+      <ContinueWatching type="MANGA" />
+
+      <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {cats.map((c) => (
+          <Link
+            key={c.id}
+            to={`/explorar?tipo=manga&cat=${c.id}`}
+            className="panel group relative overflow-hidden p-4 transition hover:-translate-y-1 hover:border-pink"
+          >
+            <div className="font-display text-xl">{c.label}</div>
+            <div className="text-xs font-bold text-muted">{t('Ver tudo →')}</div>
+            <div className="absolute -bottom-3 -right-1 font-jp text-4xl font-black text-pink/15 transition group-hover:text-pink/30">{c.jp}</div>
+          </Link>
+        ))}
+      </div>
+
+      <AnimeRow title={t('Em alta agora')} jp="トレンド" items={data?.trending.media} loading={isLoading} action={<Link to="/explorar?tipo=manga&ordem=TRENDING_DESC">{t('Ver tudo →')}</Link>} />
+      <AnimeRow title={t('Em lançamento')} jp="連載中" items={data?.releasing.media} loading={isLoading} action={<Link to="/explorar?tipo=manga&situacao=RELEASING">{t('Ver tudo →')}</Link>} />
+      <AnimeRow title={t('Manhwa em alta')} jp="만화" items={data?.manhwa.media} loading={isLoading} action={<Link to="/explorar?tipo=manga&cat=manhwa&ordem=TRENDING_DESC">{t('Ver tudo →')}</Link>} />
+      <AnimeRow title={t('Webtoons populares')} jp="縦読み" items={data?.webtoon.media} loading={isLoading} ranked action={<Link to="/explorar?tipo=manga&cat=webtoon">{t('Ver tudo →')}</Link>} />
+      <AnimeRow title={t('Mangás mais bem avaliados')} jp="殿堂入り" items={data?.top.media} loading={isLoading} ranked action={<Link to="/explorar?tipo=manga&cat=manga&ordem=SCORE_DESC">{t('Ver tudo →')}</Link>} />
+      <AnimeRow title={t('Light novels populares')} jp="ラノベ" items={data?.novels.media} loading={isLoading} action={<Link to="/explorar?tipo=manga&cat=novel">{t('Ver tudo →')}</Link>} />
+
+      <SectionTitle title={t('Por gênero')} jp="ジャンル" />
+      <GenreSpotlight type="MANGA" />
+    </>
+  );
+}
+
 export default function Discover() {
+  const kind = useUI((s) => s.kind);
+  return (
+    <>
+      <div className="mb-5 flex justify-center sm:justify-start">
+        <KindSwitch />
+      </div>
+      {kind === 'MANGA' ? <MangaDiscover /> : <AnimeDiscover />}
+    </>
+  );
+}
+
+function AnimeDiscover() {
   const { data, isLoading, error, refetch } = useDiscover();
   const cur = currentSeason();
   const nxt = nextSeason();

@@ -74,10 +74,15 @@ export async function pullFromAniList() {
       lists: { entries: { status: string; score: number; progress: number; updatedAt: number; media: Media }[] }[];
     };
   };
-  const d = await gql<R>(VIEWER_LIST_QUERY, { userId: viewer.id }, { token });
+  // Anime e leitura (mangá, manhwa, webtoon…) ficam em listas separadas no AniList
+  const lists: R['MediaListCollection']['lists'] = [];
+  for (const type of ['ANIME', 'MANGA'] as const) {
+    const d = await gql<R>(VIEWER_LIST_QUERY, { userId: viewer.id, type }, { token });
+    lists.push(...d.MediaListCollection.lists);
+  }
   const remote: SyncDoc = { entries: {}, deleted: {}, lists: {}, skipped: [] };
   const local = useList.getState().entries;
-  for (const l of d.MediaListCollection.lists) {
+  for (const l of lists) {
     for (const e of l.entries) {
       const prev = local[e.media.id];
       const entry: ListEntry = {

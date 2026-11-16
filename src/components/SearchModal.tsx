@@ -9,12 +9,16 @@ import { FORMAT_LABEL } from '../lib/labels';
 import { STATUS_META, useList } from '../store/list';
 
 import { t } from '../lib/i18n';
+import { useUI } from '../store/ui';
+import KindSwitch from './KindSwitch';
+import { isManga, mangaKind, mediaPath, statusLabel } from '../lib/media';
 
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [term, setTerm] = useState('');
   const [sel, setSel] = useState(0);
   const debounced = useDebounced(term, 300);
-  const q = useSearch(debounced);
+  const kind = useUI((s) => s.kind);
+  const q = useSearch(debounced, kind);
   const nav = useNavigate();
   const title = useTitle();
   const input = useRef<HTMLInputElement>(null);
@@ -47,8 +51,8 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
       e.preventDefault();
       setSel((s) => Math.max(0, s - 1));
     } else if (e.key === 'Enter') {
-      if (items[sel]) go(`/anime/${items[sel].id}`);
-      else if (term.trim()) go(`/explorar?q=${encodeURIComponent(term.trim())}`);
+      if (items[sel]) go(mediaPath(items[sel]));
+      else if (term.trim()) go(`/explorar?q=${encodeURIComponent(term.trim())}&tipo=${kind === 'MANGA' ? 'manga' : 'anime'}`);
     }
   };
 
@@ -63,7 +67,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
             value={term}
             onChange={(e) => setTerm(e.target.value)}
             onKeyDown={onKey}
-            placeholder={t('Buscar anime… (romaji, inglês ou japonês)')}
+            placeholder={kind === 'MANGA' ? t('Buscar mangá, manhwa, webtoon…') : t('Buscar anime… (romaji, inglês ou japonês)')}
             className="flex-1 bg-transparent text-lg font-bold outline-none placeholder:text-muted"
           />
           {q.isFetching && <Spinner className="h-4 w-4 text-pink" />}
@@ -72,6 +76,9 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
           </button>
         </div>
 
+        <div className="border-b-2 border-line px-3 py-2">
+          <KindSwitch className="scale-90 origin-left" />
+        </div>
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {debounced.trim().length < 2 ? (
             <div className="p-6 text-center text-sm font-bold text-muted">
@@ -86,19 +93,19 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
                 <div
                   key={m.id}
                   onMouseEnter={() => setSel(i)}
-                  onClick={() => go(`/anime/${m.id}`)}
+                  onClick={() => go(mediaPath(m))}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl p-2 ${sel === i ? 'bg-panel-2' : ''}`}
                 >
                   <img src={m.coverImage.large ?? ''} alt="" className="h-16 w-11 rounded-md border-2 border-black object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-extrabold">{title(m)}</div>
                     <div className="truncate text-xs font-bold text-muted">
-                      {[m.format && FORMAT_LABEL[m.format], m.seasonYear, m.averageScore && `★ ${m.averageScore}`].filter(Boolean).join(' · ')}
+                      {[isManga(m) ? mangaKind(m) : m.format && FORMAT_LABEL[m.format], m.seasonYear, m.averageScore && `★ ${m.averageScore}`].filter(Boolean).join(' · ')}
                       {m.title.native && <span className="ml-2 font-jp">{m.title.native}</span>}
                     </div>
                     {e && (
                       <span className="mt-0.5 inline-block rounded px-1.5 text-[10px] font-black text-black" style={{ background: STATUS_META[e.status].color }}>
-                        {STATUS_META[e.status].label}
+                        {statusLabel(e.status, e, STATUS_META[e.status].label)}
                       </span>
                     )}
                   </div>
@@ -112,7 +119,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
           {debounced.trim().length >= 2 && (
             <button
               onMouseEnter={() => setSel(items.length)}
-              onClick={() => go(`/explorar?q=${encodeURIComponent(term.trim())}`)}
+              onClick={() => go(`/explorar?q=${encodeURIComponent(term.trim())}&tipo=${kind === 'MANGA' ? 'manga' : 'anime'}`)}
               className={`mt-1 flex w-full items-center justify-between rounded-xl p-3 text-sm font-extrabold text-cyan ${sel === items.length ? 'bg-panel-2' : ''}`}
             >
               {t('Ver todos os resultados em Explorar')}{' '}<CornerDownLeft size={14} />

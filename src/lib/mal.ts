@@ -22,11 +22,67 @@ const MAL_TYPE: Record<MediaFormat, string> = {
   OVA: 'OVA',
   ONA: 'ONA',
   MUSIC: 'Music',
+  MANGA: 'Manga',
+  NOVEL: 'Novel',
+  ONE_SHOT: 'One-shot',
 };
 
 const cdata = (s: string) => `<![CDATA[${s.replace(/]]>/g, ']]]]><![CDATA[>')}]]>`;
 
-export function toMalXml(entries: ListEntry[]) {
+const TO_MAL_MANGA: Record<ListStatus, string> = { ...TO_MAL, WATCHING: 'Reading', PLANNING: 'Plan to Read' };
+
+/** Lista de leitura (mangá, manhwa, webtoon…) no formato de importação do MAL */
+export function toMalMangaXml(all: ListEntry[]) {
+  const entries = all.filter((e) => e.type === 'MANGA');
+  const ok = entries.filter((e) => e.idMal);
+  const skipped = entries.filter((e) => !e.idMal);
+  const count = (s: ListStatus) => ok.filter((e) => e.status === s).length;
+  const rows = ok.map(
+    (e) => `  <manga>
+    <manga_mangadb_id>${e.idMal}</manga_mangadb_id>
+    <manga_title>${cdata(e.title)}</manga_title>
+    <manga_volumes>${e.volumes ?? 0}</manga_volumes>
+    <manga_chapters>${e.chapters ?? 0}</manga_chapters>
+    <my_id>0</my_id>
+    <my_read_volumes>0</my_read_volumes>
+    <my_read_chapters>${e.progress}</my_read_chapters>
+    <my_start_date>0000-00-00</my_start_date>
+    <my_finish_date>0000-00-00</my_finish_date>
+    <my_scanalation_group>${cdata('')}</my_scanalation_group>
+    <my_score>${e.score}</my_score>
+    <my_storage></my_storage>
+    <my_retail_volumes>0</my_retail_volumes>
+    <my_status>${TO_MAL_MANGA[e.status]}</my_status>
+    <my_comments>${cdata('')}</my_comments>
+    <my_times_read>0</my_times_read>
+    <my_tags>${cdata('')}</my_tags>
+    <my_priority>Low</my_priority>
+    <my_reread_value></my_reread_value>
+    <my_rereading>NO</my_rereading>
+    <my_discuss>YES</my_discuss>
+    <my_sns>default</my_sns>
+    <update_on_import>1</update_on_import>
+  </manga>`,
+  );
+  const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<myanimelist>
+  <myinfo>
+    <user_export_type>2</user_export_type>
+    <user_total_manga>${ok.length}</user_total_manga>
+    <user_total_reading>${count('WATCHING')}</user_total_reading>
+    <user_total_completed>${count('COMPLETED')}</user_total_completed>
+    <user_total_onhold>${count('PAUSED')}</user_total_onhold>
+    <user_total_dropped>${count('DROPPED')}</user_total_dropped>
+    <user_total_plantoread>${count('PLANNING')}</user_total_plantoread>
+  </myinfo>
+${rows.join('\n')}
+</myanimelist>
+`;
+  return { xml, exported: ok.length, skipped };
+}
+
+export function toMalXml(all: ListEntry[]) {
+  const entries = all.filter((e) => e.type !== 'MANGA');
   const ok = entries.filter((e) => e.idMal);
   const skipped = entries.filter((e) => !e.idMal);
   const count = (s: ListStatus) => ok.filter((e) => e.status === s).length;
@@ -87,6 +143,8 @@ const FROM_MAL: Record<string, ListStatus> = {
   '4': 'DROPPED',
   'plan to watch': 'PLANNING',
   '6': 'PLANNING',
+  reading: 'WATCHING',
+  'plan to read': 'PLANNING',
 };
 
 export interface MalRow {
@@ -95,6 +153,7 @@ export interface MalRow {
   status: ListStatus;
   score: number;
   progress: number;
+  type: 'ANIME' | 'MANGA';
 }
 
 /** Lê o arquivo exportado pelo MAL (.xml ou .xml.gz). */
@@ -111,17 +170,19 @@ export function parseMalXml(xml: string): MalRow[] {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
   if (doc.querySelector('parsererror')) throw new Error(t('Arquivo XML inválido.'));
   const animes = [...doc.querySelectorAll('anime')];
-  if (!animes.length) throw new Error(t('Nenhum anime encontrado no arquivo.'));
-  return animes
-    .map((a) => {
-      const get = (tag: string) => a.querySelector(tag)?.textContent?.trim() ?? '';
-      return {
-        idMal: Number(get('series_animedb_id')),
-        title: get('series_title'),
-        status: FROM_MAL[get('my_status').toLowerCase()] ?? 'PLANNING',
-        score: Math.min(10, Math.max(0, Number(get('my_score')) || 0)),
-        progress: Number(get('my_watched_episodes')) || 0,
-      };
-    })
+  const mangas = [...doc.querySelectorAll('manga')];
+  if (!animes.length && !mangas.length) throw new Error(t('Nenhum anime ou mangá encontrado no arquivo.'));
+  const read = (a: Element, type: 'ANIME' | 'MANGA'): MalRow => {
+    const get = (tag: string) => a.querySelector(tag)?.textContent?.trim() ?? '';
+    return {
+      idMal: Number(get(type === 'ANIME' ? 'series_animedb_id' : 'manga_mangadb_id')),
+      title: get(type === 'ANIME' ? 'series_title' : 'manga_title'),
+      status: FROM_MAL[get('my_status').toLowerCase()] ?? 'PLANNING',
+      score: Math.min(10, Math.max(0, Number(get('my_score')) || 0)),
+      progress: Number(get(type === 'ANIME' ? 'my_watched_episodes' : 'my_read_chapters')) || 0,
+      type,
+    };
+  };
+  return [...animes.map((a) => read(a, 'ANIME')), ...mangas.map((a) => read(a, 'MANGA'))]
     .filter((r) => r.idMal > 0);
 }

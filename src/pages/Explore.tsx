@@ -11,6 +11,8 @@ import { useUI } from '../store/ui';
 import type { BrowseFilters, ListStatus, MediaFormat, MediaSort, MediaStatus, Season } from '../types';
 
 import { t, locale } from '../lib/i18n';
+import KindSwitch from '../components/KindSwitch';
+import { MANGA_CATS, MANGA_FORMATS, statusLabel, type MangaCat } from '../lib/media';
 
 const FORMATS: MediaFormat[] = ['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'TV_SHORT'];
 
@@ -28,8 +30,15 @@ function initial(sp: URLSearchParams): BrowseFilters {
     tags: sp.getAll('tema'),
     streaming: sp.getAll('plataforma').map(Number),
     excludeGenres: [],
+    status: (sp.get('situacao') as MediaStatus) || undefined,
   };
 }
+
+const MANGA_LENGTHS = [
+  { id: 'short' as const, get label() { return t('Curto (até 40 cap.)'); } },
+  { id: 'medium' as const, get label() { return t('Médio (40–150 cap.)'); } },
+  { id: 'long' as const, get label() { return t('Longo (150+ cap.)'); } },
+];
 
 export default function Explore() {
   const [sp] = useSearchParams();
@@ -37,8 +46,26 @@ export default function Explore() {
   const [open, setOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<ListStatus>('PLANNING');
   const [hideMine, setHideMine] = useState(false);
+  const kind = useUI((s) => s.kind);
+  const setKind = useUI((s) => s.setKind);
+  const [cat, setCat] = useState<MangaCat>(() => (sp.get('cat') as MangaCat) || 'all');
+  const manga = kind === 'MANGA';
   const search = useDebounced(f.search ?? '', 450);
-  const filters = useMemo(() => ({ ...f, search }), [f, search]);
+  const filters = useMemo<BrowseFilters>(() => {
+    const base = { ...f, search, type: kind };
+    if (!manga) return base;
+    // Categoria de leitura (mangá, manhwa, webtoon…) somada aos filtros escolhidos
+    const c = MANGA_CATS.find((x) => x.id === cat)?.filter ?? {};
+    return {
+      ...base,
+      season: undefined,
+      seasonYear: undefined,
+      streaming: [],
+      country: f.country ?? c.country,
+      formats: f.formats.length ? f.formats : c.formats ?? [],
+      tags: [...(f.tags ?? []), ...(c.tags ?? [])],
+    };
+  }, [f, search, kind, manga, cat]);
   const q = useBrowse(filters, 30);
   const { data: genres } = useGenres();
   const entries = useList((s) => s.entries);
@@ -49,7 +76,18 @@ export default function Explore() {
   // Atualiza quando um link de outra tela muda a URL
   useEffect(() => {
     setF(initial(sp));
-  }, [sp]);
+    const tipo = sp.get('tipo');
+    if (tipo === 'manga' || tipo === 'anime') setKind(tipo === 'manga' ? 'MANGA' : 'ANIME');
+    setCat((sp.get('cat') as MangaCat) || 'all');
+  }, [sp, setKind]);
+
+  // Trocou anime ↔ leitura: formatos e temporada não servem mais
+  const prevKind = useRef(kind);
+  useEffect(() => {
+    if (prevKind.current === kind) return;
+    prevKind.current = kind;
+    setF((x) => ({ ...x, formats: [], season: undefined, seasonYear: undefined, streaming: [], length: undefined }));
+  }, [kind]);
 
   const items = useMemo(() => q.data?.pages.flatMap((p) => p.media) ?? [], [q.data]);
   const total = q.data?.pages[0]?.pageInfo.total;
@@ -147,7 +185,7 @@ export default function Explore() {
         </div>
       </div>
 
-      <div>
+      <div className={manga ? 'hidden' : ''}>
         <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Temporada')}</label>
         <div className="grid grid-cols-2 gap-2">
           <select className="field text-sm" value={f.season ?? ''} onChange={(e) => set('season', (e.target.value || undefined) as Season | undefined)}>
@@ -170,7 +208,7 @@ export default function Explore() {
       <div>
         <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Formato')}</label>
         <div className="flex flex-wrap gap-1.5">
-          {FORMATS.map((fm) => (
+          {(manga ? MANGA_FORMATS : FORMATS).map((fm) => (
             <button key={fm} className={`chip !text-xs ${f.formats.includes(fm) ? 'on' : ''}`} onClick={() => set('formats', toggle(f.formats, fm))}>
               {FORMAT_LABEL[fm]}
             </button>
@@ -205,7 +243,7 @@ export default function Explore() {
         />
       </div>
 
-      <div>
+      <div className={manga ? 'hidden' : ''}>
         <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Onde assistir')}</label>
         <div className="flex flex-wrap gap-1.5">
           {STREAMING.map((p) => {
@@ -228,7 +266,7 @@ export default function Explore() {
       <div>
         <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-muted">{t('Tamanho')}</label>
         <div className="flex flex-wrap gap-1.5">
-          {LENGTHS.map((l) => (
+          {(manga ? MANGA_LENGTHS : LENGTHS).map((l) => (
             <button key={l.id} className={`chip !text-xs ${f.length === l.id ? 'on' : ''}`} onClick={() => set('length', f.length === l.id ? undefined : l.id)}>
               {l.label}
             </button>
@@ -238,7 +276,7 @@ export default function Explore() {
           className={`chip mt-1.5 !text-xs ${f.status === 'FINISHED' ? 'on' : ''}`}
           onClick={() => set('status', f.status === 'FINISHED' ? undefined : 'FINISHED')}
         >
-          {t('✅ Só finalizados (dá pra maratonar)')}
+          {manga ? t('✅ Só finalizados') : t('✅ Só finalizados (dá pra maratonar)')}
         </button>
       </div>
 
@@ -272,12 +310,25 @@ export default function Explore() {
 
   return (
     <>
-      <SectionTitle title={t('Explorar')} jp="探索" action={total != null && <span className="text-muted">{total.toLocaleString(locale())}{total >= 5000 ? '+' : ''}{' '}{t('animes')}</span>} />
+      <SectionTitle title={t('Explorar')} jp="探索" action={total != null && <span className="text-muted">{total.toLocaleString(locale())}{total >= 5000 ? '+' : ''} {manga ? t('títulos') : t('animes')}</span>} />
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <KindSwitch />
+        {manga && (
+          <div className="flex flex-wrap gap-1.5">
+            {MANGA_CATS.map((c) => (
+              <button key={c.id} className={`chip !text-xs ${cat === c.id ? 'on' : ''}`} onClick={() => setCat(c.id)}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="mb-5 flex gap-2">
         <input
           className="field flex-1 !py-3 text-base"
-          placeholder={t('Buscar por título… (ex.: Frieren, Naruto)')}
+          placeholder={manga ? t('Buscar por título… (ex.: Solo Leveling, One Piece)') : t('Buscar por título… (ex.: Frieren, Naruto)')}
           value={f.search ?? ''}
           onChange={(e) => set('search', e.target.value)}
         />
@@ -319,7 +370,7 @@ export default function Explore() {
               <select className="field !w-auto !py-1.5 text-sm" value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value as ListStatus)}>
                 {STATUS_ORDER.map((s) => (
                   <option key={s} value={s}>
-                    {STATUS_META[s].label}
+                    {statusLabel(s, { type: kind }, STATUS_META[s].label)}
                   </option>
                 ))}
               </select>
@@ -327,7 +378,7 @@ export default function Explore() {
                 className="manga-btn yellow !py-1.5"
                 onClick={() => {
                   const n = addMany(notInList, bulkStatus);
-                  toast(t('{0} animes adicionados como "{1}"', n, STATUS_META[bulkStatus].label));
+                  toast(t('{0} títulos adicionados como "{1}"', n, statusLabel(bulkStatus, { type: kind }, STATUS_META[bulkStatus].label)));
                 }}
               >
                 {t('Adicionar todos')}

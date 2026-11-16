@@ -8,7 +8,9 @@ import { FORMAT_LABEL, genrePt } from '../lib/labels';
 import { entryToMedia, stripHtml, useTitle } from '../lib/format';
 import { STATUS_META, useList } from '../store/list';
 import { useUI } from '../store/ui';
-import type { Media } from '../types';
+import type { Media, MediaFormat } from '../types';
+import KindSwitch from '../components/KindSwitch';
+import { mediaPath } from '../lib/media';
 
 import { t } from '../lib/i18n';
 import Synopsis from '../components/Synopsis';
@@ -36,9 +38,15 @@ export default function Roulette() {
   const title = useTitle();
   const { data: genres } = useGenres();
 
+  const kind = useUI((s) => s.kind);
+  const manga = kind === 'MANGA';
+  const fmts: MediaFormat[] = manga ? ['MANGA', 'NOVEL'] : ['TV', 'MOVIE', 'ONA'];
   const planning = useMemo(
-    () => Object.values(entries).filter((e) => e.status === 'PLANNING' && (!genre || e.genres.includes(genre))).map(entryToMedia),
-    [entries, genre],
+    () =>
+      Object.values(entries)
+        .filter((e) => e.status === 'PLANNING' && (e.type ?? 'ANIME') === kind && (!genre || e.genres.includes(genre)))
+        .map(entryToMedia),
+    [entries, genre, kind],
   );
 
   useEffect(() => () => clearInterval(timer.current), []);
@@ -51,7 +59,7 @@ export default function Roulette() {
       setPhase('loading');
       try {
         // Giro do dia: sempre surpresa, qualquer gênero, nota 60+, fora da sua lista
-        pool = (await fetchPool(filtersToVars({ sort: 'POPULARITY_DESC', genres: [], formats: ['TV', 'MOVIE', 'ONA'], minScore: 60 }), 20)).filter(
+        pool = (await fetchPool(filtersToVars({ sort: 'POPULARITY_DESC', genres: [], formats: fmts, minScore: 60, type: kind }), 20)).filter(
           (m) => !entries[m.id],
         );
       } catch (e) {
@@ -60,13 +68,13 @@ export default function Roulette() {
       }
     } else if (src === 'planning') {
       pool = planning;
-      if (!pool.length) return toast(t('Sua lista "Quero ver" está vazia (ou sem esse gênero)'), 'info');
+      if (!pool.length) return toast(manga ? t('Sua lista "Quero ler" está vazia (ou sem esse gênero)') : t('Sua lista "Quero ver" está vazia (ou sem esse gênero)'), 'info');
     } else {
       setPhase('loading');
       try {
         pool = (
           await fetchPool(
-            filtersToVars({ sort: 'POPULARITY_DESC', genres: genre ? [genre] : [], formats: ['TV', 'MOVIE', 'ONA'], minScore }),
+            filtersToVars({ sort: 'POPULARITY_DESC', genres: genre ? [genre] : [], formats: fmts, minScore, type: kind }),
           )
         ).filter((m) => !entries[m.id]);
       } catch (e) {
@@ -106,7 +114,10 @@ export default function Roulette() {
   return (
     <div className="mx-auto max-w-2xl">
       <SectionTitle title={t('Roleta')} jp="運命ガチャ" />
-      <p className="-mt-2 mb-5 text-sm font-bold text-muted">{t('Não sabe o que assistir? Deixa o destino escolher.')}</p>
+      <p className="-mt-2 mb-3 text-sm font-bold text-muted">{manga ? t('Não sabe o que ler? Deixa o destino escolher.') : t('Não sabe o que assistir? Deixa o destino escolher.')}</p>
+      <div className="mb-5">
+        <KindSwitch />
+      </div>
 
       <div className="halftone mb-5 flex flex-wrap items-center gap-4 rounded-2xl border-[3px] border-black bg-yellow p-4 text-black shadow-[5px_5px_0_var(--shadow)]">
         <div className="flex-1">
@@ -148,7 +159,7 @@ export default function Roulette() {
       <div className="panel mb-6 space-y-4 p-4">
         <div className="flex flex-wrap gap-2">
           <button className={`chip ${src === 'planning' ? 'on' : ''}`} onClick={() => setSrc('planning')}>
-            {t('Da minha lista "Quero ver" (')}{Object.values(entries).filter((e) => e.status === 'PLANNING').length})
+            {manga ? t('Da minha lista "Quero ler" ({0})', planning.length) : t('Da minha lista "Quero ver" ({0})', planning.length)}
           </button>
           <button className={`chip ${src === 'surprise' ? 'on' : ''}`} onClick={() => setSrc('surprise')}>
             <Sparkles size={14} />{' '}{t('Surpresa (fora da lista)')}
@@ -229,11 +240,11 @@ export default function Roulette() {
               <Play size={16} />{' '}{t('Vou assistir agora')}
             </button>
             {!entries[result.id] && (
-              <button className="manga-btn yellow" onClick={() => { add(result, 'PLANNING'); toast(t('Adicionado em "Quero ver"')); }}>
-                {t('Quero ver')}
+              <button className="manga-btn yellow" onClick={() => { add(result, 'PLANNING'); toast(manga ? t('Adicionado em "Quero ler"') : t('Adicionado em "Quero ver"')); }}>
+                {manga ? t('Quero ler') : t('Quero ver')}
               </button>
             )}
-            <Link to={`/anime/${result.id}`} className="manga-btn ghost">
+            <Link to={mediaPath(result)} className="manga-btn ghost">
               <Info size={16} />{' '}{t('Detalhes')}
             </Link>
           </div>

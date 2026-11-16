@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { CustomList, HistoryEvent, ListEntry, ListStatus, Media, SyncDoc } from '../types';
 import { HISTORY_MAX, mergeDocs } from '../lib/merge';
 import { applyDailyPull } from '../lib/gacha';
+import { totalUnits } from '../lib/media';
 
 import { t } from '../lib/i18n';
 
@@ -62,12 +63,13 @@ export function mediaToEntry(m: Media, status: ListStatus, extra: Partial<ListEn
     color: m.coverImage.color,
     format: m.format,
     episodes: m.episodes,
+    ...(m.type === 'MANGA' ? { type: 'MANGA' as const, chapters: m.chapters ?? null, volumes: m.volumes ?? null, country: m.countryOfOrigin ?? null } : {}),
     year: m.seasonYear,
     genres: m.genres,
     averageScore: m.averageScore,
     status,
     score: 0,
-    progress: status === 'COMPLETED' ? m.episodes ?? 0 : 0,
+    progress: status === 'COMPLETED' ? (m.type === 'MANGA' ? m.chapters : m.episodes) ?? 0 : 0,
     addedAt: now,
     updatedAt: now,
     ...extra,
@@ -129,7 +131,7 @@ export const useList = create<ListState>()(
             ? {
                 ...prev,
                 status,
-                progress: status === 'COMPLETED' ? prev.episodes ?? prev.progress : prev.progress,
+                progress: status === 'COMPLETED' ? totalUnits(prev) ?? prev.progress : prev.progress,
                 updatedAt: Date.now(),
               }
             : mediaToEntry(m, status);
@@ -171,12 +173,13 @@ export const useList = create<ListState>()(
           const e = s.entries[id];
           if (!e) return s;
           const next = { ...e, ...patch, updatedAt: Date.now() };
-          if (patch.status === 'COMPLETED' && e.episodes) next.progress = e.episodes;
-          if (next.episodes) next.progress = Math.min(next.progress, next.episodes);
+          const total = totalUnits(next);
+          if (patch.status === 'COMPLETED' && total) next.progress = total;
+          if (total) next.progress = Math.min(next.progress, total);
           next.progress = Math.max(0, next.progress);
           // Automação: começou a ver → Assistindo; chegou no último ep → Completo
           if (patch.progress !== undefined && !patch.status) {
-            if (next.episodes && next.progress === next.episodes && e.status !== 'COMPLETED') next.status = 'COMPLETED';
+            if (total && next.progress === total && e.status !== 'COMPLETED') next.status = 'COMPLETED';
             else if (next.progress > 0 && e.status === 'PLANNING') next.status = 'WATCHING';
           }
           const ev: HistoryEvent[] = [];

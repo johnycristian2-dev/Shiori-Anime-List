@@ -2,6 +2,7 @@ import { Heart, Minus, Plus, Trash2 } from 'lucide-react';
 import type { ListEntry, ListStatus } from '../types';
 import { STATUS_META, STATUS_ORDER, useList } from '../store/list';
 import { useUI } from '../store/ui';
+import { isManga, statusLabel, totalUnits, unitShort } from '../lib/media';
 
 import { t } from '../lib/i18n';
 
@@ -11,6 +12,7 @@ export default function EntryEditor({ entry, compact = false }: { entry: ListEnt
   const toast = useUI((s) => s.toast);
   const toggleFavorite = useList((s) => s.toggleFavorite);
   const id = entry.mediaId;
+  const manga = isManga(entry);
 
   return (
     <div className={`flex flex-wrap items-center gap-2 ${compact ? '' : 'sm:gap-3'}`}>
@@ -23,20 +25,20 @@ export default function EntryEditor({ entry, compact = false }: { entry: ListEnt
       >
         {STATUS_ORDER.map((s) => (
           <option key={s} value={s}>
-            {STATUS_META[s].label}
+            {statusLabel(s, entry, STATUS_META[s].label)}
           </option>
         ))}
       </select>
 
       <div className="flex items-center gap-1 rounded-xl border-2 border-line bg-panel-2 px-1 py-0.5">
-        <button className="rounded-lg p-1 hover:bg-panel" onClick={() => update(id, { progress: entry.progress - 1 })} aria-label={t('Menos um episódio')}>
+        <button className="rounded-lg p-1 hover:bg-panel" onClick={() => update(id, { progress: entry.progress - 1 })} aria-label={manga ? t('Menos um capítulo') : t('Menos um episódio')}>
           <Minus size={14} />
         </button>
         <span className="min-w-[4.5rem] text-center text-sm font-extrabold tabular-nums">
           {entry.progress}
-          <span className="text-muted">/{entry.episodes ?? '?'}</span>{' '}{t('ep')}
+          <span className="text-muted">/{totalUnits(entry) ?? '?'}</span> {unitShort(entry)}
         </span>
-        <button className="rounded-lg p-1 hover:bg-panel" onClick={() => update(id, { progress: entry.progress + 1 })} aria-label={t('Mais um episódio')}>
+        <button className="rounded-lg p-1 hover:bg-panel" onClick={() => update(id, { progress: entry.progress + 1 })} aria-label={manga ? t('Mais um capítulo') : t('Mais um episódio')}>
           <Plus size={14} />
         </button>
       </div>

@@ -8,7 +8,7 @@ import PublicProfileCard from '../components/PublicProfileCard';
 import { gql } from '../api/anilist';
 import { PAGE_QUERY, SAVE_ENTRY_MUTATION, USER_LIST_QUERY, VIEWER_QUERY } from '../api/queries';
 import { ConfirmButton, SectionTitle, Spinner } from '../components/ui';
-import { parseMalXml, readMalFile, toMalXml } from '../lib/mal';
+import { parseMalXml, readMalFile, toMalMangaXml, toMalXml } from '../lib/mal';
 import { chunk, downloadText, sleep } from '../lib/format';
 import { mediaToEntry, useList } from '../store/list';
 import { useUI } from '../store/ui';
@@ -112,6 +112,13 @@ export default function Sync() {
     }
   };
 
+  const mangaCount = all.filter((e) => e.type === 'MANGA').length;
+  const exportMalManga = () => {
+    const { xml, exported, skipped } = toMalMangaXml(all);
+    downloadText(`shiori-mal-manga-${new Date().toISOString().slice(0, 10)}.xml`, xml, 'application/xml');
+    toast(skipped.length ? t('{0} exportados · {1} sem ID no MAL ficaram de fora', exported, skipped.length) : t('{0} títulos exportados!', exported));
+  };
+
   const exportMal = () => {
     const { xml, exported, skipped } = toMalXml(all);
     downloadText(`shiori-mal-${new Date().toISOString().slice(0, 10)}.xml`, xml, 'application/xml');
@@ -138,19 +145,23 @@ export default function Sync() {
       if (!list.length || !list.every((e) => typeof e.mediaId === 'number')) throw new Error(t('Backup inválido.'));
       importEntries(list, mode);
       if (data.lists) mergeDoc({ entries: {}, deleted: {}, lists: data.lists, skipped: data.skipped ?? [] });
-      toast(t('{0} animes restaurados', list.length));
+      toast(t('{0} títulos restaurados', list.length));
     });
 
   const importMal = (file: File) =>
     run('mal', async () => {
       const rows = parseMalXml(await readMalFile(file));
-      const byMal = new Map(rows.map((r) => [r.idMal, r]));
       const found: ListEntry[] = [];
-      const parts = chunk([...byMal.keys()], 50);
-      for (let i = 0; i < parts.length; i++) {
+      // No MAL, anime e mangá têm números (IDs) separados: busca cada tipo no seu lugar
+      const jobs = (['ANIME', 'MANGA'] as const).flatMap((type) => {
+        const byMal = new Map(rows.filter((r) => r.type === type).map((r) => [r.idMal, r]));
+        return chunk([...byMal.keys()], 50).map((ids) => ({ type, ids, byMal }));
+      });
+      for (let i = 0; i < jobs.length; i++) {
         if (cancel.current) break;
-        setProg({ v: i, max: parts.length, label: t('Buscando dados no AniList…') });
-        const page = (await gql<{ Page: MediaPage }>(PAGE_QUERY, { idMalIn: parts[i], perPage: 50, page: 1 })).Page;
+        const { type, ids, byMal } = jobs[i];
+        setProg({ v: i, max: jobs.length, label: t('Buscando dados no AniList…') });
+        const page = (await gql<{ Page: MediaPage }>(PAGE_QUERY, { idMalIn: ids, perPage: 50, page: 1, type })).Page;
         page.media.forEach((m) => {
           const r = m.idMal ? byMal.get(m.idMal) : undefined;
           if (r) found.push(mediaToEntry(m, r.status, { score: r.score, progress: r.progress }));
@@ -171,8 +182,11 @@ export default function Sync() {
       const name = alUser.trim();
       if (!name) throw new Error(t('Digite o nome de usuário do AniList.'));
       type R = { MediaListCollection: { lists: { entries: { status: string; score: number; progress: number; media: Media }[] }[] } };
-      const d = await gql<R>(USER_LIST_QUERY, { user: name });
-      const list = d.MediaListCollection.lists.flatMap((l) => l.entries);
+      const list: R['MediaListCollection']['lists'][number]['entries'] = [];
+      for (const type of ['ANIME', 'MANGA'] as const) {
+        const d = await gql<R>(USER_LIST_QUERY, { user: name, type });
+        list.push(...d.MediaListCollection.lists.flatMap((l) => l.entries));
+      }
       const seen = new Set<number>();
       const out = list
         .filter((e) => !seen.has(e.media.id) && seen.add(e.media.id))
@@ -180,7 +194,7 @@ export default function Sync() {
           mediaToEntry(e.media, AL_TO_LOCAL[e.status] ?? 'PLANNING', { score: Math.round(e.score || 0), progress: e.progress || 0 }),
         );
       importEntries(out, mode);
-      toast(t('{0} animes importados de {1}', out.length, name));
+      toast(t('{0} títulos importados de {1}', out.length, name));
     });
 
   const pushAniList = () =>
@@ -318,9 +332,14 @@ export default function Sync() {
           <p>
             {t('Gera um arquivo')}{' '}<b>{t('.xml')}</b>{' '}{t('no formato do MAL. Lá no site:')}{' '}<b>{t('Perfil → Import')}</b>{' '}{t('→ escolha')}{' '}<i>{t('MyAnimeList Import')}</i>{' '}{t('e envie o arquivo.')}
           </p>
-          <button className="manga-btn" disabled={!all.length} onClick={exportMal}>
-            <Download size={16} />{' '}{t('Baixar XML (')}{all.length})
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button className="manga-btn" disabled={all.length === mangaCount} onClick={exportMal}>
+              <Download size={16} /> {t('Animes ({0})', all.length - mangaCount)}
+            </button>
+            <button className="manga-btn cyan" disabled={!mangaCount} onClick={exportMalManga}>
+              <Download size={16} /> {t('Mangás, manhwas e webtoons ({0})', mangaCount)}
+            </button>
+          </div>
         </Card>
 
         <Card jp="輸入" title={t('Importar do MyAnimeList')}>

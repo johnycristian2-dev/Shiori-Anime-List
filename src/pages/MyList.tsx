@@ -11,6 +11,8 @@ import { FORMAT_LABEL, genrePt } from '../lib/labels';
 import type { ListEntry, ListStatus } from '../types';
 
 import { t, locale } from '../lib/i18n';
+import KindSwitch from '../components/KindSwitch';
+import { entryPath, mangaKind, statusLabel } from '../lib/media';
 
 type Sort = 'updated' | 'score' | 'title' | 'year' | 'added';
 
@@ -30,7 +32,12 @@ export default function MyList() {
   const [view, setView] = useState<'rows' | 'grid'>('rows');
   const [query, setQuery] = useState('');
 
-  const all = useMemo(() => Object.values(entries), [entries]);
+  const kind = useUI((s) => s.kind);
+  const manga = kind === 'MANGA';
+  const everything = useMemo(() => Object.values(entries), [entries]);
+  // A lista mostra um tipo por vez: anime ou leitura (mangá, manhwa, webtoon…)
+  const all = useMemo(() => everything.filter((e) => (e.type ?? 'ANIME') === kind), [everything, kind]);
+  const otherCount = everything.length - all.length;
   const name = (e: ListEntry) => pickTitle({ romaji: e.title, english: e.titleEnglish, native: e.titleNative }, lang);
 
   const stats = useMemo(() => {
@@ -68,22 +75,36 @@ export default function MyList() {
     return (
       <>
         <SectionTitle title={t('Minha lista')} jp="マイリスト" />
+        <div className="mb-5">
+          <KindSwitch />
+        </div>
+        {otherCount > 0 ? (
+          <EmptyState jp="空" title={manga ? t('Nenhum mangá, manhwa ou webtoon ainda') : t('Nenhum anime ainda')}>
+            <Link to={manga ? '/explorar?tipo=manga' : '/explorar?tipo=anime'} className="font-bold text-pink">
+              {manga ? t('Explorar mangás, manhwas e webtoons →') : t('Explorar animes →')}
+            </Link>
+          </EmptyState>
+        ) : (
         <EmptyState jp="空" title={t('Sua lista está vazia')}>
           {t('Vá em')}{' '}<Link to="/" className="font-bold text-pink">{t('Descobrir')}</Link>{t(', use o')}{' '}
           <Link to="/swipe" className="font-bold text-pink">{t('modo rápido')}</Link>{' '}{t('ou')}{' '}
           <Link to="/sync" className="font-bold text-pink">{t('importe do MAL/AniList')}</Link>.
         </EmptyState>
+        )}
       </>
     );
 
   return (
     <>
       <SectionTitle title={t('Minha lista')} jp="マイリスト" />
+      <div className="mb-5">
+        <KindSwitch />
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { k: t('Animes'), v: stats.total, c: 'text-pink' },
-          { k: t('Episódios vistos'), v: stats.eps.toLocaleString(locale()), c: 'text-cyan' },
+          { k: manga ? t('Títulos') : t('Animes'), v: stats.total, c: 'text-pink' },
+          { k: manga ? t('Capítulos lidos') : t('Episódios vistos'), v: stats.eps.toLocaleString(locale()), c: 'text-cyan' },
           { k: t('Nota média'), v: stats.mean, c: 'text-yellow' },
           { k: t('Gêneros favoritos'), v: stats.topGenres.map(([g]) => genrePt(g)).join(', ') || '—', c: 'text-ink !text-base' },
         ].map((s) => (
@@ -108,7 +129,7 @@ export default function MyList() {
             onClick={() => setTab(s)}
             style={tab === s ? { background: STATUS_META[s].color, borderColor: STATUS_META[s].color, color: '#0c0a1d' } : undefined}
           >
-            {STATUS_META[s].label} <span className="opacity-70">{stats.by[s]}</span>
+            {statusLabel(s, { type: kind }, STATUS_META[s].label)} <span className="opacity-70">{stats.by[s]}</span>
           </button>
         ))}
       </div>
@@ -166,7 +187,7 @@ export default function MyList() {
             className="min-w-0 flex-1 bg-transparent font-display text-xl outline-none focus:text-pink"
             maxLength={30}
           />
-          <span className="text-xs font-bold text-muted">{t('Adicione animes pelo botão + de qualquer card')}</span>
+          <span className="text-xs font-bold text-muted">{t('Adicione títulos pelo botão + de qualquer card')}</span>
           <ConfirmButton
             className="manga-btn ghost !py-1.5 !text-red-400"
             confirmText={t('Apagar mesmo?')}
@@ -209,7 +230,7 @@ export default function MyList() {
         <div className="space-y-3">
           {list.map((e) => (
             <div key={e.mediaId} className="panel flex gap-3 p-2.5" style={{ borderLeft: `6px solid ${STATUS_META[e.status].color}` }}>
-              <Link to={`/anime/${e.mediaId}`} className="shrink-0">
+              <Link to={entryPath(e)} className="shrink-0">
                 {e.cover ? (
                   <img src={e.cover} alt="" loading="lazy" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />
                 ) : (
@@ -217,12 +238,12 @@ export default function MyList() {
                 )}
               </Link>
               <div className="min-w-0 flex-1">
-                <Link to={`/anime/${e.mediaId}`} className="line-clamp-1 font-extrabold hover:text-pink">
+                <Link to={entryPath(e)} className="line-clamp-1 font-extrabold hover:text-pink">
                   {e.favorite && <span className="text-pink">♥ </span>}
                   {name(e)}
                 </Link>
                 <div className="mb-2 text-xs font-bold text-muted">
-                  {[e.format && FORMAT_LABEL[e.format], e.year, e.averageScore && `★ ${e.averageScore} geral`].filter(Boolean).join(' · ')}
+                  {[manga ? mangaKind(e) : e.format && FORMAT_LABEL[e.format], e.year, e.averageScore && t('★ {0} geral', e.averageScore)].filter(Boolean).join(' · ')}
                 </div>
                 <EntryEditor entry={e} compact />
                 {e.notes && <p className="mt-1.5 line-clamp-2 text-xs italic text-muted">📝 {e.notes}</p>}

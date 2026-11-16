@@ -6,6 +6,7 @@ import { STATUS_META, useList } from '../store/list';
 import { useTitle } from '../lib/format';
 import { FORMAT_LABEL } from '../lib/labels';
 import AddMenu from './AddMenu';
+import { isManga, mangaKind, mediaPath, statusLabel, unitShort } from '../lib/media';
 
 export default function AnimeCard({
   media,
@@ -21,13 +22,18 @@ export default function AnimeCard({
   const title = useTitle();
   const entry = useList((s) => s.entries[media.id]);
   const cover = media.coverImage.extraLarge ?? media.coverImage.large;
-  const meta = [media.format ? FORMAT_LABEL[media.format] : null, media.seasonYear, media.episodes ? `${media.episodes} ep` : null]
+  const manga = isManga(media);
+  const meta = [
+    manga ? mangaKind(media) : media.format ? FORMAT_LABEL[media.format] : null,
+    media.seasonYear,
+    manga ? (media.chapters ? `${media.chapters} ${unitShort(media)}` : null) : media.episodes ? `${media.episodes} ep` : null,
+  ]
     .filter(Boolean)
     .join(' · ');
 
   return (
     <div className={`group relative ${small ? 'w-36 shrink-0 snap-start sm:w-40' : 'w-full'}`}>
-      <Link to={`/anime/${media.id}`} className="block" title={title(media)}>
+      <Link to={mediaPath(media)} className="block" title={title(media)}>
         <div
           className="card-frame relative aspect-[2/3] overflow-hidden rounded-xl bg-panel-2"
           style={{ '--accent': media.coverImage.color ?? 'var(--pink)' } as CSSProperties}
@@ -55,7 +61,7 @@ export default function AnimeCard({
                 className="mb-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-black uppercase text-black"
                 style={{ background: STATUS_META[entry.status].color }}
               >
-                {STATUS_META[entry.status].label}
+                {statusLabel(entry.status, entry, STATUS_META[entry.status].label)}
               </span>
             )}
             {meta && <div className="text-[10px] font-bold uppercase tracking-wider text-white/70">{meta}</div>}
