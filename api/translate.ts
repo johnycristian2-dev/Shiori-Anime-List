@@ -137,11 +137,19 @@ export default {
     if (!Number.isInteger(id) || id <= 0 || id > 10_000_000 || !LANG_NAME[lang]) return json({ error: 'bad request' }, 400);
 
     // 1. Sinopse original (inglês) direto do AniList
-    const al = await fetch('https://graphql.anilist.co', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ query: 'query($id:Int){Media(id:$id){description(asHtml:false) title{romaji}}}', variables: { id } }),
-    });
+    const ask = () =>
+      fetch('https://graphql.anilist.co', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ query: 'query($id:Int){Media(id:$id){description(asHtml:false) title{romaji}}}', variables: { id } }),
+      });
+    let al = await ask();
+    if (al.status === 429) {
+      // AniList pediu pra esperar: tenta de novo uma vez (no máx. 3 s)
+      const wait = Math.min(Number(al.headers.get('retry-after')) || 2, 3);
+      await new Promise((r) => setTimeout(r, wait * 1000));
+      al = await ask();
+    }
     if (!al.ok) return json({ error: `anilist ${al.status}` }, 502);
     const media = (await al.json())?.data?.Media;
     const original = clean(media?.description ?? '');
