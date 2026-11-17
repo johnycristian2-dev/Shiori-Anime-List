@@ -5,7 +5,7 @@ import { useSearch } from '../api/hooks';
 import { EmptyState, ErrorBox, SectionTitle, Spinner, useDebounced } from '../components/ui';
 import { CLOUD_ENABLED } from '../lib/supabase';
 import { rarityOf } from '../lib/gacha';
-import { entryToMedia, useTitle } from '../lib/format';
+import { entryToMedia, useTitle, coverOf } from '../lib/format';
 import { FORMAT_LABEL } from '../lib/labels';
 import { useList } from '../store/list';
 import { useUI } from '../store/ui';
@@ -139,7 +139,7 @@ function AddPanel({ code, myName, existing }: { code: string; myName: string; ex
           onClick={() => add(m)}
           className="flex w-full items-center gap-2 rounded-lg p-1.5 text-left hover:bg-panel-2 disabled:opacity-40"
         >
-          <img src={m.coverImage.large ?? ''} alt="" className="h-11 w-8 rounded border border-black object-cover" />
+          <img src={coverOf(m)} alt="" className="h-11 w-8 rounded border border-black object-cover" />
           <span className="min-w-0 flex-1 truncate text-sm font-bold">{title(m)}</span>
           {existing.has(m.id) ? <Check size={16} /> : <Plus size={16} className="text-pink" />}
         </button>
@@ -265,7 +265,7 @@ function Room({ code }: { code: string }) {
           style={{ boxShadow: r.glow }}
         >
           <div className="absolute -right-2 -top-6 font-jp text-[120px] font-black leading-none text-pink/10">決定</div>
-          {winner.coverImage.large && <img src={winner.coverImage.large} alt="" className="w-32 rounded-xl border-[3px] border-black" />}
+          {coverOf(winner) && <img src={coverOf(winner)} alt="" className="w-32 rounded-xl border-[3px] border-black" />}
           <div className="relative flex-1">
             <div className="flex items-center gap-2 text-sm font-black text-yellow">
               <Trophy size={16} />{' '}{t('O anime da vez é…')}
@@ -332,7 +332,7 @@ function Room({ code }: { code: string }) {
                     <div className="relative flex items-center gap-3">
                       <span className="w-6 text-center font-display text-lg text-muted">{k + 1}</span>
                       <Link to={`/anime/${item.media_id}`}>
-                        <img src={item.media.coverImage.large ?? ''} alt="" className="h-16 w-11 rounded-md border-2 border-black object-cover" />
+                        <img src={coverOf(item.media)} alt="" className="h-16 w-11 rounded-md border-2 border-black object-cover" />
                       </Link>
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-extrabold">{title(item.media)}</div>

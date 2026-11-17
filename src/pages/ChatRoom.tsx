@@ -6,7 +6,7 @@ import { useMedia } from '../api/hooks';
 import Avatar from '../components/Avatar';
 import { displayName, ReportDialog } from '../components/Social';
 import { ErrorBox, Spinner } from '../components/ui';
-import { pickTitle, useTitle } from '../lib/format';
+import { pickTitle, useTitle, coverOf } from '../lib/format';
 import { t, locale } from '../lib/i18n';
 import { isManga, mediaPath, totalUnits } from '../lib/media';
 import { maskProfanity } from '../lib/profanity';
@@ -49,7 +49,7 @@ function useRoomInfo(roomId: string) {
         id: m.id,
         title: m.title.romaji ?? m.title.english ?? '???',
         titleEnglish: m.title.english,
-        cover: m.coverImage.large,
+        cover: coverOf(m),
         type: m.type ?? 'ANIME',
         country: m.countryOfOrigin ?? null,
         total: totalUnits(m),

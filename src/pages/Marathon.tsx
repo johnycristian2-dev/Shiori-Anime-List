@@ -6,7 +6,7 @@ import { useSearch } from '../api/hooks';
 import { EmptyState, ErrorBox, SectionTitle, Spinner, useDebounced } from '../components/ui';
 import { fetchFranchise, planMarathon } from '../lib/marathon';
 import { FORMAT_LABEL } from '../lib/labels';
-import { useTitle } from '../lib/format';
+import { useTitle, coverOf } from '../lib/format';
 import { STATUS_META, useList } from '../store/list';
 import { useUI } from '../store/ui';
 
@@ -43,7 +43,7 @@ function Picker() {
       <div className="space-y-2">
         {(q.data?.media ?? []).map((m) => (
           <button key={m.id} onClick={() => nav(`/maratona/${m.id}`)} className="panel flex w-full items-center gap-3 p-2 text-left hover:border-pink">
-            <img src={m.coverImage.large ?? ''} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />
+            <img src={coverOf(m)} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />
             <div className="min-w-0">
               <div className="truncate font-extrabold">{title(m)}</div>
               <div className="text-xs font-bold text-muted">{[m.format && FORMAT_LABEL[m.format], m.seasonYear].filter(Boolean).join(' · ')}</div>
@@ -131,7 +131,7 @@ export default function Marathon() {
       <SectionTitle title={t('Planejador de maratona')} jp="一気見" action={<Link to="/maratona">{t('Trocar anime')}</Link>} />
 
       <div className="mb-6 flex items-center gap-4">
-        {root.coverImage.large && <img src={root.coverImage.large} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />}
+        {coverOf(root) && <img src={coverOf(root)} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />}
         <div>
           <div className="font-display text-2xl">{title(root)}</div>
           <div className="text-sm font-bold text-muted">
@@ -234,7 +234,7 @@ export default function Marathon() {
                 {i + 1}
               </span>
               <Link to={`/anime/${p.media.id}`} className="shrink-0">
-                <img src={p.media.coverImage.large ?? ''} alt="" loading="lazy" className="h-20 w-14 rounded-lg border-2 border-black object-cover" />
+                <img src={coverOf(p.media)} alt="" loading="lazy" className="h-20 w-14 rounded-lg border-2 border-black object-cover" />
               </Link>
               <div className="min-w-0 flex-1">
                 <Link to={`/anime/${p.media.id}`} className="line-clamp-1 font-extrabold hover:text-pink">

@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import { Eye, EyeOff, Flag, Heart, MessageCircle, MoreHorizontal, Pencil, Search, Send, Star, Trash2, X } from 'lucide-react';
 import { useSearch } from '../api/hooks';
 import { t } from '../lib/i18n';
-import { useTitle } from '../lib/format';
+import { useTitle, coverOf } from '../lib/format';
 import { isManga, mediaPath, unitShort } from '../lib/media';
 import { maskProfanity } from '../lib/profanity';
 import { useList } from '../store/list';
@@ -38,7 +38,7 @@ export function toPostMedia(m: Media): PostMedia {
     id: m.id,
     title: m.title.romaji ?? m.title.english ?? m.title.native ?? '???',
     titleEnglish: m.title.english,
-    cover: m.coverImage.large ?? m.coverImage.extraLarge,
+    cover: coverOf(m),
     type: m.type ?? 'ANIME',
     country: m.countryOfOrigin ?? null,
   };
@@ -86,7 +86,7 @@ function MediaPicker({ onPick, type }: { onPick: (m: PostMedia) => void; type: M
                   setQ('');
                 }}
               >
-                <img src={m.coverImage.large ?? ''} alt="" className="h-10 w-7 rounded object-cover" />
+                <img src={coverOf(m)} alt="" className="h-10 w-7 rounded object-cover" />
                 <span className="truncate">{title(m)}</span>
               </button>
             ))

@@ -68,17 +68,16 @@ export default function AnimeDetail() {
 
   return (
     <>
-      <div className="relative -mx-4 -mt-6 mb-8 h-56 overflow-hidden sm:h-80">
+      <div className="relative -mx-4 -mt-6 mb-8 h-44 overflow-hidden sm:h-80">
         {m.bannerImage ? (
-          <img src={m.bannerImage} alt="" className="h-full w-full object-cover" />
+          <img src={m.bannerImage} alt="" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <div className="halftone h-full w-full" style={{ background: accent }} />
         )}
-        <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/40 to-transparent" />
-        <div className="speedlines absolute inset-0 opacity-40" />
+        <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/20 to-transparent" />
       </div>
 
-      <div className="-mt-40 flex flex-col gap-6 sm:-mt-48 md:flex-row">
+      <div className="-mt-28 flex flex-col gap-6 sm:-mt-48 md:flex-row">
         <div className="relative z-10 mx-auto w-44 shrink-0 sm:w-56 md:mx-0">
           {cover && (
             <img

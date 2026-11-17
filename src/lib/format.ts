@@ -89,3 +89,7 @@ export function fuzzyDate(d: { year?: number | null; month: number | null; day: 
   if (!d.month) return String(d.year);
   return new Date(d.year ?? 2000, d.month - 1, d.day ?? 1).toLocaleDateString(locale(), { day: d.day ? 'numeric' : undefined, month: 'short', year: d.year ? 'numeric' : undefined });
 }
+
+/** Capa na melhor resolução disponível (extraLarge ≈ 460px; large ≈ 230px fica borrada em tela retina). */
+export const coverOf = (m: { coverImage: { extraLarge?: string | null; large?: string | null } }) =>
+  m.coverImage.extraLarge ?? m.coverImage.large ?? '';

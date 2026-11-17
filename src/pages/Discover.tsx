@@ -9,7 +9,7 @@ import AddMenu from '../components/AddMenu';
 import { ErrorBox, SectionTitle } from '../components/ui';
 import { currentSeason, nextSeason, SEASON_LABEL } from '../lib/season';
 import { DECADES, GENRES, genrePt } from '../lib/labels';
-import { stripHtml, useTitle } from '../lib/format';
+import { stripHtml, useTitle, coverOf } from '../lib/format';
 import type { Media, MediaType } from '../types';
 import { STATUS_META, useList } from '../store/list';
 import { useUI } from '../store/ui';
@@ -33,10 +33,18 @@ function Hero({ items }: { items?: Media[] }) {
 
   return (
     <section className="relative mb-12 overflow-hidden rounded-3xl border-[3px] border-black shadow-[8px_8px_0_var(--pink)]">
-      <img key={m.id} src={m.bannerImage!} alt="" className="pop-in absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-linear-to-r from-black/95 via-black/70 to-black/20" />
-      <div className="speedlines absolute inset-0 opacity-60" />
+      {/* computador: banner largo nítido. celular: o banner teria que ser ampliado 3x (fica borrado),
+          então o fundo vira a capa desfocada de propósito e a capa aparece nítida em cima */}
+      <img key={m.id} src={m.bannerImage!} alt="" decoding="async" className="pop-in absolute inset-0 hidden h-full w-full object-cover sm:block" />
+      <img key={`b${m.id}`} src={coverOf(m)} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-125 object-cover opacity-70 blur-2xl sm:hidden" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/55 to-black/25 sm:bg-linear-to-r sm:from-black/85 sm:via-black/45 sm:to-transparent" />
       <div className="relative flex min-h-[340px] flex-col justify-end gap-4 p-6 sm:min-h-[420px] sm:p-10">
+        <img
+          key={`c${m.id}`}
+          src={coverOf(m)}
+          alt=""
+          className="pop-in w-28 rounded-xl border-[3px] border-black shadow-[4px_4px_0_var(--pink)] sm:hidden"
+        />
         <span className="inline-flex w-fit items-center gap-2 rounded-lg border-2 border-black bg-yellow px-2.5 py-1 text-xs font-black text-black -rotate-2">
           <Flame size={14} />{' '}{t('EM ALTA #')}{(i % list.length) + 1} <span className="font-jp">トレンド</span>
         </span>

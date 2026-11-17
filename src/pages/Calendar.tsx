@@ -5,7 +5,7 @@ import { useAiring } from '../api/hooks';
 import AddMenu from '../components/AddMenu';
 import { EmptyState, ErrorBox, SectionTitle, Spinner } from '../components/ui';
 import { STATUS_META, useList } from '../store/list';
-import { useTitle } from '../lib/format';
+import { useTitle, coverOf } from '../lib/format';
 import { FORMAT_LABEL } from '../lib/labels';
 import type { AiringItem } from '../types';
 
@@ -91,7 +91,7 @@ function AiringCard({ a, now }: { a: AiringItem; now: number }) {
       style={entry ? { borderColor: STATUS_META[entry.status].color } : undefined}
     >
       <Link to={`/anime/${a.media.id}`} className="shrink-0">
-        <img src={a.media.coverImage.large ?? ''} alt="" loading="lazy" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />
+        <img src={coverOf(a.media)} alt="" loading="lazy" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />
       </Link>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-xs font-black">

@@ -229,15 +229,17 @@ async function toWebp(file: File, w: number, h: number): Promise<Blob> {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high'; // redução suave, sem serrilhado
   ctx.drawImage(bmp, (bmp.width - sw) / 2, (bmp.height - sh) / 2, sw, sh, 0, 0, w, h);
   bmp.close();
-  return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('canvas'))), 'image/webp', 0.86));
+  return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('canvas'))), 'image/webp', 0.92));
 }
 
 export async function uploadProfileImage(kind: 'avatar' | 'banner', file: File) {
   const u = useCloudUser.getState().user;
   if (!u) throw new Error(t('Entre na sua conta primeiro.'));
-  const blob = kind === 'avatar' ? await toWebp(file, 400, 400) : await toWebp(file, 1500, 500);
+  const blob = kind === 'avatar' ? await toWebp(file, 512, 512) : await toWebp(file, 1800, 600);
   const path = `${u.id}/${kind}-${Date.now().toString(36)}.webp`;
   const bucket = sb().storage.from('profile-images');
   const { error } = await bucket.upload(path, blob, { contentType: 'image/webp', upsert: true, cacheControl: '31536000' });

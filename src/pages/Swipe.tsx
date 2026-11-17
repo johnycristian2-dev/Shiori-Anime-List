@@ -6,7 +6,7 @@ import { useBrowse, useGenres } from '../api/hooks';
 import { EmptyState, ErrorBox, SectionTitle, Spinner } from '../components/ui';
 import { DECADES, FORMAT_LABEL, genrePt } from '../lib/labels';
 import { currentSeason } from '../lib/season';
-import { stripHtml, useTitle } from '../lib/format';
+import { stripHtml, useTitle, coverOf } from '../lib/format';
 import { useList } from '../store/list';
 import type { BrowseFilters, ListEntry, Media, MediaType } from '../types';
 
@@ -318,7 +318,7 @@ export default function Swipe() {
           <>
             {queue[1] && (
               <div className="absolute inset-0 translate-y-3 scale-[0.95] overflow-hidden rounded-3xl border-[3px] border-black opacity-60">
-                {queue[1].coverImage.large && <img src={queue[1].coverImage.large} alt="" className="h-full w-full object-cover" />}
+                {coverOf(queue[1]) && <img src={coverOf(queue[1])} alt="" className="h-full w-full object-cover" />}
               </div>
             )}
             <AnimatePresence custom={decision}>
