@@ -33,6 +33,7 @@ function friendly(e: { message?: string; code?: string } | null): Error {
   if (/Password should be at least/i.test(m)) return new Error(t('A senha precisa ter pelo menos 8 caracteres.'));
   if (/not authorized|Email address .* is invalid|email.*not allowed/i.test(m)) return new Error(t('Não conseguimos enviar e-mail para esse endereço agora. Tente outro ou fale com o suporte.'));
   if (/signups not allowed|Signups not allowed/i.test(m)) return new Error(t('Cadastros estão fechados no momento.'));
+  if (/email rate limit|over_email_send_rate_limit/i.test(m)) return new Error(t('O site atingiu o limite de e-mails por hora. Tente de novo daqui a uma hora (não precisa clicar de novo agora).'));
   if (/rate limit|too many/i.test(m)) return new Error(t('Muitas tentativas. Espere um pouco e tente de novo.'));
   return new Error(m || t('Algo deu errado.'));
 }

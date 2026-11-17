@@ -1266,6 +1266,7 @@ const en: Record<string, string> = {
   'Episódio do spoiler': 'Spoiler episode',
   'Respeito sempre. Marque spoilers. Nunca passe telefone, endereço ou redes pessoais. Passe o mouse numa mensagem pra denunciar.': 'Always be respectful. Mark spoilers. Never share phone numbers, addresses or personal socials. Hover a message to report it.',
   'Você é moderador aqui': "You're a moderator here",
+  'O site atingiu o limite de e-mails por hora. Tente de novo daqui a uma hora (não precisa clicar de novo agora).': 'The site hit its hourly email limit. Try again in an hour (no need to click again now).',
 };
 
 export default en;

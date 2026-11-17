@@ -1294,6 +1294,7 @@ const ja: Record<string, string> = {
   'Episódio do spoiler': 'ネタバレの話数',
   'Respeito sempre. Marque spoilers. Nunca passe telefone, endereço ou redes pessoais. Passe o mouse numa mensagem pra denunciar.': '常に思いやりを。ネタバレは指定しよう。電話番号・住所・個人SNSは絶対に書かないで。通報はメッセージにカーソルを合わせて。',
   'Você é moderador aqui': 'あなたはモデレーターです',
+  'O site atingiu o limite de e-mails por hora. Tente de novo daqui a uma hora (não precisa clicar de novo agora).': 'サイトの1時間あたりのメール送信上限に達しました。1時間後にもう一度お試しください（今は再度押す必要はありません）。',
 };
 
 export default ja;
