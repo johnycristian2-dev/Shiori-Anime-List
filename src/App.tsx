@@ -1,4 +1,7 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { lazyPage } from './lib/lazyPage';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useUI } from './store/ui';
 import { Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -6,32 +9,32 @@ import { Spinner } from './components/ui';
 import Discover from './pages/Discover';
 
 // Cada página vira um arquivo separado: o site abre mais rápido
-const Explore = lazy(() => import('./pages/Explore'));
-const Swipe = lazy(() => import('./pages/Swipe'));
-const Recommendations = lazy(() => import('./pages/Recommendations'));
-const MyList = lazy(() => import('./pages/MyList'));
-const AnimeDetail = lazy(() => import('./pages/AnimeDetail'));
-const Sync = lazy(() => import('./pages/Sync'));
-const Calendar = lazy(() => import('./pages/Calendar'));
-const Profile = lazy(() => import('./pages/Profile'));
-const ProfileEdit = lazy(() => import('./pages/ProfileEdit'));
-const Terms = lazy(() => import('./pages/Terms'));
-const Friends = lazy(() => import('./pages/Friends'));
-const Moderation = lazy(() => import('./pages/Moderation'));
-const Chat = lazy(() => import('./pages/Chat'));
-const ChatRoom = lazy(() => import('./pages/ChatRoom'));
-const Roulette = lazy(() => import('./pages/Roulette'));
-const StudioPage = lazy(() => import('./pages/Studio'));
-const Roadmap = lazy(() => import('./pages/Roadmap'));
-const CharacterPage = lazy(() => import('./pages/CharacterPage'));
-const StaffPage = lazy(() => import('./pages/StaffPage'));
-const Quiz = lazy(() => import('./pages/Quiz'));
-const Marathon = lazy(() => import('./pages/Marathon'));
-const Wrapped = lazy(() => import('./pages/Wrapped'));
-const Compare = lazy(() => import('./pages/Compare'));
-const Party = lazy(() => import('./pages/Party'));
-const PublicProfile = lazy(() => import('./pages/PublicProfile'));
-const Themes = lazy(() => import('./pages/Themes'));
+const Explore = lazyPage(() => import('./pages/Explore'));
+const Swipe = lazyPage(() => import('./pages/Swipe'));
+const Recommendations = lazyPage(() => import('./pages/Recommendations'));
+const MyList = lazyPage(() => import('./pages/MyList'));
+const AnimeDetail = lazyPage(() => import('./pages/AnimeDetail'));
+const Sync = lazyPage(() => import('./pages/Sync'));
+const Calendar = lazyPage(() => import('./pages/Calendar'));
+const Profile = lazyPage(() => import('./pages/Profile'));
+const ProfileEdit = lazyPage(() => import('./pages/ProfileEdit'));
+const Terms = lazyPage(() => import('./pages/Terms'));
+const Friends = lazyPage(() => import('./pages/Friends'));
+const Moderation = lazyPage(() => import('./pages/Moderation'));
+const Chat = lazyPage(() => import('./pages/Chat'));
+const ChatRoom = lazyPage(() => import('./pages/ChatRoom'));
+const Roulette = lazyPage(() => import('./pages/Roulette'));
+const StudioPage = lazyPage(() => import('./pages/Studio'));
+const Roadmap = lazyPage(() => import('./pages/Roadmap'));
+const CharacterPage = lazyPage(() => import('./pages/CharacterPage'));
+const StaffPage = lazyPage(() => import('./pages/StaffPage'));
+const Quiz = lazyPage(() => import('./pages/Quiz'));
+const Marathon = lazyPage(() => import('./pages/Marathon'));
+const Wrapped = lazyPage(() => import('./pages/Wrapped'));
+const Compare = lazyPage(() => import('./pages/Compare'));
+const Party = lazyPage(() => import('./pages/Party'));
+const PublicProfile = lazyPage(() => import('./pages/PublicProfile'));
+const Themes = lazyPage(() => import('./pages/Themes'));
 
 const Loading = () => (
   <div className="grid h-[50vh] place-items-center">
@@ -45,8 +48,10 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = { pt: 'pt-BR', en: 'en', ja: 'ja' }[lang];
   }, [lang]);
+  const { pathname } = useLocation();
   return (
     <Layout key={lang}>
+      <ErrorBoundary resetKey={pathname}>
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<Discover />} />
@@ -83,6 +88,7 @@ export default function App() {
           <Route path="*" element={<Discover />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </Layout>
   );
 }

@@ -5,12 +5,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import { captureOAuthToken } from './store/auth';
 import { startCloudSync } from './sync/cloud';
+import { watchPreloadErrors } from './lib/lazyPage';
 import { wireAccount } from './sync/account';
 import { wireSocial } from './sync/social';
 import { startAniListSync } from './sync/anilistSync';
 import './index.css';
 
 captureOAuthToken();
+watchPreloadErrors();
 wireAccount();
 wireSocial();
 startCloudSync();

@@ -1295,6 +1295,11 @@ const ja: Record<string, string> = {
   'Respeito sempre. Marque spoilers. Nunca passe telefone, endereço ou redes pessoais. Passe o mouse numa mensagem pra denunciar.': '常に思いやりを。ネタバレは指定しよう。電話番号・住所・個人SNSは絶対に書かないで。通報はメッセージにカーソルを合わせて。',
   'Você é moderador aqui': 'あなたはモデレーターです',
   'O site atingiu o limite de e-mails por hora. Tente de novo daqui a uma hora (não precisa clicar de novo agora).': 'サイトの1時間あたりのメール送信上限に達しました。1時間後にもう一度お試しください（今は再度押す必要はありません）。',
+  'Essa tela não carregou': 'この画面を読み込めませんでした',
+  'Pode ter sido a internet ou uma atualização do site. Tente de novo.': '通信状況かサイトの更新が原因かもしれません。もう一度お試しください。',
+  'Recarregar a página': 'ページを再読み込み',
+  'O AniList demorou demais pra responder. Tente de novo.': 'AniListの応答に時間がかかりすぎました。もう一度お試しください。',
+  'O AniList está recebendo muitos pedidos agora. Espere alguns segundos e tente de novo.': 'AniListへのアクセスが集中しています。数秒待ってからもう一度お試しください。',
 };
 
 export default ja;

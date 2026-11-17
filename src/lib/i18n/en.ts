@@ -1267,6 +1267,11 @@ const en: Record<string, string> = {
   'Respeito sempre. Marque spoilers. Nunca passe telefone, endereço ou redes pessoais. Passe o mouse numa mensagem pra denunciar.': 'Always be respectful. Mark spoilers. Never share phone numbers, addresses or personal socials. Hover a message to report it.',
   'Você é moderador aqui': "You're a moderator here",
   'O site atingiu o limite de e-mails por hora. Tente de novo daqui a uma hora (não precisa clicar de novo agora).': 'The site hit its hourly email limit. Try again in an hour (no need to click again now).',
+  'Essa tela não carregou': "This screen didn't load",
+  'Pode ter sido a internet ou uma atualização do site. Tente de novo.': 'It may have been the internet or a site update. Try again.',
+  'Recarregar a página': 'Reload the page',
+  'O AniList demorou demais pra responder. Tente de novo.': 'AniList took too long to respond. Try again.',
+  'O AniList está recebendo muitos pedidos agora. Espere alguns segundos e tente de novo.': 'AniList is getting too many requests right now. Wait a few seconds and try again.',
 };
 
 export default en;
