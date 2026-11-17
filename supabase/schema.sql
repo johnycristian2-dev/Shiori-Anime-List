@@ -117,7 +117,7 @@ drop policy if exists "anfitrião apaga" on public.party_rooms;
 create policy "anfitrião apaga" on public.party_rooms for delete to authenticated using (host = auth.uid());
 
 drop policy if exists "membros se veem" on public.party_members;
-create policy "membros se veem" on public.party_members for select to authenticated using (public.is_party_member(code));
+create policy "membros se veem" on public.party_members for select to authenticated using (user_id = auth.uid() or public.is_party_member(code));
 drop policy if exists "entrar na sala" on public.party_members;
 create policy "entrar na sala" on public.party_members for insert to authenticated with check (user_id = auth.uid());
 drop policy if exists "mudar meu nome" on public.party_members;
