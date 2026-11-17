@@ -25,6 +25,10 @@
       .muted { color: #a99fd0; font-size: 11px; font-weight: 600; line-height: 1.4; }
       a { color: #cbb2ff; }
       [hidden] { display: none !important; }
+      .toggle { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; font-size: 13px; cursor: pointer; }
+      .toggle input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: #cbb2ff; flex-shrink: 0; }
+      hr { border: 0; border-top: 2px dashed #2f2858; margin: 12px 0 8px; }
+      #last { margin-top: 6px; }
     </style>
   </head>
   <body>
@@ -45,6 +49,13 @@
 
       <section id="logged" hidden>
         <div class="msg"><span class="ok">●</span> <span id="who"></span></div>
+        <label class="toggle">
+          <input id="auto" type="checkbox" />
+          <span><b>Lista automática</b><br /><span class="muted">Marca o episódio na sua lista quando você termina de assistir no Crunchyroll.</span></span>
+        </label>
+        <div id="last" class="muted" hidden></div>
+        <hr />
+        <div class="muted" style="font-weight: 900; text-transform: uppercase; letter-spacing: .08em; font-size: 10px">Watch party</div>
         <form id="roomForm" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px">
           <label>Código da sala<input id="code" class="code" maxlength="6" placeholder="ABC123" /></label>
           <label>Seu nome no chat<input id="name" maxlength="24" placeholder="Otaku" /></label>
@@ -53,7 +64,7 @@
             <button id="leaveRoom" type="button" class="ghost">Sair da sala</button>
           </div>
         </form>
-        <p class="muted">Depois de conectar, abra o episódio no Crunchyroll: o chat aparece no botão 栞 sobre o vídeo e play/pause/pulos ficam sincronizados.</p>
+        <p class="muted">Com uma sala conectada, o chat aparece no botão 栞 sobre o vídeo e play/pause/pulos ficam sincronizados.</p>
         <button id="logout" class="ghost">Sair da conta</button>
       </section>
     </main>

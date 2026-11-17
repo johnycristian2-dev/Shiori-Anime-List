@@ -27,6 +27,8 @@ export interface Status {
   email: string | null;
   name: string | null;
   room: string | null;
+  autoTrack: boolean;
+  lastTracked: { title: string; episode: number; at: number } | null;
 }
 
 /** content script → background (pela porta "shiori-room") */
@@ -34,7 +36,11 @@ export type PortIn =
   | { type: 'hello' }
   | { type: 'ping' }
   | { type: 'chat'; body: string }
-  | { type: 'state'; client: string; playing: boolean; position: number; episode_id: string | null; episode_url: string | null; title: string | null };
+  | { type: 'state'; client: string; playing: boolean; position: number; episode_id: string | null; episode_url: string | null; title: string | null }
+  /** terminou de assistir um episódio (lista automática) */
+  | { type: 'watched'; series: string; season: number | null; episode: number; key: string }
+  | { type: 'untrack'; token: string }
+  | { type: 'block'; token: string };
 
 /** background → content script */
 export type PortOut =
@@ -44,11 +50,14 @@ export type PortOut =
   | { type: 'message'; message: ChatMsg }
   | { type: 'unmessage'; id: number }
   | { type: 'error'; message: string }
-  | { type: 'pong' };
+  | { type: 'pong' }
+  | { type: 'tracked'; token: string; title: string; episode: number; total: number | null; completed: boolean }
+  | { type: 'untracked'; title: string; blocked: boolean };
 
 /** popup / site → background (runtime.sendMessage) */
 export type Req =
   | { type: 'status' }
   | { type: 'login'; email: string; password: string }
   | { type: 'logout' }
-  | { type: 'setRoom'; code: string | null; name?: string };
+  | { type: 'setRoom'; code: string | null; name?: string }
+  | { type: 'setAutoTrack'; on: boolean };

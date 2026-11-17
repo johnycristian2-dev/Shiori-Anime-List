@@ -13,6 +13,47 @@ const CLIENT = Math.random().toString(36).slice(2, 10);
 
 let topHref = isTop ? location.href : '';
 let topTitle = '';
+interface EpMeta {
+  series: string;
+  season: number | null;
+  episode: number;
+}
+let topMeta: EpMeta | null = null;
+
+/** Lê série/temporada/episódio da página do Crunchyroll (JSON-LD, depois a tela, depois o título da aba). */
+export function readMeta(doc: Document = document): EpMeta | null {
+  // 1) dados estruturados
+  for (const el of Array.from(doc.querySelectorAll('script[type="application/ld+json"]'))) {
+    try {
+      const raw = JSON.parse(el.textContent || 'null');
+      const items: Record<string, any>[] = (Array.isArray(raw) ? raw : raw?.['@graph'] ?? [raw]).filter(Boolean);
+      const ep = items.find((x) => /TVEpisode|Episode/.test(String(x['@type'])));
+      if (ep) {
+        const series = ep.partOfSeries?.name ?? ep.partOfTVSeries?.name;
+        const n = Number(ep.episodeNumber);
+        const season = Number(ep.partOfSeason?.seasonNumber) || null;
+        if (series && n > 0) return { series: String(series), season, episode: n };
+      }
+    } catch {
+      /* json inválido */
+    }
+  }
+  // 2) elementos da tela
+  const seriesEl = doc.querySelector('a.show-title-link h4, [data-t="show-title-link"] h4, a.show-title-link, .current-media-parent-ref, .show-title-link');
+  const h1 = doc.querySelector('h1.title, .erc-current-media-info h1, h1')?.textContent ?? '';
+  const epFromH1 = h1.match(/^\s*(?:E|EP\.?|Ep\.?|Epis[óo]dio|Episode)\s*(\d+)/i);
+  const seasonText = doc.querySelector('.erc-current-media-info, .current-media-wrapper')?.textContent ?? '';
+  const seasonFromPage = (seasonText.match(/(?:Season|Temporada|Saison)\s*(\d+)/i) ?? [])[1];
+  if (seriesEl?.textContent?.trim() && epFromH1)
+    return { series: seriesEl.textContent.trim(), season: seasonFromPage ? Number(seasonFromPage) : null, episode: Number(epFromH1[1]) };
+  // 3) título da aba: "Frieren Season 2 Episode 3 - ..." / "Assistir Frieren Episódio 3 - ..."
+  const title = doc.title.replace(/\s*[-|–]\s*(?:Watch on |Assista na )?Crunchyroll.*$/i, '');
+  let m = title.match(/^(?:Watch|Assista|Assistir)?\s*(.+?)\s+(?:Season|Temporada)\s+(\d+)\s+(?:Episode|Epis[óo]dio|Ep\.?|E)\s*(\d+)/i);
+  if (m) return { series: m[1].trim(), season: Number(m[2]), episode: Number(m[3]) };
+  m = title.match(/^(?:Watch|Assista|Assistir)?\s*(.+?)\s+(?:Episode|Epis[óo]dio|Ep\.?|E)\s*(\d+)\b/i);
+  if (m) return { series: m[1].replace(/[\s:–-]+$/, '').trim(), season: null, episode: Number(m[2]) };
+  return null;
+}
 const cleanTitle = () =>
   (document.querySelector('meta[property="og:title"]')?.getAttribute('content') || document.title || '')
     .replace(/\s*[-|–]\s*Crunchyroll.*$/i, '')
@@ -20,7 +61,7 @@ const cleanTitle = () =>
     .trim()
     .slice(0, 120);
 
-function shareDown(msg: { shiori: 'top-url'; href: string; title: string }) {
+function shareDown(msg: { shiori: 'top-url'; href: string; title: string; meta: EpMeta | null }) {
   document.querySelectorAll('iframe').forEach((f) => {
     try {
       f.contentWindow?.postMessage(msg, '*');
@@ -33,7 +74,8 @@ if (isTop) {
   const share = () => {
     topHref = location.href;
     topTitle = cleanTitle();
-    shareDown({ shiori: 'top-url', href: topHref, title: topTitle });
+    topMeta = readMeta();
+    shareDown({ shiori: 'top-url', href: topHref, title: topTitle, meta: topMeta });
   };
   setInterval(share, 1500);
   window.addEventListener('message', (e) => e.data?.shiori === 'need-url' && share());
@@ -43,6 +85,11 @@ if (isTop) {
     if (!/^https:\/\/([a-z0-9-]+\.)*crunchyroll\.com\//.test(e.data.href)) return;
     topHref = e.data.href;
     topTitle = String(e.data.title ?? '').slice(0, 120);
+    const mm = e.data.meta;
+    topMeta =
+      mm && typeof mm.series === 'string' && Number(mm.episode) > 0
+        ? { series: mm.series.slice(0, 200), season: Number(mm.season) || null, episode: Number(mm.episode) }
+        : null;
     shareDown(e.data);
   });
   try {
@@ -126,7 +173,13 @@ function onPort(m: PortOut) {
       break;
     case 'idle':
       room = null;
-      ui.hide();
+      ui.solo();
+      break;
+    case 'tracked':
+      ui.tracked(m.token, m.completed ? `✓ ${m.title} completo! Movido pra Completos` : `✓ ${m.title} · episódio ${m.episode}${m.total ? `/${m.total}` : ''} marcado na sua lista`);
+      break;
+    case 'untracked':
+      ui.toast(m.blocked ? `Ok, não vou mais marcar ${m.title}.` : `Desfeito: ${m.title} voltou como estava.`);
       break;
     case 'playback':
       if (m.playback.by_client === CLIENT) {
@@ -223,12 +276,45 @@ function onLocal(ev: Event) {
   }, 300);
 }
 
+/* ---------- lista automática ---------- */
+
+let watched = 0; // segundos assistidos de verdade (sem contar pulos)
+let lastT = -1;
+let sentFor = '';
+function onTime() {
+  const v = video;
+  if (!v || v.seeking) return;
+  const t = v.currentTime;
+  if (lastT >= 0 && !v.paused) {
+    const d = t - lastT;
+    if (d > 0 && d < 4 * Math.max(1, v.playbackRate)) watched += d;
+  }
+  lastT = t;
+  const dur = v.duration;
+  // vídeos curtos são anúncios/trailers
+  if (!dur || !isFinite(dur) || dur < 120) return;
+  const meta = topMeta ?? (isTop ? readMeta() : null);
+  if (!meta) return;
+  const key = `${episode().id ?? topHref}#${meta.episode}`;
+  if (sentFor === key) return;
+  // chegou perto do fim (créditos) e assistiu pelo menos 40% do episódio
+  if (t >= dur * 0.85 && watched >= dur * 0.4) {
+    sentFor = key;
+    if (!port) connect();
+    post({ type: 'watched', series: meta.series, season: meta.season, episode: meta.episode, key });
+  }
+}
+
 function bind(v: HTMLVideoElement) {
   if (video === v) return;
   video?.removeEventListener('play', onLocal);
   video?.removeEventListener('pause', onLocal);
   video?.removeEventListener('seeked', onLocal);
+  video?.removeEventListener('timeupdate', onTime);
   video = v;
+  watched = 0;
+  lastT = -1;
+  v.addEventListener('timeupdate', onTime);
   boundAt = Date.now();
   v.addEventListener('play', onLocal);
   v.addEventListener('pause', onLocal);
@@ -245,6 +331,8 @@ setInterval(() => {
   const ep = episode().id;
   if (ep !== lastEp) {
     lastEp = ep;
+    watched = 0;
+    lastT = -1;
     boundAt = Date.now();
     setTimeout(() => apply('episode'), 1500);
   }
@@ -300,6 +388,10 @@ form button { padding: 0 12px; border-radius: 10px; border: 2px solid #000; back
 .toasts { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .toast { background: rgba(20,16,40,.92); color: #fff; border: 2px solid #000; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; box-shadow: 2px 2px 0 #000; animation: in .2s ease-out; }
 .toast.err { background: #b3261e; }
+.toast.track { pointer-events: auto; border-radius: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; max-width: 92vw; background: rgba(20,16,44,.95); border-color: #7cff8a; }
+.toast.track button { all: unset; cursor: pointer; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; border: 2px solid #000; background: #cbb2ff; color: #1a1240; }
+.toast.track button.ghost { background: transparent; color: #cfc8f5; border-color: #554d80; }
+.solo .bubble, .solo .panel { display: none !important; }
 .banner { pointer-events: auto; position: absolute; top: 60px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; align-items: center;
   background: #ffe066; color: #1a1240; border: 3px solid #000; border-radius: 14px; padding: 8px 12px; font-size: 13px; font-weight: 800; box-shadow: 3px 3px 0 #000; max-width: 90vw; }
 .banner.on { display: flex; }
@@ -384,6 +476,36 @@ const ui = (() => {
     show() {
       if (!host) build();
       host!.style.display = '';
+      root.querySelector('.wrap')!.classList.remove('solo');
+    },
+    /** sem sala: só avisos (lista automática), sem o botão do chat */
+    solo() {
+      if (!host) build();
+      host!.style.display = '';
+      root.querySelector('.wrap')!.classList.add('solo');
+    },
+    tracked(token: string, text: string) {
+      if (!host) this.solo();
+      const el = document.createElement('div');
+      el.className = 'toast track';
+      const span = document.createElement('span');
+      span.textContent = text;
+      const undo = document.createElement('button');
+      undo.textContent = 'Desfazer';
+      undo.onclick = () => {
+        post({ type: 'untrack', token });
+        el.remove();
+      };
+      const block = document.createElement('button');
+      block.className = 'ghost';
+      block.textContent = 'Anime errado / não marcar este';
+      block.onclick = () => {
+        post({ type: 'block', token });
+        el.remove();
+      };
+      el.append(span, undo, block);
+      toasts.appendChild(el);
+      setTimeout(() => el.remove(), 12_000);
     },
     hide() {
       if (host) host.style.display = 'none';

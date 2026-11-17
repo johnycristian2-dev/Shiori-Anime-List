@@ -27,6 +27,13 @@ function render(s: Status) {
     ($('code') as HTMLInputElement).value = s.room ?? '';
     ($('name') as HTMLInputElement).value = s.name ?? '';
     $('leaveRoom').hidden = !s.room;
+    ($('auto') as HTMLInputElement).checked = s.autoTrack;
+    const last = $('last');
+    last.hidden = !s.lastTracked;
+    if (s.lastTracked) {
+      const when = new Date(s.lastTracked.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      last.textContent = `Último marcado: ${s.lastTracked.title} · ep ${s.lastTracked.episode} (${when})`;
+    }
   }
 }
 
@@ -71,6 +78,16 @@ $('leaveRoom').addEventListener('click', () =>
     say('Você saiu da sala.');
   })
 );
+
+$('auto').addEventListener('change', async (e) => {
+  const on = (e.target as HTMLInputElement).checked;
+  try {
+    render(await ask<Status>({ type: 'setAutoTrack', on }));
+    say(on ? 'Lista automática ligada.' : 'Lista automática desligada.');
+  } catch (err) {
+    say((err as Error).message, true);
+  }
+});
 
 $('logout').addEventListener('click', () =>
   guard($('logout') as HTMLButtonElement, async () => {

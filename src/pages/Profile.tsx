@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Image as ImageIcon, Pencil, Share2, UserPlus, X } from 'lucide-react';
+import { Download, Image as ImageIcon, Pencil, Share2, Smartphone, UserPlus, X } from 'lucide-react';
 import ProfileHeader from '../components/ProfileHeader';
 import { FollowCounts } from '../components/Social';
 import { PostList } from '../components/Posts';
@@ -11,6 +11,9 @@ import AnimeCard from '../components/AnimeCard';
 import { EmptyState, SectionTitle, Spinner } from '../components/ui';
 import { ACHIEVEMENTS, computeStats, rankOf, RANKS } from '../lib/profile';
 import { renderShareCard } from '../lib/shareCard';
+import { renderStoryCard } from '../lib/storyCard';
+import { localBest, useStreak } from '../games/shared';
+import { todayKey } from '../games/core';
 import { entryToMedia, pickTitle } from '../lib/format';
 import { genrePt, GENRES } from '../lib/labels';
 import { STATUS_META, STATUS_ORDER, useList } from '../store/list';
@@ -51,7 +54,7 @@ export default function Profile() {
   const all = useMemo(() => Object.values(entries), [entries]);
   const stats = useMemo(() => computeStats(all), [all]);
   const rank = rankOf(stats.completed);
-  const [card, setCard] = useState<{ url: string; blob: Blob } | null>(null);
+  const [card, setCard] = useState<{ url: string; blob: Blob; kind: 'post' | 'story' } | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(
@@ -72,11 +75,25 @@ export default function Profile() {
     [all],
   );
 
-  const makeCard = async () => {
+  const { streak } = useStreak('animedle');
+  const makeCard = async (kind: 'post' | 'story' = 'post') => {
     setBusy(true);
     try {
-      const blob = await renderShareCard({ picks: picks.length ? picks : all, stats, nickname, rank, titleOf });
-      setCard({ blob, url: URL.createObjectURL(blob) });
+      const blob =
+        kind === 'story'
+          ? await renderStoryCard({
+              top: (favorites.length >= 3 ? favorites : picks).slice(0, 3),
+              watching: all.filter((e) => e.status === 'WATCHING').sort((a, b) => b.updatedAt - a.updatedAt),
+              stats,
+              name: account?.display_name || account?.username || nickname,
+              username: account?.username ?? null,
+              avatar: account?.avatar_url ?? null,
+              rank,
+              titleOf,
+              games: { streak, cover: localBest('imagem', todayKey()), higher: localBest('maisoumenos', todayKey()) },
+            })
+          : await renderShareCard({ picks: picks.length ? picks : all, stats, nickname, rank, titleOf });
+      setCard({ blob, url: URL.createObjectURL(blob), kind });
     } catch (e) {
       toast((e as Error).message, 'err');
     } finally {
@@ -166,8 +183,11 @@ export default function Profile() {
           <Link to="/retrospectiva" className="manga-btn ghost">
             {t('🎁 Retrospectiva do ano')}
           </Link>
-          <button className="manga-btn yellow" onClick={makeCard} disabled={busy}>
-            {busy ? <Spinner className="h-4 w-4" /> : <ImageIcon size={16} />}{' '}{t('Gerar card pra compartilhar')}
+          <button className="manga-btn yellow" onClick={() => makeCard('story')} disabled={busy}>
+            {busy ? <Spinner className="h-4 w-4" /> : <Smartphone size={16} />}{' '}{t('Card pro story')}
+          </button>
+          <button className="manga-btn ghost" onClick={() => makeCard('post')} disabled={busy}>
+            <ImageIcon size={16} />{' '}{t('Card de post')}
           </button>
         </div>
       </ProfileHeader>
@@ -288,9 +308,9 @@ export default function Profile() {
                 <X />
               </button>
             </div>
-            <img src={card.url} alt="" className="w-full rounded-xl border-2 border-black" />
+            <img src={card.url} alt="" className={`mx-auto rounded-xl border-2 border-black ${card.kind === 'story' ? 'max-h-[65vh] w-auto' : 'w-full'}`} />
             <div className="mt-4 flex gap-2">
-              <a className="manga-btn flex-1" href={card.url} download="shiori-lista.png">
+              <a className="manga-btn flex-1" href={card.url} download={card.kind === 'story' ? 'shiori-story.png' : 'shiori-lista.png'}>
                 <Download size={16} />{' '}{t('Baixar')}
               </a>
               <button className="manga-btn cyan flex-1" onClick={share}>

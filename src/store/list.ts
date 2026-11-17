@@ -285,9 +285,7 @@ export const useList = create<ListState>()(
       mergeDoc: (remote) => set(mergeDocs(get().getDoc(), remote)),
     }),
     {
-      get name() {
-        return t('shiori-list');
-      },
+      name: 'shiori-list', // chave do armazenamento: nunca traduzir
 
       version: 1
     },

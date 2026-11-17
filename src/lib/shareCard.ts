@@ -17,7 +17,7 @@ const YELLOW = '#ffe14d';
  * Baixa a imagem via fetch (modo CORS) em vez de <img>: assim o canvas não fica "sujo"
  * mesmo se o navegador/service worker tiver a capa em cache sem cabeçalho CORS.
  */
-async function loadImg(src: string): Promise<ImageBitmap | null> {
+export async function loadImg(src: string): Promise<ImageBitmap | null> {
   try {
     const url = src + (src.includes('?') ? '&' : '?') + 'shiori-card=1';
     const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
@@ -28,12 +28,12 @@ async function loadImg(src: string): Promise<ImageBitmap | null> {
   }
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
 }
 
-function drawCover(ctx: CanvasRenderingContext2D, img: ImageBitmap, x: number, y: number, w: number, h: number) {
+export function drawCover(ctx: CanvasRenderingContext2D, img: ImageBitmap, x: number, y: number, w: number, h: number) {
   const s = Math.max(w / img.width, h / img.height);
   const sw = w / s;
   const sh = h / s;

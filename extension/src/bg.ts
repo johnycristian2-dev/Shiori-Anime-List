@@ -5,6 +5,7 @@
  */
 import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js';
 import type { ChatMsg, PortIn, PortOut, Playback, Req, Status } from './protocol';
+import { cleanSeries, normName, placeEpisode, resolveEpisode, toEntry, type AniMedia } from './anilist';
 
 declare const __SUPABASE_URL__: string;
 declare const __SUPABASE_KEY__: string;
@@ -13,6 +14,10 @@ declare const __VERSION__: string;
 const store = chrome.storage.local;
 const K_ROOM = 'shiori-room';
 const K_NAME = 'shiori-name';
+const K_AUTO = 'shiori-autotrack';
+const K_LAST = 'shiori-last-tracked';
+const K_MAP = 'shiori-series-map';
+const K_BLOCK = 'shiori-blocked-series';
 
 const sb: SupabaseClient = createClient(__SUPABASE_URL__, __SUPABASE_KEY__, {
   auth: {
@@ -57,12 +62,15 @@ async function status(): Promise<Status> {
   const { data } = await sb.auth.getSession();
   const user = data.session?.user ?? null;
   const cfg = await getConfig();
+  const extra = await store.get([K_AUTO, K_LAST]);
   return {
     version: __VERSION__,
     loggedIn: !!user,
     email: user?.email ?? null,
     name: user ? await myName(user.id) : cfg.name,
     room: cfg.room,
+    autoTrack: extra[K_AUTO] !== false,
+    lastTracked: (extra[K_LAST] as Status['lastTracked']) ?? null,
   };
 }
 
@@ -144,9 +152,76 @@ async function hello(port: chrome.runtime.Port) {
   });
 }
 
+/* ---------- lista automática ---------- */
+
+type Undo = { entry: ReturnType<typeof toEntry>; prev: Record<string, unknown> | null; title: string; series: string };
+const undos = new Map<string, Undo>();
+const doneKeys = new Set<string>(); // episódio já marcado nesta sessão do navegador
+
+async function chainFor(series: string, season: number | null, episode: number) {
+  const key = normName(cleanSeries(series));
+  const saved = ((await store.get(K_MAP))[K_MAP] ?? {}) as Record<string, { chain: AniMedia[]; at: number }>;
+  const hit = saved[key];
+  // cache de 3 dias (episódios novos mudam a contagem das temporadas em andamento)
+  if (hit && Date.now() - hit.at < 3 * 86_400_000) {
+    const placed = placeEpisode(hit.chain, season, episode);
+    if (placed) return placed;
+  }
+  const r = await resolveEpisode(series, season, episode);
+  if (!r) return null;
+  const slim = r.chain.map((c) => ({ ...c, relations: { edges: [] } }));
+  const keys = Object.keys(saved);
+  if (keys.length > 60) delete saved[keys[0]];
+  saved[key] = { chain: slim, at: Date.now() };
+  await store.set({ [K_MAP]: saved });
+  return { media: r.media, episode: r.episode };
+}
+
+async function onWatched(port: chrome.runtime.Port, m: Extract<PortIn, { type: 'watched' }>) {
+  const { data } = await sb.auth.getSession();
+  if (!data.session?.user) return;
+  const cfg = await store.get([K_AUTO, K_BLOCK]);
+  if (cfg[K_AUTO] === false) return;
+  const blocked = (cfg[K_BLOCK] ?? []) as string[];
+  if (blocked.includes(normName(cleanSeries(m.series)))) return;
+  if (doneKeys.has(m.key)) return;
+  doneKeys.add(m.key);
+  const placed = await chainFor(m.series, m.season, m.episode);
+  if (!placed) return send(port, { type: 'error', message: `Não achei "${cleanSeries(m.series)}" no AniList pra atualizar sua lista.` });
+  const entry = toEntry(placed.media);
+  const { data: res, error } = await sb.rpc('scrobble_episode', { p_entry: entry, p_episode: placed.episode });
+  if (error) {
+    doneKeys.delete(m.key);
+    return send(port, { type: 'error', message: friendly(error) });
+  }
+  const r = res as { changed: boolean; entry: { progress: number; status: string; episodes: number | null }; prev: Record<string, unknown> | null };
+  if (!r.changed) return;
+  const token = Math.random().toString(36).slice(2, 10);
+  const title = placed.media.title.english ?? placed.media.title.romaji ?? entry.title;
+  undos.set(token, { entry, prev: r.prev, title, series: m.series });
+  await store.set({ [K_LAST]: { title, episode: r.entry.progress, at: Date.now() } });
+  send(port, { type: 'tracked', token, title, episode: r.entry.progress, total: placed.media.episodes, completed: r.entry.status === 'COMPLETED' });
+}
+
+async function onUntrack(port: chrome.runtime.Port, token: string, block: boolean) {
+  const u = undos.get(token);
+  if (!u) return;
+  undos.delete(token);
+  const { error } = await sb.rpc('scrobble_episode', { p_entry: u.entry, p_episode: 0, p_undo: u.prev ?? {} });
+  if (error) return send(port, { type: 'error', message: friendly(error) });
+  if (block) {
+    const list = (((await store.get(K_BLOCK))[K_BLOCK] ?? []) as string[]).concat(normName(cleanSeries(u.series)));
+    await store.set({ [K_BLOCK]: [...new Set(list)].slice(-200) });
+  }
+  send(port, { type: 'untracked', title: u.title, blocked: block });
+}
+
 async function onPortMessage(port: chrome.runtime.Port, m: PortIn) {
   if (m.type === 'ping') return send(port, { type: 'pong' });
   if (m.type === 'hello') return hello(port);
+  if (m.type === 'watched') return onWatched(port, m);
+  if (m.type === 'untrack') return onUntrack(port, m.token, false);
+  if (m.type === 'block') return onUntrack(port, m.token, true);
   const { data } = await sb.auth.getSession();
   const user = data.session?.user;
   const { room } = await getConfig();
@@ -200,6 +275,9 @@ async function handle(req: Req): Promise<unknown> {
       await store.remove([K_ROOM]);
       unsubscribe();
       broadcast({ type: 'idle', reason: 'login' });
+      return status();
+    case 'setAutoTrack':
+      await store.set({ [K_AUTO]: req.on });
       return status();
     case 'setRoom': {
       const code = req.code?.trim().toUpperCase() || null;

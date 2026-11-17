@@ -12,6 +12,7 @@ import type { ListEntry, ListStatus } from '../types';
 
 import { t, locale } from '../lib/i18n';
 import KindSwitch from '../components/KindSwitch';
+import AutoListTip from '../components/AutoListTip';
 import { entryPath, mangaKind, statusLabel } from '../lib/media';
 
 type Sort = 'updated' | 'score' | 'title' | 'year' | 'added';
@@ -97,6 +98,7 @@ export default function MyList() {
   return (
     <>
       <SectionTitle title={t('Minha lista')} jp="マイリスト" />
+      <AutoListTip />
       <div className="mb-5">
         <KindSwitch />
       </div>
