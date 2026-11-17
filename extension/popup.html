@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shiori Watch Party</title>
+    <style>
+      * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      body { margin: 0; width: 300px; background: #141028; color: #f3efff; }
+      header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 3px solid #000; background: #1d1838; }
+      header img { width: 32px; height: 32px; border-radius: 8px; border: 2px solid #000; }
+      header b { font-size: 15px; }
+      header small { display: block; color: #a99fd0; font-size: 11px; font-weight: 700; }
+      main { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+      label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; color: #a99fd0; }
+      input { width: 100%; margin-top: 4px; padding: 9px 10px; border-radius: 10px; border: 2px solid #000; background: #0e0b1e; color: #fff; font-size: 13px; outline: none; }
+      input:focus { border-color: #cbb2ff; }
+      input.code { text-align: center; letter-spacing: .35em; text-transform: uppercase; font-weight: 900; font-size: 16px; }
+      button { width: 100%; padding: 10px; border-radius: 10px; border: 2px solid #000; background: #cbb2ff; color: #1a1240; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 2px 2px 0 #000; }
+      button.ghost { background: transparent; color: #f3efff; box-shadow: none; }
+      button:disabled { opacity: .6; cursor: default; }
+      .msg { font-size: 12px; font-weight: 700; padding: 8px 10px; border-radius: 10px; background: #26204a; }
+      .msg.err { background: #5c1a1a; }
+      .ok { color: #7cff8a; }
+      .row { display: flex; gap: 8px; }
+      .muted { color: #a99fd0; font-size: 11px; font-weight: 600; line-height: 1.4; }
+      a { color: #cbb2ff; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon48.png" alt="" />
+      <div><b>Shiori Watch Party</b><small id="ver"></small></div>
+    </header>
+    <main>
+      <div id="msg" class="msg" hidden></div>
+
+      <form id="login" hidden>
+        <div class="muted">Entre com a mesma conta do site Shiori.</div>
+        <label>E-mail<input id="email" type="email" autocomplete="username" required /></label>
+        <label>Senha<input id="password" type="password" autocomplete="current-password" required /></label>
+        <button id="loginBtn">Entrar</button>
+        <div class="muted">Não tem conta? Crie em <a href="https://shiori-anime-list.vercel.app/" target="_blank">shiori-anime-list.vercel.app</a></div>
+      </form>
+
+      <section id="logged" hidden>
+        <div class="msg"><span class="ok">●</span> <span id="who"></span></div>
+        <form id="roomForm" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px">
+          <label>Código da sala<input id="code" class="code" maxlength="6" placeholder="ABC123" /></label>
+          <label>Seu nome no chat<input id="name" maxlength="24" placeholder="Otaku" /></label>
+          <div class="row">
+            <button id="saveRoom">Conectar</button>
+            <button id="leaveRoom" type="button" class="ghost">Sair da sala</button>
+          </div>
+        </form>
+        <p class="muted">Depois de conectar, abra o episódio no Crunchyroll: o chat aparece no botão 栞 sobre o vídeo e play/pause/pulos ficam sincronizados.</p>
+        <button id="logout" class="ghost">Sair da conta</button>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

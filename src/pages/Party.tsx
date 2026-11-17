@@ -26,6 +26,7 @@ import {
 } from '../sync/party';
 
 import { t } from '../lib/i18n';
+import PartyLive from '../components/PartyLive';
 
 function useMyName() {
   const nickname = useUI((s) => s.nickname);
@@ -57,7 +58,7 @@ function Lobby() {
     <div className="mx-auto max-w-xl space-y-5">
       <p className="-mt-2 text-sm font-bold text-muted">
         {t(
-          'Crie uma sala, mande o código pros amigos, cada um sugere animes e vota. O mais votado vira o anime da noite 🍿'
+          'Crie uma sala, mande o código pros amigos, votem no anime da noite e assistam juntos no Crunchyroll com chat ao vivo 🍿'
         )}
       </p>
       <div className="panel p-5">
@@ -294,6 +295,8 @@ function Room({ code }: { code: string }) {
           </div>
         </section>
       )}
+
+      <PartyLive code={code} userId={user.id} myName={state.members.find((m) => m.user_id === user.id)?.name || myName || 'Otaku'} hostId={state.room.host} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
