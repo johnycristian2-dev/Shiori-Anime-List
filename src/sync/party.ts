@@ -80,8 +80,14 @@ export async function joinRoom(code: string, myName: string) {
   const { data: room, error } = await sb().from('party_rooms').select('code').eq('code', c).maybeSingle();
   if (error) throw error;
   if (!room) throw new Error(t('Sala {0} não existe.', c));
-  const { error: e2 } = await sb().from('party_members').upsert({ code: c, user_id: user.id, name: myName.trim().slice(0, 24) || 'Otaku' });
-  if (e2) throw e2;
+  const name = myName.trim().slice(0, 24) || 'Otaku';
+  // insert simples: "upsert" exigiria já enxergar a lista de membros (que só membros veem)
+  const { error: e2 } = await sb().from('party_members').insert({ code: c, user_id: user.id, name });
+  if (e2?.code === '23505') {
+    // já estava na sala: só atualiza o nome
+    const { error: e3 } = await sb().from('party_members').update({ name }).eq('code', c).eq('user_id', user.id);
+    if (e3) throw e3;
+  } else if (e2) throw e2;
   return c;
 }
 
