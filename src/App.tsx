@@ -11,6 +11,7 @@ import Discover from './pages/Discover';
 // Cada página vira um arquivo separado: o site abre mais rápido
 const Explore = lazyPage(() => import('./pages/Explore'));
 const Games = lazyPage(() => import('./pages/Games'));
+const League = lazyPage(() => import('./pages/League'));
 const Animedle = lazyPage(() => import('./pages/games/Animedle'));
 const HigherLower = lazyPage(() => import('./pages/games/HigherLower'));
 const CoverGuess = lazyPage(() => import('./pages/games/CoverGuess'));
@@ -86,6 +87,8 @@ export default function App() {
           <Route path="/comparar" element={<Compare />} />
           <Route path="/comparar/:source/:name" element={<Compare />} />
           <Route path="/jogos" element={<Games />} />
+          <Route path="/liga" element={<League />} />
+          <Route path="/liga/:id" element={<League />} />
           <Route path="/jogos/animedle" element={<Animedle />} />
           <Route path="/jogos/mais-ou-menos" element={<HigherLower />} />
           <Route path="/jogos/capa" element={<CoverGuess />} />

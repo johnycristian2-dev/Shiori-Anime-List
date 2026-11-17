@@ -33,6 +33,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // versão nova assume na hora e apaga os arquivos velhos (evita tela travada depois de atualizar)
         navigateFallbackDenylist: [/\.zip$/, /^\/api\//],
+        importScripts: ['push-sw.js'], // avisos de episódio novo
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,

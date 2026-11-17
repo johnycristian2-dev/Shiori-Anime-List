@@ -10,6 +10,7 @@ import { FORMAT_LABEL } from '../lib/labels';
 import type { AiringItem } from '../types';
 
 import { t, locale } from '../lib/i18n';
+import PushToggle from '../components/PushToggle';
 
 const DAYS = [
   {
@@ -156,6 +157,7 @@ export default function Calendar() {
   return (
     <>
       <SectionTitle title={t('Calendário')} jp="放送予定" />
+      <PushToggle />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <button className="manga-btn ghost !p-2" onClick={() => setOffset((o) => o - 1)} aria-label={t('Semana anterior')}>

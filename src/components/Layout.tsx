@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useOutsideClose } from './ui';
 import { NavLink, useLocation } from 'react-router-dom';
-import { CalendarDays, ChevronDown, Compass, Dices, Gamepad2, Layers, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X, MessageCircle } from 'lucide-react';
+import { CalendarDays, ChevronDown, Compass, Dices, Gamepad2, Layers, Medal, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X, MessageCircle } from 'lucide-react';
 import { applyTheme, type Theme } from '../lib/themes';
 import { useActiveTheme } from '../lib/useTheme';
 import SearchModal from './SearchModal';
@@ -135,6 +135,21 @@ const NAV = [
 
     jp: '一気見',
     icon: Timer,
+    main: false
+  },
+  {
+    to: '/liga',
+
+    get label() {
+      return t('Liga da temporada');
+    },
+
+    get short() {
+      return t('Liga');
+    },
+
+    jp: 'リーグ',
+    icon: Medal,
     main: false
   },
   {
