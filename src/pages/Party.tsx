@@ -27,6 +27,7 @@ import {
 
 import { t } from '../lib/i18n';
 import PartyLive from '../components/PartyLive';
+import PartyQuiz from '../components/PartyQuiz';
 
 function useMyName() {
   const nickname = useUI((s) => s.nickname);
@@ -296,6 +297,13 @@ function Room({ code }: { code: string }) {
         </section>
       )}
 
+      <PartyQuiz
+        code={code}
+        userId={user.id}
+        myName={state.members.find((m) => m.user_id === user.id)?.name || myName || 'Otaku'}
+        isHost={isHost}
+        onlineCount={online.length}
+      />
       <PartyLive code={code} userId={user.id} myName={state.members.find((m) => m.user_id === user.id)?.name || myName || 'Otaku'} hostId={state.room.host} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">

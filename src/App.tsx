@@ -10,6 +10,10 @@ import Discover from './pages/Discover';
 
 // Cada página vira um arquivo separado: o site abre mais rápido
 const Explore = lazyPage(() => import('./pages/Explore'));
+const Games = lazyPage(() => import('./pages/Games'));
+const Animedle = lazyPage(() => import('./pages/games/Animedle'));
+const HigherLower = lazyPage(() => import('./pages/games/HigherLower'));
+const CoverGuess = lazyPage(() => import('./pages/games/CoverGuess'));
 const Swipe = lazyPage(() => import('./pages/Swipe'));
 const Recommendations = lazyPage(() => import('./pages/Recommendations'));
 const MyList = lazyPage(() => import('./pages/MyList'));
@@ -81,6 +85,10 @@ export default function App() {
           <Route path="/retrospectiva" element={<Wrapped />} />
           <Route path="/comparar" element={<Compare />} />
           <Route path="/comparar/:source/:name" element={<Compare />} />
+          <Route path="/jogos" element={<Games />} />
+          <Route path="/jogos/animedle" element={<Animedle />} />
+          <Route path="/jogos/mais-ou-menos" element={<HigherLower />} />
+          <Route path="/jogos/capa" element={<CoverGuess />} />
           <Route path="/party" element={<Party />} />
           <Route path="/party/:code" element={<Party />} />
           <Route path="/u/:username" element={<PublicProfile />} />
