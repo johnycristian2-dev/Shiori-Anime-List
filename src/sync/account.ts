@@ -87,7 +87,8 @@ export async function sendLoginCode(email: string) {
     options: { emailRedirectTo: redirectUrl(), shouldCreateUser: false, captchaToken: await captchaToken_() },
   });
   if (error) {
-    if (/Signups not allowed for otp/i.test(error.message)) throw new Error(t('Não existe conta com esse e-mail. Crie uma conta.'));
+    // Não conta pra ninguém se o e-mail tem conta ou não (evita robôs testando listas de e-mails)
+    if (/Signups not allowed for otp/i.test(error.message)) return;
     throw friendly(error);
   }
 }

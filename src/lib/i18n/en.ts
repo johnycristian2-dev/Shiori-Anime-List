@@ -1573,6 +1573,9 @@ const en: Record<string, string> = {
   "A verificação anti-robô expirou. Tente de novo.": "The anti-bot check expired. Try again.",
   "Chave do site do Cloudflare Turnstile (anti-robô)": "Cloudflare Turnstile site key (anti-bot)",
   "A chave pública (Site Key). A secreta vai só no Supabase. Salve aqui ANTES de ligar o captcha no Supabase.": "The public key (Site Key). The secret one goes only in Supabase. Save it here BEFORE turning on captcha in Supabase.",
+  "Se esse e-mail ainda não tem conta, nenhum código é enviado: crie uma conta.": "If this email has no account yet, no code is sent: create an account.",
+  "Contas novas só podem mandar links depois de 24 horas.": "New accounts can only send links after 24 hours.",
+  "Você está curtindo rápido demais. Espere um pouco.": "You're liking too fast. Wait a bit.",
 };
 
 export default en;

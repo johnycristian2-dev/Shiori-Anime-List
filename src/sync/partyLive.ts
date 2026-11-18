@@ -35,6 +35,7 @@ const sb = () => {
 
 function friendly(e: { message?: string } | null) {
   const m = e?.message ?? '';
+  if (/new_account_links/.test(m)) return new Error(t('Contas novas só podem mandar links depois de 24 horas.'));
   if (/hate_terms/.test(m)) return new Error(t('Sua mensagem tem termos ofensivos e não foi enviada.'));
   if (/slow_down/.test(m)) return new Error(t('Devagar! Espere alguns segundos antes de mandar mais.'));
   if (/row-level security|violates/i.test(m)) return new Error(t('Você não pode escrever neste chat agora.'));

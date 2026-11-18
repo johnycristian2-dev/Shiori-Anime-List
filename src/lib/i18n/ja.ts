@@ -1601,6 +1601,9 @@ const ja: Record<string, string> = {
   "A verificação anti-robô expirou. Tente de novo.": "ロボット確認の期限が切れました。もう一度お試しください。",
   "Chave do site do Cloudflare Turnstile (anti-robô)": "Cloudflare Turnstileのサイトキー（ロボット対策）",
   "A chave pública (Site Key). A secreta vai só no Supabase. Salve aqui ANTES de ligar o captcha no Supabase.": "公開キー（Site Key）。シークレットはSupabaseだけに入れます。Supabaseでキャプチャをオンにする前にここで保存してください。",
+  "Se esse e-mail ainda não tem conta, nenhum código é enviado: crie uma conta.": "このメールにアカウントがない場合、コードは送られません：アカウントを作成してください。",
+  "Contas novas só podem mandar links depois de 24 horas.": "新しいアカウントは24時間たつまでリンクを送れません。",
+  "Você está curtindo rápido demais. Espere um pouco.": "いいねが速すぎます。少し待ってください。",
 };
 
 export default ja;

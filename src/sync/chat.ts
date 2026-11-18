@@ -45,6 +45,7 @@ const sb = () => {
 
 function friendly(e: { message?: string } | null) {
   const m = e?.message ?? '';
+  if (/new_account_links/.test(m)) return new Error(t('Contas novas só podem mandar links depois de 24 horas.'));
   if (/hate_terms/.test(m)) return new Error(t('Sua mensagem tem termos ofensivos e não foi enviada.'));
   if (/rate_limited/.test(m)) return new Error(t('Devagar! Espere alguns segundos antes de mandar mais.'));
   if (/duplicate_message/.test(m)) return new Error(t('Você acabou de mandar essa mesma mensagem.'));
@@ -132,6 +133,8 @@ export async function myChatStatus() {
   return { minor: !!minor.data, mutedUntil: until && new Date(until) > new Date() ? until : null };
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export interface PresenceUser {
   user_id: string;
   username: string;
@@ -164,15 +167,21 @@ export function joinRoom(
       const id = (p.old as { id?: number }).id;
       if (id) handlers.onDelete(id);
     })
-    .on('presence', { event: 'sync' }, () => {
-      const state = channel.presenceState<PresenceUser & { guest?: boolean }>();
+    .on('presence', { event: 'sync' }, async () => {
+      // Presença é anunciada pelo próprio navegador, então não confiamos no nome/foto que vem nela:
+      // só no id, e o perfil vem do banco (assim ninguém aparece como "Admin" com foto falsa).
+      const state = channel.presenceState<{ user_id?: string; guest?: boolean }>();
       const all = Object.values(state).map((arr) => arr[0]);
-      handlers.onPresence(all.filter((x) => !x.guest) as PresenceUser[], all.filter((x) => x.guest).length);
+      const ids = [...new Set(all.map((x) => x.user_id).filter((id): id is string => !!id && UUID_RE.test(id)))].slice(0, 100);
+      const guests = all.filter((x) => !x.user_id || !UUID_RE.test(x.user_id)).length;
+      const profiles = ids.length ? await miniProfiles(ids).catch(() => ({}) as Record<string, MiniProfile>) : {};
+      const users = ids.map((id) => profiles[id]).filter(Boolean).map((p) => ({ user_id: p.user_id, username: p.username, display_name: p.display_name, avatar_url: p.avatar_url }));
+      handlers.onPresence(users, guests);
     })
     .subscribe(async (status) => {
       if (status !== 'SUBSCRIBED') return;
       await channel.track(
-        me ? { user_id: me.user_id, username: me.username, display_name: me.display_name, avatar_url: me.avatar_url ?? null } : { guest: true },
+        me ? { user_id: me.user_id } : { guest: true },
       );
     });
   return () => {

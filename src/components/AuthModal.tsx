@@ -210,6 +210,7 @@ export default function AuthModal() {
         </div>
       )}
       <p className="text-center text-xs text-muted">{t('O e-mail também tem um botão que faz a mesma coisa. Não chegou? Olhe o spam ou as promoções.')}</p>
+      {verify === 'email' && <p className="text-center text-xs text-muted">{t('Se esse e-mail ainda não tem conta, nenhum código é enviado: crie uma conta.')}</p>}
       <div className="flex flex-wrap justify-center gap-2">
         <button
           className="manga-btn ghost !py-1.5 text-sm"

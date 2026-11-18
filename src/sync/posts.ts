@@ -52,6 +52,8 @@ const me = () => {
 };
 function friendly(e: { message?: string; code?: string } | null) {
   const m = e?.message ?? '';
+  if (/new_account_links/.test(m)) return new Error(t('Contas novas só podem mandar links depois de 24 horas.'));
+  if (/like_rate/.test(m)) return new Error(t('Você está curtindo rápido demais. Espere um pouco.'));
   if (/hate_terms/.test(m)) return new Error(t('Seu texto tem termos ofensivos e não pode ser publicado.'));
   if (/rate_limited/.test(m)) return new Error(t('Calma! Muitas publicações seguidas. Espere um minuto.'));
   if (/posts_one_review|duplicate key/.test(m)) return new Error(t('Você já escreveu uma review desse título. Edite a sua.'));

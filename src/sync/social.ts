@@ -79,6 +79,7 @@ const me = () => {
 
 function friendly(e: { message?: string; code?: string } | null) {
   const m = e?.message ?? '';
+  if (/new_account_links/.test(m)) return new Error(t('Contas novas só podem mandar links depois de 24 horas.'));
   if (/rate_limited/.test(m)) return new Error(t('Calma! Muitas ações seguidas. Espere um minuto.'));
   if (/row-level security|violates/i.test(m)) return new Error(t('Não é possível fazer isso com este perfil.'));
   return new Error(m || t('Algo deu errado.'));
