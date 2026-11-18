@@ -1,6 +1,13 @@
 -- ═══════════════ v0.16 · Aviso de episódio novo (Web Push) + rotina shiori-tick ═══════════════
--- A chave privada VAPID fica no Vault (nunca no código):
---   select vault.create_secret('<chave privada>', 'vapid_private');
+-- As chaves VAPID são geradas pela própria função shiori-tick e guardadas em app_secrets
+-- (tabela sem acesso para anon/authenticated; só a função lê a privada).
+create table if not exists public.app_secrets (
+  name  text primary key,
+  value text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.app_secrets enable row level security;
+revoke all on public.app_secrets from anon, authenticated;
 
 create table if not exists public.push_subscriptions (
   id         bigint generated always as identity primary key,
@@ -40,11 +47,17 @@ alter table public.tick_state enable row level security;
 
 -- só a função (service role) lê a chave privada
 create or replace function public.get_vapid_private()
-returns text language sql security definer set search_path = public, vault as $$
-  select decrypted_secret from vault.decrypted_secrets where name = 'vapid_private' limit 1;
+returns text language sql security definer set search_path = public as $$
+  select value from public.app_secrets where name = 'vapid_private';
 $$;
 revoke all on function public.get_vapid_private() from public, anon, authenticated;
 grant execute on function public.get_vapid_private() to service_role;
+
+create or replace function public.vapid_public()
+returns text language sql stable security definer set search_path = public as $$
+  select value from public.app_secrets where name = 'vapid_public';
+$$;
+grant execute on function public.vapid_public() to anon, authenticated;
 
 -- animes em "Assistindo" de quem ativou os avisos
 create or replace function public.watching_for_push()

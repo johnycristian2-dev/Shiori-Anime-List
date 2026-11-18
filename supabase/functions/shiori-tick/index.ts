@@ -5,7 +5,6 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 
-const VAPID_PUBLIC = 'BAeVP0bOk-STGixhgCo0-6okrkq_DM8GV0_g_qqcnXug-GExQrIOFq2FsT05-oijRb-6c8FQvKMfzI7zOINfndA';
 const SITE = 'https://shiori-anime-list.vercel.app';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
@@ -74,6 +73,21 @@ async function refreshCatalog() {
   return rows.length;
 }
 
+/** Chaves VAPID: criadas aqui na primeira vez e guardadas no banco (a privada nunca sai do servidor). */
+async function vapidKeys() {
+  const { data } = await db.from('app_secrets').select('name,value').in('name', ['vapid_public', 'vapid_private']);
+  const pub = data?.find((r) => r.name === 'vapid_public')?.value;
+  const priv = data?.find((r) => r.name === 'vapid_private')?.value;
+  if (pub && priv) return { publicKey: pub, privateKey: priv };
+  const k = webpush.generateVAPIDKeys();
+  const { error } = await db.from('app_secrets').upsert([
+    { name: 'vapid_public', value: k.publicKey },
+    { name: 'vapid_private', value: k.privateKey },
+  ]);
+  if (error) throw error;
+  return k;
+}
+
 async function sendPushes(since: Date, until: Date) {
   const { data: watching, error } = await db.rpc('watching_for_push');
   if (error) throw error;
@@ -91,9 +105,8 @@ async function sendPushes(since: Date, until: Date) {
   }
   if (!aired.length) return 0;
 
-  const { data: key } = await db.rpc('get_vapid_private');
-  if (!key) throw new Error('vapid_private não configurada');
-  webpush.setVapidDetails('mailto:shiori@shiori-anime-list.vercel.app', VAPID_PUBLIC, key as string);
+  const keys = await vapidKeys();
+  webpush.setVapidDetails('mailto:shiori@shiori-anime-list.vercel.app', keys.publicKey, keys.privateKey);
 
   let sent = 0;
   for (const a of aired) {
@@ -128,6 +141,7 @@ async function sendPushes(since: Date, until: Date) {
 
 Deno.serve(async () => {
   const now = new Date();
+  await vapidKeys(); // garante as chaves logo na primeira execução
   const { data: st } = await db.from('tick_state').select('*').eq('id', 1).maybeSingle();
   const lastRun = st ? new Date(st.last_run) : new Date(0);
   if (now.getTime() - lastRun.getTime() < 10 * 60_000)

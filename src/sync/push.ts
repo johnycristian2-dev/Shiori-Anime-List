@@ -2,7 +2,12 @@
 import { supabase } from '../lib/supabase';
 import { getLang, t } from '../lib/i18n';
 
-const VAPID_PUBLIC = 'BAeVP0bOk-STGixhgCo0-6okrkq_DM8GV0_g_qqcnXug-GExQrIOFq2FsT05-oijRb-6c8FQvKMfzI7zOINfndA';
+/** Chave pública dos avisos (gerada pelo servidor, ver supabase/functions/shiori-tick). */
+async function vapidPublic() {
+  const { data, error } = await supabase!.rpc('vapid_public');
+  if (error || !data) throw new Error(t('Os avisos ainda não estão prontos no servidor. Tente mais tarde.'));
+  return data as string;
+}
 
 export const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 export const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -37,7 +42,7 @@ export async function enablePush() {
   const reg = await registration();
   const sub =
     (await reg.pushManager.getSubscription()) ??
-    (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(VAPID_PUBLIC) }));
+    (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(await vapidPublic()) }));
   const j = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
   await supabase.from('push_subscriptions').delete().eq('endpoint', j.endpoint);
   const { error } = await supabase
