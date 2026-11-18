@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import Badges from './Badges';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -45,7 +46,10 @@ export function UserLink({ p, size = 40, sub }: { p?: MiniProfile | null; size?:
     <>
       <Avatar url={p?.avatar_url} name={displayName(p)} size={size} />
       <div className="min-w-0">
-        <div className="truncate font-extrabold leading-tight">{displayName(p)}</div>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-extrabold leading-tight">{displayName(p)}</span>
+          <Badges userId={p?.user_id} />
+        </div>
         <div className="truncate text-xs font-bold text-muted">{p ? `@${p.username}` : ''}{sub && <> · {sub}</>}</div>
       </div>
     </>

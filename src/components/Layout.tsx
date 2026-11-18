@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useOutsideClose } from './ui';
 import { NavLink, useLocation } from 'react-router-dom';
-import { CalendarDays, ChevronDown, Compass, Dices, Gamepad2, Layers, Medal, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X, MessageCircle } from 'lucide-react';
+import { Bug, CalendarDays, ChevronDown, Compass, Dices, Gamepad2, Layers, Medal, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X, MessageCircle } from 'lucide-react';
 import { applyTheme, type Theme } from '../lib/themes';
 import { useActiveTheme } from '../lib/useTheme';
 import SearchModal from './SearchModal';
@@ -315,6 +315,36 @@ const NAV = [
 
     jp: '予定',
     icon: Map,
+    main: false
+  },
+  {
+    to: '/apoiar',
+
+    get label() {
+      return t('Apoiar / Shiori+');
+    },
+
+    get short() {
+      return t('Apoiar');
+    },
+
+    jp: '応援',
+    icon: Sparkles,
+    main: false
+  },
+  {
+    to: '/feedback',
+
+    get label() {
+      return t('Reportar bug ou ideia');
+    },
+
+    get short() {
+      return t('Feedback');
+    },
+
+    jp: '報告',
+    icon: Bug,
     main: false
   },
 ];

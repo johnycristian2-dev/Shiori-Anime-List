@@ -55,7 +55,7 @@ function friendly(e: { message?: string } | null) {
   const m = e?.message ?? '';
   if (/not_logged/.test(m)) return new Error(t('Entre na sua conta pra jogar a liga.'));
   if (/no_league/.test(m)) return new Error(t('Não existe liga com esse código.'));
-  if (/league_full/.test(m)) return new Error(t('Essa liga já está cheia (30 pessoas).'));
+  if (/league_full/.test(m)) return new Error(t('Essa liga já está cheia.'));
   if (/too_many/.test(m)) return new Error(t('Você criou ligas demais hoje. Tente amanhã.'));
   if (/team_full/.test(m)) return new Error(t('Seu time já tem 5 animes. Tire um pra escolher outro.'));
   if (/already_taken/.test(m)) return new Error(t('Alguém da liga já escolheu esse anime.'));

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { t } from '../lib/i18n';
 import Avatar from './Avatar';
+import Badges, { AnimatedBanner } from './Badges';
+import { usePerks } from '../sync/perks';
 
 export interface HeaderFavorite {
   id: number;
@@ -21,6 +23,7 @@ export default function ProfileHeader({
   favorite,
   actions,
   children,
+  userId,
 }: {
   name: ReactNode;
   username?: string | null;
@@ -31,13 +34,17 @@ export default function ProfileHeader({
   favorite?: HeaderFavorite | null;
   actions?: ReactNode;
   children?: ReactNode;
+  userId?: string | null;
 }) {
+  const perks = usePerks(userId);
   const initialName = typeof name === 'string' ? name : username;
   return (
     <section className="relative mb-8 overflow-hidden rounded-[calc(var(--radius)*1.3)] border-[3px] border-black bg-panel shadow-[8px_8px_0_var(--pink)]">
       {/* Banner */}
       <div className="halftone relative h-36 overflow-hidden bg-panel-2 sm:h-52">
-        {banner ? (
+        {perks?.banner ? (
+          <AnimatedBanner kind={perks.banner} />
+        ) : banner ? (
           <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="speedlines absolute inset-0 opacity-60" />
@@ -49,9 +56,10 @@ export default function ProfileHeader({
       <div className="relative px-5 pb-6 sm:px-8">
         <div className="-mt-14 flex flex-wrap items-end gap-4 sm:-mt-16">
           <Avatar url={avatar} name={initialName} size={112} className="!border-[3px] shadow-[5px_5px_0_#000] max-sm:!h-24 max-sm:!w-24" />
-          <div className="min-w-0 flex-1 pb-1">
+          <div className="min-w-0 flex-1 basis-44 pb-1">
             <h1 className="section-title truncate font-display text-3xl leading-tight">{name}</h1>
             {username && <div className="text-sm font-bold text-muted">@{username}</div>}
+            {userId && <div className="mt-1"><Badges userId={userId} size="md" /></div>}
           </div>
           {actions && <div className="flex flex-wrap gap-2 pb-1">{actions}</div>}
         </div>

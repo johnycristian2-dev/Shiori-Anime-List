@@ -10,6 +10,8 @@ import Discover from './pages/Discover';
 
 // Cada página vira um arquivo separado: o site abre mais rápido
 const Explore = lazyPage(() => import('./pages/Explore'));
+const Support = lazyPage(() => import('./pages/Support'));
+const Feedback = lazyPage(() => import('./pages/Feedback'));
 const Games = lazyPage(() => import('./pages/Games'));
 const League = lazyPage(() => import('./pages/League'));
 const Animedle = lazyPage(() => import('./pages/games/Animedle'));
@@ -96,6 +98,8 @@ export default function App() {
           <Route path="/party/:code" element={<Party />} />
           <Route path="/u/:username" element={<PublicProfile />} />
           <Route path="/temas" element={<Themes />} />
+          <Route path="/apoiar" element={<Support />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route path="*" element={<Discover />} />
         </Routes>
       </Suspense>

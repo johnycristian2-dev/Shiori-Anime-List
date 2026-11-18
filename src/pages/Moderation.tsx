@@ -8,6 +8,7 @@ import { t } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { useCloudUser } from '../sync/cloud';
 import { amIAdmin, loadReports, REPORT_REASONS, setReportStatus } from '../sync/social';
+import { BugsAdmin, ConfigAdmin } from '../components/AdminPanels';
 import { reportedContent, setChatMessageHidden, setCommentHidden, setPostHidden } from '../sync/posts';
 
 const KIND: Record<string, () => string> = {
@@ -22,6 +23,7 @@ export default function Moderation() {
   const user = useCloudUser((s) => s.user);
   const toast = useUI((s) => s.toast);
   const [status, setStatus] = useState<'open' | 'resolved' | 'dismissed'>('open');
+  const [tab, setTab] = useState<'reports' | 'bugs' | 'config'>('reports');
   const admin = useQuery({ queryKey: ['is-admin', user?.id], queryFn: amIAdmin, enabled: !!user, staleTime: Infinity });
   const q = useQuery({ queryKey: ['reports', status], queryFn: () => loadReports(status), enabled: !!admin.data });
 
@@ -43,9 +45,34 @@ export default function Moderation() {
     }
   };
 
+  const tabs = (
+    <div className="mb-5 flex flex-wrap gap-2 border-b-2 border-line pb-4">
+      {(
+        [
+          ['reports', t('Denúncias')],
+          ['bugs', t('Bugs e ideias')],
+          ['config', t('Apoio e afiliados')],
+        ] as const
+      ).map(([id, label]) => (
+        <button key={id} className={`manga-btn !py-1.5 text-sm ${tab === id ? '' : 'ghost'}`} onClick={() => setTab(id)}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+  if (tab !== 'reports')
+    return (
+      <>
+        <SectionTitle title={t('Moderação')} jp="管理" />
+        {tabs}
+        {tab === 'bugs' ? <BugsAdmin /> : <ConfigAdmin />}
+      </>
+    );
+
   return (
     <>
       <SectionTitle title={t('Moderação')} jp="管理" />
+      {tabs}
       <div className="mb-5 flex flex-wrap gap-2">
         {(
           [

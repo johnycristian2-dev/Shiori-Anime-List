@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatedBanner, BannerName } from '../components/Badges';
+import { BANNERS, isPlus, setBanner, usePerks, type Banner } from '../sync/perks';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Camera, Check, Film, ImagePlus, KeyRound, Lock, Search, ShieldCheck, Trash2, Upload, UserRound, X } from 'lucide-react';
@@ -321,6 +324,7 @@ export default function ProfileEdit() {
           <p className="w-full text-[11px] font-bold text-muted">{t('Imagens enviadas são reduzidas e convertidas no seu aparelho (sem dados de localização). Não envie fotos de outras pessoas sem permissão.')}</p>
         </div>
       </section>
+      <PlusBanner userId={user?.id} />
       {picker === 'avatar' && (
         <AvatarPicker
           favorites={favorites.length ? favorites : sorted}
@@ -543,6 +547,47 @@ function Privacy({ shareActivity, isPublic, minor }: { shareActivity: boolean; i
             ))}
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+/** Banner animado (Shiori+): fica por cima da imagem do banner no perfil. */
+function PlusBanner({ userId }: { userId?: string }) {
+  const perks = usePerks(userId);
+  const plus = isPlus(perks);
+  const qc = useQueryClient();
+  const toast = useUI((s) => s.toast);
+  const pick = async (b: Banner | null) => {
+    try {
+      await setBanner(b);
+      qc.invalidateQueries({ queryKey: ['perks'] });
+      toast(b ? t('Banner animado aplicado ✦') : t('Banner animado removido'));
+    } catch (e) {
+      toast((e as Error).message.includes('plus_only') ? t('Exclusivo do Shiori+') : (e as Error).message, 'err');
+    }
+  };
+  return (
+    <section className="panel mb-6 p-4">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="badge-plus inline-flex items-center gap-1 rounded-full border-2 border-black px-2 py-0.5 text-[11px] font-black">✦ Shiori+</span>
+        <b className="text-sm">{t('Banner animado')}</b>
+        {!plus && (
+          <Link to="/apoiar" className="ml-auto text-xs font-bold text-pink underline">
+            {t('Desbloquear')}
+          </Link>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
+        <button disabled={!plus} onClick={() => pick(null)} className={`grid h-16 place-items-center rounded-[var(--radius-sm)] border-2 text-xs font-bold disabled:opacity-50 ${!perks?.banner ? 'border-pink' : 'border-black'}`}>
+          {t('Nenhum')}
+        </button>
+        {BANNERS.map((b) => (
+          <button key={b} disabled={!plus} onClick={() => pick(b)} title={BannerName(b)} className={`relative h-16 overflow-hidden rounded-[var(--radius-sm)] border-2 disabled:opacity-50 ${perks?.banner === b ? 'border-pink ring-2 ring-pink' : 'border-black'}`}>
+            <AnimatedBanner kind={b} />
+            <span className="absolute bottom-1 left-1.5 text-[10px] font-black text-white drop-shadow">{plus ? BannerName(b) : `🔒 ${BannerName(b)}`}</span>
+          </button>
+        ))}
       </div>
     </section>
   );

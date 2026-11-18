@@ -8,6 +8,8 @@ import { pickOfTheDay } from '../lib/themes';
 import { useActiveTheme, useThemeableAnimes } from '../lib/useTheme';
 import { pickTitle } from '../lib/format';
 import { useUI } from '../store/ui';
+import { useNavigate } from 'react-router-dom';
+import { isPlus, useMyPerks } from '../sync/perks';
 import type { ListEntry } from '../types';
 
 import { t } from '../lib/i18n';
@@ -131,7 +133,7 @@ function Chips<T extends string>({ label, items, value, onPick }: { label: strin
   );
 }
 
-function ThemeCard({ theme: th, active, onPick, actions }: { theme: Theme; active: boolean; onPick: () => void; actions?: React.ReactNode }) {
+function ThemeCard({ theme: th, active, onPick, actions, locked }: { theme: Theme; active: boolean; onPick: () => void; actions?: React.ReactNode; locked?: boolean }) {
   const c = th.colors;
   useEffect(() => ensureFont(th.font?.display, th.font?.weights), [th.font?.display, th.font?.weights]);
   const r = th.radius ?? 18;
@@ -141,6 +143,11 @@ function ThemeCard({ theme: th, active, onPick, actions }: { theme: Theme; activ
   const display = th.font?.display ? `'${th.font.display}', 'Dela Gothic One', sans-serif` : undefined;
   return (
     <div className="group relative">
+      {th.plus && (
+        <span className="badge-plus absolute bottom-[calc(100%-8.4rem)] right-2 z-10 inline-flex items-center gap-1 rounded-full border-2 border-black px-2 py-0.5 text-[10px] font-black">
+          {locked ? '🔒' : '✦'} Shiori+
+        </span>
+      )}
       <button
         onClick={onPick}
         className={`block w-full overflow-hidden border-[3px] text-left transition hover:-translate-y-1 ${active ? 'border-pink' : 'border-black'}`}
@@ -196,7 +203,7 @@ function ThemeCard({ theme: th, active, onPick, actions }: { theme: Theme; activ
           )}
         </div>
       </button>
-      {actions && <div className="absolute right-2 top-2 z-10 flex gap-1">{actions}</div>}
+      {actions && !locked && <div className="absolute right-2 top-2 z-10 flex gap-1">{actions}</div>}
     </div>
   );
 }
@@ -365,6 +372,8 @@ export default function Themes() {
   const rotate = useUI((s) => s.rotateFavorites);
   const setRotate = useUI((s) => s.setRotateFavorites);
   const toast = useUI((s) => s.toast);
+  const navigate = useNavigate();
+  const plus = isPlus(useMyPerks());
   const [editing, setEditing] = useState<Theme | null>(null);
   const [genDark, setGenDark] = useState(true);
   const { favorites, others } = useThemeableAnimes();
@@ -489,7 +498,15 @@ export default function Themes() {
             key={th.id}
             theme={th}
             active={!rotate && themeId === th.id}
-            onPick={() => setTheme(th.id)}
+            locked={th.plus && !plus}
+            onPick={() => {
+              if (th.plus && !plus) {
+                toast(t('Tema exclusivo do Shiori+'));
+                navigate('/apoiar');
+                return;
+              }
+              setTheme(th.id);
+            }}
             actions={
               <button
                 className="grid h-7 w-7 place-items-center rounded-lg border-2 border-black bg-yellow text-black opacity-0 transition group-hover:opacity-100"

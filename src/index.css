@@ -776,3 +776,23 @@ html[data-shadow='none'] .card-frame {
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
   mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
 }
+
+/* ---------- Selos e banners (Shiori+) ---------- */
+.badge-owner { background: linear-gradient(110deg, #ffd34d 0%, #fff3b0 35%, #ffb800 60%, #ffe680 100%); background-size: 220% 100%; color: #2a1a00; animation: badge-shine 3.2s linear infinite; }
+.badge-plus { background: linear-gradient(110deg, #cbb2ff, #3de2ff, #ff7ad9, #cbb2ff); background-size: 300% 100%; color: #120c2a; animation: badge-shine 4s linear infinite; }
+@keyframes badge-shine { to { background-position: -220% 0; } }
+
+.banner-fx { overflow: hidden; }
+.banner-fx i { position: absolute; border-radius: 50%; filter: blur(40px); opacity: .85; mix-blend-mode: screen; }
+.banner-fx i:nth-child(1) { width: 60%; height: 140%; left: -10%; top: -30%; animation: bfx-a 9s ease-in-out infinite alternate; }
+.banner-fx i:nth-child(2) { width: 50%; height: 120%; left: 35%; top: -10%; animation: bfx-b 11s ease-in-out infinite alternate; }
+.banner-fx i:nth-child(3) { width: 45%; height: 130%; right: -10%; top: -20%; animation: bfx-a 13s ease-in-out infinite alternate-reverse; }
+@keyframes bfx-a { to { transform: translate(18%, 12%) scale(1.25); } }
+@keyframes bfx-b { to { transform: translate(-22%, -8%) scale(.85); } }
+.banner-aurora { background: #071226; } .banner-aurora i:nth-child(1) { background: #3de2ff; } .banner-aurora i:nth-child(2) { background: #7cff8a; } .banner-aurora i:nth-child(3) { background: #8a5cff; }
+.banner-sakura { background: #2a0f1f; } .banner-sakura i:nth-child(1) { background: #ff7ab8; } .banner-sakura i:nth-child(2) { background: #ffd1e6; } .banner-sakura i:nth-child(3) { background: #c2307a; }
+.banner-neon { background: #0a0614; } .banner-neon i:nth-child(1) { background: #ff2bd6; } .banner-neon i:nth-child(2) { background: #00f0ff; } .banner-neon i:nth-child(3) { background: #fff200; }
+.banner-ouro { background: #1d1200; } .banner-ouro i:nth-child(1) { background: #ffb800; } .banner-ouro i:nth-child(2) { background: #fff1a8; } .banner-ouro i:nth-child(3) { background: #ff7a00; }
+.banner-galaxia { background: radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 60%, #fff, transparent), radial-gradient(1.5px 1.5px at 45% 80%, #fff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent), #05030f; }
+.banner-galaxia i:nth-child(1) { background: #5b2bff; } .banner-galaxia i:nth-child(2) { background: #ff3d8b; opacity: .5; } .banner-galaxia i:nth-child(3) { background: #00b3ff; opacity: .6; }
+@media (prefers-reduced-motion: reduce) { .banner-fx i, .badge-owner, .badge-plus { animation: none; } }

@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
-import { CalendarClock, ExternalLink, Heart, MessageCircle, Palette, Play, Star, Timer, Tv, Users } from 'lucide-react';
+import { CalendarClock, ExternalLink, Heart, MessageCircle, Palette, Play, ShoppingBag, Star, Timer, Tv, Users } from 'lucide-react';
+import { amazonLink, useConfig } from '../sync/perks';
 import { themeFromColor } from '../lib/themes';
 import { useEffect, useState } from 'react';
 import { SectionTitle } from '../components/ui';
@@ -35,6 +36,7 @@ export default function AnimeDetail() {
   const toast = useUI((s) => s.toast);
   const toggleFavorite = useList((s) => s.toggleFavorite);
   const setAnimeTheme = useUI((s) => s.setAnimeTheme);
+  const shop = useConfig().data;
 
   if (isLoading)
     return (
@@ -234,7 +236,19 @@ export default function AnimeDetail() {
                 <ExternalLink size={14} />{' '}{t('MyAnimeList')}
               </a>
             )}
+            {!!shop?.amazon_tag && (
+              <a
+                href={amazonLink(shop.amazon_tag, `${m.title.english ?? m.title.romaji} ${manga ? (m.format === 'NOVEL' ? 'light novel' : 'mangá') : 'anime'}`)}
+                target="_blank"
+                rel="noreferrer sponsored"
+                className="manga-btn yellow"
+                title={t('Link de afiliado: o Shiori ganha uma pequena comissão, sem custo extra pra você')}
+              >
+                <ShoppingBag size={15} /> {manga ? t('Comprar na Amazon') : t('Produtos na Amazon')}
+              </a>
+            )}
           </div>
+          {!!shop?.amazon_tag && <p className="mt-2 text-[11px] text-muted">{t('Links da Amazon são de afiliado: o Shiori ganha uma pequena comissão, sem custo extra pra você.')}</p>}
         </div>
       </div>
 

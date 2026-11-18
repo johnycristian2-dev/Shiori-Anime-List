@@ -59,6 +59,22 @@ const ITEMS = [
       return t('Supabase (contas e banco de dados), Vercel (hospedagem), AniList (dados dos animes) e tradução automática das sinopses. Nenhum dado seu é enviado para a tradução, só o texto da sinopse.');
     },
   },
+  {
+    get h() {
+      return t('Shiori+ e doações');
+    },
+    get p() {
+      return t('Pagamentos são feitos por Pix pelo Mercado Pago; o Shiori não vê nem guarda dados bancários. O Shiori+ é um pagamento único por período, sem renovação automática, e só libera extras visuais e sociais. Você pode pedir reembolso em até 7 dias pela página de feedback. Doações não dão direito a nada além do selo de Apoiador.');
+    },
+  },
+  {
+    get h() {
+      return t('Links de afiliado');
+    },
+    get p() {
+      return t('Os botões da Amazon são links de afiliado: se você comprar por eles, o Shiori recebe uma pequena comissão, sem custo extra pra você.');
+    },
+  },
 ];
 
 export default function Terms() {

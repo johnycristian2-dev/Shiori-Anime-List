@@ -11,7 +11,8 @@ import AnimeCard from '../components/AnimeCard';
 import { EmptyState, SectionTitle, Spinner } from '../components/ui';
 import { ACHIEVEMENTS, computeStats, rankOf, RANKS } from '../lib/profile';
 import { renderShareCard } from '../lib/shareCard';
-import { renderStoryCard } from '../lib/storyCard';
+import { renderStoryCard, type StoryStyle } from '../lib/storyCard';
+import { isPlus, usePerks } from '../sync/perks';
 import { localBest, useStreak } from '../games/shared';
 import { todayKey } from '../games/core';
 import { entryToMedia, pickTitle } from '../lib/format';
@@ -76,6 +77,8 @@ export default function Profile() {
   );
 
   const { streak } = useStreak('animedle');
+  const [storyStyle, setStoryStyle] = useState<StoryStyle>('padrao');
+  const plus = isPlus(usePerks(logged ? cloudUser?.id : null));
   const makeCard = async (kind: 'post' | 'story' = 'post') => {
     setBusy(true);
     try {
@@ -91,6 +94,7 @@ export default function Profile() {
               rank,
               titleOf,
               games: { streak, cover: localBest('imagem', todayKey()), higher: localBest('maisoumenos', todayKey()) },
+              style: plus ? storyStyle : 'padrao',
             })
           : await renderShareCard({ picks: picks.length ? picks : all, stats, nickname, rank, titleOf });
       setCard({ blob, url: URL.createObjectURL(blob), kind });
@@ -148,6 +152,7 @@ export default function Profile() {
           )
         }
         username={account?.username}
+        userId={logged ? cloudUser?.id : null}
         avatar={account?.avatar_url}
         banner={account?.banner_url}
         bio={account?.bio}
@@ -189,6 +194,28 @@ export default function Profile() {
           <button className="manga-btn ghost" onClick={() => makeCard('post')} disabled={busy}>
             <ImageIcon size={16} />{' '}{t('Card de post')}
           </button>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-bold">
+          <span className="text-muted">{t('Estilo do story:')}</span>
+          {(
+            [
+              ['padrao', t('Padrão')],
+              ['holo', t('Holográfico')],
+              ['ouro', t('Ouro')],
+              ['neon', t('Neon')],
+            ] as const
+          ).map(([id, label]) =>
+            id !== 'padrao' && !plus ? (
+              <Link key={id} to="/apoiar" className="chip !py-0.5 opacity-70" title={t('Exclusivo do Shiori+')}>
+                🔒 {label}
+              </Link>
+            ) : (
+              <button key={id} className={`chip !py-0.5 ${storyStyle === id ? 'on' : ''}`} onClick={() => setStoryStyle(id)}>
+                {id !== 'padrao' && '✦ '}
+                {label}
+              </button>
+            ),
+          )}
         </div>
       </ProfileHeader>
 

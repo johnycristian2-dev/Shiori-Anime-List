@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Check, ChevronDown, Cloud, ExternalLink, LogIn, LogOut, Palette, Pencil, ShieldAlert, UserRound, Users } from 'lucide-react';
+import { Bug, Check, ChevronDown, Cloud, ExternalLink, LogIn, LogOut, Palette, Pencil, ShieldAlert, Sparkles, UserRound, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { amIAdmin, useSocial } from '../sync/social';
 import { LANGS, t } from '../lib/i18n';
@@ -78,6 +78,8 @@ export default function AccountButton() {
             {profile?.is_public && <Item to={`/u/${profile.username}`} icon={ExternalLink} label={t('Ver como os outros veem')} onClick={close} />}
             <Item to="/sync" icon={Cloud} label={t('Sincronização e backup')} onClick={close} />
             <Item to="/temas" icon={Palette} label={t('Temas')} onClick={close} />
+            <Item to="/apoiar" icon={Sparkles} label={t('Apoiar / Shiori+')} onClick={close} />
+            <Item to="/feedback" icon={Bug} label={t('Reportar bug ou ideia')} onClick={close} />
             {admin.data && <Item to="/moderacao" icon={ShieldAlert} label={t('Moderação')} onClick={close} />}
             <LangRow lang={lang} setLang={setLang} />
             <button

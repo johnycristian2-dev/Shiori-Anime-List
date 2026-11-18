@@ -34,6 +34,57 @@ function panel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
   ctx.stroke();
 }
 
+export type StoryStyle = 'padrao' | 'holo' | 'ouro' | 'neon';
+
+/** Moldura exclusiva do Shiori+ por cima do card. */
+function drawPlusFrame(ctx: CanvasRenderingContext2D, style: StoryStyle) {
+  if (style === 'padrao') return;
+  const stops: Record<Exclude<StoryStyle, 'padrao'>, string[]> = {
+    holo: ['#ff7ad9', '#ffe14d', '#7cff8a', '#3de2ff', '#a78bfa', '#ff7ad9'],
+    ouro: ['#8a5a00', '#ffd34d', '#fff3b0', '#ffb800', '#8a5a00'],
+    neon: ['#ff2bd6', '#00f0ff', '#ff2bd6'],
+  };
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  stops[style].forEach((c, i, a) => g.addColorStop(i / (a.length - 1), c));
+  ctx.save();
+  if (style === 'neon') {
+    ctx.shadowColor = '#ff2bd6';
+    ctx.shadowBlur = 40;
+  }
+  ctx.lineWidth = 26;
+  ctx.strokeStyle = g;
+  roundRect(ctx, 13, 13, W - 26, H - 26, 46);
+  ctx.stroke();
+  ctx.restore();
+  // brilho diagonal
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  const sh = ctx.createLinearGradient(0, H * 0.15, W, H * 0.55);
+  sh.addColorStop(0, 'rgba(255,255,255,0)');
+  sh.addColorStop(0.5, style === 'ouro' ? 'rgba(255,220,120,.35)' : 'rgba(255,255,255,.28)');
+  sh.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = sh;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+  // selo
+  ctx.save();
+  ctx.font = '30px "Dela Gothic One"';
+  const label = 'SHIORI+';
+  const w = ctx.measureText(label).width + 44;
+  const x = W - w - 48;
+  const y = 52;
+  ctx.fillStyle = g;
+  roundRect(ctx, x, y, w, 58, 29);
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#000';
+  ctx.stroke();
+  ctx.fillStyle = '#120c2a';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, x + w / 2, y + 41);
+  ctx.restore();
+}
+
 export async function renderStoryCard(opts: {
   top: ListEntry[];
   watching: ListEntry[];
@@ -44,6 +95,7 @@ export async function renderStoryCard(opts: {
   rank: { name: string; jp: string };
   titleOf: (e: ListEntry) => string;
   games: { streak: number; cover: number | null; higher: number | null };
+  style?: StoryStyle;
 }) {
   await Promise.all([
     document.fonts.load('60px "Dela Gothic One"'),
@@ -282,6 +334,8 @@ export async function renderStoryCard(opts: {
   ctx.font = '34px "Dela Gothic One"';
   ctx.font = '30px "Dela Gothic One"';
   ctx.fillText(fitText(ctx, opts.username ? `shiori-anime-list.vercel.app/#/u/${opts.username}` : 'shiori-anime-list.vercel.app', W - 100), W / 2, H - 44);
+
+  drawPlusFrame(ctx, opts.style ?? 'padrao');
 
   return new Promise<Blob>((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error(t('Falha ao gerar imagem')))), 'image/png'));
 }

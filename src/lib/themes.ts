@@ -46,6 +46,8 @@ export interface Theme {
   title?: TitleStyle;
   /** Camada por cima da tela inteira */
   overlay?: Overlay;
+  /** Exclusivo de Shiori+ */
+  plus?: boolean;
 }
 
 export type Particles = 'sakura' | 'embers' | 'snow' | 'leaves' | 'bubbles' | 'matrix' | 'squares' | 'sparks' | 'kanji' | 'ash' | 'none';
@@ -330,6 +332,48 @@ export const PRESETS: Theme[] = [
     petals: 'none',
     colors: { bg: '#f7f7f5', bg2: '#ececea', panel: '#ffffff', panel2: '#f2f2f0', ink: '#111111', muted: '#5a5a5a', line: '#cfcfcc', pink: '#111111', cyan: '#4a4a4a', yellow: '#d9d9d6', shadow: '#111111' }
   },
+  {
+    id: 'plus-holo',
+
+    get name() {
+      return t('Holográfico');
+    },
+
+    jp: '虹',
+    plus: true,
+    dark: true,
+    pattern: 'stars',
+    petals: 'sparks',
+    colors: dark({ bg: '#0a0718', pink: '#ff7ad9', cyan: '#3de2ff', yellow: '#b8ff6b', line: '#2c2150' })
+  },
+  {
+    id: 'plus-ouro',
+
+    get name() {
+      return t('Ouro Imperial');
+    },
+
+    jp: '金',
+    plus: true,
+    dark: true,
+    pattern: 'checker',
+    petals: 'embers',
+    colors: dark({ bg: '#120c02', pink: '#ffc23d', cyan: '#ff8a3d', yellow: '#fff1a8', line: '#3a2a08' })
+  },
+  {
+    id: 'plus-eclipse',
+
+    get name() {
+      return t('Eclipse');
+    },
+
+    jp: '蝕',
+    plus: true,
+    dark: true,
+    pattern: 'waves',
+    petals: 'ash',
+    colors: dark({ bg: '#060308', pink: '#ff3d3d', cyan: '#a855f7', yellow: '#ffd6d6', line: '#2a0f16' })
+  },
 ];
 
 /**
@@ -352,6 +396,9 @@ const SKINS: Record<string, Partial<Theme>> = {
   journey: { font: { display: 'Cormorant Garamond', body: 'Zen Maru Gothic', weights: '500;700' }, radius: 20, shadow: 'soft', title: 'elegant', overlay: 'none', petals: 'snow' },
   forest: { font: { display: 'Kiwi Maru', weights: '500' }, radius: 26, shadow: 'soft', title: 'plain', overlay: 'paper', petals: 'leaves' },
   manga: { font: { display: 'Bangers' }, radius: 4, shadow: 'manga', title: 'pop3d', overlay: 'paper', petals: 'none' },
+  'plus-holo': { font: { display: 'Orbitron', weights: '700;900' }, radius: 16, shadow: 'glow', title: 'neon', overlay: 'hex', petals: 'sparks' },
+  'plus-ouro': { font: { display: 'Cinzel', weights: '700;900' }, radius: 6, shadow: 'glow', title: 'elegant', overlay: 'vignette', petals: 'embers' },
+  'plus-eclipse': { font: { display: 'Shippori Mincho B1', weights: '800' }, radius: 2, shadow: 'glow', title: 'glitch', overlay: 'film', petals: 'ash' },
 };
 // Object.assign mantém os nomes traduzíveis (getters) intactos
 PRESETS.forEach((p) => Object.assign(p, SKINS[p.id] ?? {}));

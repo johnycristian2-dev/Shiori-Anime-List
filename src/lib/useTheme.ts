@@ -4,6 +4,7 @@ import { useUI } from '../store/ui';
 import { dayKey } from './gacha';
 import { pickOfTheDay, PRESETS, themeFromColor, type Theme } from './themes';
 import { t } from './i18n';
+import { isPlus, useMyPerks } from '../sync/perks';
 
 /** Todos os temas que o usuário pode escolher (prontos + os que ele criou). */
 export function useAllThemes() {
@@ -32,6 +33,7 @@ export function useActiveTheme(): Theme {
   const rotate = useUI((s) => s.rotateFavorites);
   const { favorites, others } = useThemeableAnimes();
   const today = dayKey();
+  const plus = isPlus(useMyPerks());
 
   return useMemo(() => {
     if (rotate) {
@@ -40,6 +42,8 @@ export function useActiveTheme(): Theme {
       if (e?.color) return themeFromColor(e.color, { id: `dia-${e.mediaId}`, name: t('Tema do dia: {0}', e.title), image: e.cover });
     }
     if (id === 'anime' && animeTheme) return animeTheme;
-    return custom.find((t) => t.id === id) ?? PRESETS.find((t) => t.id === id) ?? PRESETS[0];
-  }, [id, custom, animeTheme, rotate, favorites, others, today]);
+    const preset = PRESETS.find((t) => t.id === id);
+    if (preset?.plus && !plus) return PRESETS[0];
+    return custom.find((t) => t.id === id) ?? preset ?? PRESETS[0];
+  }, [id, custom, animeTheme, rotate, favorites, others, today, plus]);
 }

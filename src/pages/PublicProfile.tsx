@@ -70,6 +70,7 @@ export default function PublicProfile() {
       <ProfileHeader
         name={name}
         username={p.username}
+        userId={p.user_id}
         avatar={p.avatar_url}
         banner={p.banner_url}
         bio={p.bio}

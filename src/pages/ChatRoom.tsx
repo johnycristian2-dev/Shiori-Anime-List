@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Badges from '../components/Badges';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowDown, ArrowLeft, Ban, CornerUpLeft, Eye, EyeOff, Flag, Lock, MessageSquareOff, Send, ShieldAlert, Trash2, Users, VolumeX, X } from 'lucide-react';
@@ -119,6 +120,7 @@ function Message({
             <Link to={author ? `/u/${author.username}` : '#'} className={`font-extrabold hover:underline ${mine ? 'text-pink' : ''}`}>
               {displayName(author)}
             </Link>
+            <Badges userId={author?.user_id} />
             <span className="text-[10px] font-bold text-muted">{timeShort(m.created_at)}</span>
           </div>
         )}
