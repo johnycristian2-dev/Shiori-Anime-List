@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import QRCode from 'qrcode';
 import { Check, Copy, Crown, Heart, Loader2, Sparkles, X } from 'lucide-react';
 import { SectionTitle } from '../components/ui';
 import Badges from '../components/Badges';
 import { t } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { useCloudUser } from '../sync/cloud';
-import { brl, createPix, DONATIONS, isPlus, paymentStatus, PLANS, useConfig, useMyPerks, type PixCharge } from '../sync/perks';
+import { brl, canSelfRefund, createPix, DONATIONS, isPlus, myPayments, paymentStatus, pixPayload, PLANS, refundPayment, useConfig, useMyPerks, type PixCharge } from '../sync/perks';
 
 const ERR: Record<string, () => string> = {
   payments_off: () => t('Os pagamentos ainda não foram ligados. Volte em breve!'),
@@ -123,7 +124,12 @@ export default function Support() {
         <h2 className="flex items-center gap-2 font-display text-2xl">
           <Heart className="text-pink" fill="currentColor" /> {t('Doação')}
         </h2>
-        <p className="mt-1 text-sm text-muted">{t('Qualquer valor ajuda. Quem doa pelo Pix daqui ganha o selo de Apoiador pra sempre.')}</p>
+        <p className="mt-1 text-sm text-muted">
+          {payOn ? t('Qualquer valor ajuda. Quem doa pelo Pix daqui ganha o selo de Apoiador pra sempre.') : t('Qualquer valor ajuda 💜')}
+        </p>
+        {!payOn && cfg?.pix_key ? (
+          <DirectPix pixKey={cfg.pix_key} name={cfg.pix_name} city={cfg.pix_city} />
+        ) : (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {DONATIONS.map((v) => (
             <button key={v} disabled={!payOn || !!busy} className="manga-btn !py-2 disabled:opacity-60" onClick={() => start(`d${v}`, t('Doação de {0}', brl(v * 100)), { kind: 'donation', amount: v })}>
@@ -141,6 +147,7 @@ export default function Support() {
             </button>
           </div>
         </div>
+        )}
         {(cfg?.kofi_url || cfg?.apoiase_url) && (
           <div className="mt-5 flex flex-wrap gap-2 border-t-2 border-line pt-4">
             {cfg.kofi_url && (
@@ -169,6 +176,8 @@ export default function Support() {
           {t('Termos')}
         </Link>
       </p>
+
+      {logged && <MyPayments />}
 
       {charge && <PixModal charge={charge.pix} label={charge.label} onClose={() => setCharge(null)} />}
     </>
@@ -237,6 +246,94 @@ function PixModal({ charge, label, onClose }: { charge: PixCharge; label: string
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+const REFUND_ERR: Record<string, () => string> = {
+  not_allowed: () => t('O prazo de 7 dias pra reembolso automático já passou. Fale com a gente pelo feedback.'),
+  not_refundable: () => t('Esse pagamento não pode mais ser reembolsado.'),
+  payments_off: () => t('Os pagamentos ainda não foram ligados. Volte em breve!'),
+};
+
+function MyPayments() {
+  const toast = useUI((s) => s.toast);
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ['my-payments'], queryFn: myPayments });
+  const [busy, setBusy] = useState<string | null>(null);
+  if (!q.data?.length) return null;
+  const refund = async (id: string) => {
+    if (!confirm(t('Devolver esse Pix? O que ele liberou (Shiori+ ou selo) sai da sua conta.'))) return;
+    setBusy(id);
+    try {
+      await refundPayment(id);
+      toast(t('Reembolso feito! O dinheiro volta pro seu Pix em instantes.'));
+      q.refetch();
+      qc.invalidateQueries({ queryKey: ['perks'] });
+    } catch (e) {
+      const m = (e as Error).message;
+      toast(REFUND_ERR[m]?.() ?? t('Não deu pra reembolsar agora. Tente de novo.'), 'err');
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <section className="mb-8">
+      <h2 className="mb-3 font-display text-xl">{t('Seus pagamentos')}</h2>
+      <div className="space-y-2">
+        {q.data.map((p) => (
+          <div key={p.id} className="panel flex flex-wrap items-center gap-3 p-3 text-sm">
+            <div className="min-w-0 flex-1">
+              <div className="font-extrabold">{p.kind === 'plus' ? `Shiori+ · ${p.months === 1 ? t('1 mês') : t('{0} meses', p.months)}` : t('Doação')}</div>
+              <div className="text-xs text-muted">
+                {brl(p.amount_cents)} · {new Date(p.created_at).toLocaleDateString('pt-BR')} ·{' '}
+                {p.status === 'approved' ? t('Pago') : p.status === 'refunded' ? t('Reembolsado') : p.status}
+              </div>
+            </div>
+            {canSelfRefund(p) && (
+              <button className="manga-btn ghost !py-1 text-xs" disabled={busy === p.id} onClick={() => refund(p.id)}>
+                {busy === p.id ? <Loader2 className="animate-spin" size={14} /> : t('Pedir reembolso')}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-muted">{t('Até 7 dias depois de pagar, o reembolso é automático: o Pix volta na hora.')}</p>
+    </section>
+  );
+}
+
+/** Pix direto pra chave do dono (QR estático). Não confirma sozinho, então não dá selo automático. */
+function DirectPix({ pixKey, name, city }: { pixKey: string; name: string; city: string }) {
+  const toast = useUI((s) => s.toast);
+  const [value, setValue] = useState(10);
+  const [qr, setQr] = useState('');
+  const code = pixPayload(pixKey, name, city, value > 0 ? value * 100 : undefined);
+  useEffect(() => {
+    QRCode.toDataURL(code, { margin: 1, width: 480, errorCorrectionLevel: 'M' }).then(setQr).catch(() => setQr(''));
+  }, [code]);
+  return (
+    <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+      {qr && <img src={qr} alt="QR code Pix" className="w-52 shrink-0 rounded-xl border-[3px] border-black bg-white p-2" />}
+      <div className="w-full min-w-0 flex-1 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {[...DONATIONS, 0].map((v) => (
+            <button key={v} className={`chip ${value === v ? 'on' : ''}`} onClick={() => setValue(v)}>
+              {v ? brl(v * 100) : t('Você escolhe')}
+            </button>
+          ))}
+        </div>
+        <button
+          className="manga-btn !py-2"
+          onClick={async () => {
+            await navigator.clipboard.writeText(code).catch(() => null);
+            toast(t('Código Pix copiado'));
+          }}
+        >
+          <Copy size={16} /> {t('Copiar Pix copia e cola')}
+        </button>
+        <p className="text-xs text-muted">{t('Esse Pix vai direto pro criador do Shiori. Quer o selo de Apoiador? Mande o comprovante pela página de feedback.')}</p>
       </div>
     </div>
   );

@@ -49,9 +49,12 @@ export interface AppConfig {
   kofi_url: string;
   apoiase_url: string;
   payments_on: boolean;
+  pix_key: string;
+  pix_name: string;
+  pix_city: string;
 }
 async function loadConfig(): Promise<AppConfig> {
-  const c: AppConfig = { amazon_tag: '', kofi_url: '', apoiase_url: '', payments_on: false };
+  const c: AppConfig = { amazon_tag: '', kofi_url: '', apoiase_url: '', payments_on: false, pix_key: '', pix_name: '', pix_city: '' };
   if (!supabase) return c;
   const { data } = await supabase.from('app_config').select('key, value');
   for (const r of data ?? []) {
@@ -108,6 +111,77 @@ export async function setBanner(b: Banner | null) {
   if (!supabase) return;
   const { error } = await supabase.rpc('set_banner', { p_banner: b });
   if (error) throw error;
+}
+
+export interface PaymentRow {
+  id: string;
+  user_id: string;
+  kind: 'plus' | 'donation';
+  months: number | null;
+  amount_cents: number;
+  status: string;
+  created_at: string;
+  approved_at: string | null;
+  refunded_at: string | null;
+}
+const PAY_COLS = 'id, user_id, kind, months, amount_cents, status, created_at, approved_at, refunded_at';
+export const REFUND_DAYS = 7;
+export const canSelfRefund = (p: PaymentRow) =>
+  p.status === 'approved' && !!p.approved_at && Date.now() - new Date(p.approved_at).getTime() < REFUND_DAYS * 86400_000;
+
+export async function myPayments(): Promise<PaymentRow[]> {
+  if (!supabase) return [];
+  const { data: u } = await supabase.auth.getUser();
+  const { data, error } = await supabase.from('payments').select(PAY_COLS).eq('user_id', u.user?.id ?? '').neq('status', 'pending').neq('status', 'failed').order('created_at', { ascending: false }).limit(20);
+  if (error) throw error;
+  return (data ?? []) as PaymentRow[];
+}
+export async function recentPayments(): Promise<PaymentRow[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('payments').select(PAY_COLS).in('status', ['approved', 'refunded', 'charged_back']).order('created_at', { ascending: false }).limit(50);
+  if (error) throw error;
+  return (data ?? []) as PaymentRow[];
+}
+export async function refundPayment(id: string) {
+  if (!supabase) throw new Error('offline');
+  const { error } = await supabase.functions.invoke('shiori-pay-refund', { body: { id } });
+  if (error) {
+    let code = '';
+    try {
+      code = (await (error as { context?: Response }).context?.json())?.error ?? '';
+    } catch {
+      /* sem corpo */
+    }
+    throw new Error(code || error.message);
+  }
+}
+
+/* ---------- Pix direto (QR estático do banco, sem confirmação automática) ---------- */
+export function crc16(s: string) {
+  let crc = 0xffff;
+  for (const ch of new TextEncoder().encode(s)) {
+    crc ^= ch << 8;
+    for (let i = 0; i < 8; i++) crc = crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+const field = (id: string, v: string) => id + String(new TextEncoder().encode(v).length).padStart(2, '0') + v;
+const plain = (s: string, max: number) =>
+  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9 .-]/g, '').trim().slice(0, max).toUpperCase();
+/** Código "Pix copia e cola" (BR Code) para uma chave Pix, com valor opcional. */
+export function pixPayload(key: string, name: string, city: string, cents?: number) {
+  const body =
+    field('00', '01') +
+    field('26', field('00', 'br.gov.bcb.pix') + field('01', key.trim())) +
+    field('52', '0000') +
+    field('53', '986') +
+    (cents ? field('54', (cents / 100).toFixed(2)) : '') +
+    field('58', 'BR') +
+    field('59', plain(name, 25) || 'SHIORI') +
+    field('60', plain(city, 15) || 'BRASIL') +
+    field('62', field('05', 'SHIORI'));
+  const withCrc = body + '6304';
+  return withCrc + crc16(withCrc);
 }
 
 /* ---------- Reporte de bugs ---------- */

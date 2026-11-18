@@ -30,7 +30,11 @@ Deno.serve(async (req) => {
     if (Math.round(Number(mp.transaction_amount) * 100) !== pay.amount_cents) return new Response('amount', { status: 200 });
     const { error } = await db.rpc('apply_payment', { p_id: pay.id, p_mp_id: Number(mp.id) });
     if (error) return new Response('apply failed', { status: 500 });
-  } else if (['cancelled', 'rejected', 'refunded', 'charged_back'].includes(mp.status) && pay.status !== 'approved') {
+  } else if (['refunded', 'charged_back'].includes(mp.status)) {
+    // devolvido (pelo app, pelo painel do Mercado Pago ou contestação): tira o que o pagamento deu
+    const { error } = await db.rpc('revoke_payment', { p_id: pay.id, p_status: mp.status });
+    if (error) return new Response('revoke failed', { status: 500 });
+  } else if (['cancelled', 'rejected'].includes(mp.status) && pay.status === 'pending') {
     await db.from('payments').update({ status: mp.status }).eq('id', pay.id);
   }
   return new Response('ok', { status: 200 });

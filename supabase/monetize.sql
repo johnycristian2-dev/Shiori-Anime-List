@@ -151,3 +151,41 @@ end $$;
 
 -- Tag de dono: insert into public.user_perks (user_id, owner) select user_id, true from public.profiles where username = 'SEU_APELIDO'
 --   on conflict (user_id) do update set owner = true;
+
+-- ===== Reembolso automático e Pix direto do banco =====
+alter table public.app_config drop constraint if exists app_config_key_check;
+alter table public.app_config add constraint app_config_key_check
+  check (key in ('amazon_tag', 'kofi_url', 'apoiase_url', 'payments_on', 'pix_key', 'pix_name', 'pix_city'));
+insert into public.app_config (key, value) values ('pix_key', ''), ('pix_name', ''), ('pix_city', '') on conflict (key) do nothing;
+
+alter table public.payments add column if not exists refunded_at timestamptz;
+
+-- Desfaz o que um pagamento deu (chamada só pelo servidor quando o Pix é devolvido).
+create or replace function public.revoke_payment(p_id uuid, p_status text)
+returns text language plpgsql security definer set search_path = public as $$
+declare pay public.payments;
+begin
+  select * into pay from public.payments where id = p_id for update;
+  if not found then return 'not_found'; end if;
+  if pay.status <> 'approved' then
+    update public.payments set status = p_status where id = p_id and status = 'pending';
+    return 'not_approved';
+  end if;
+  update public.payments set status = p_status, refunded_at = now() where id = p_id;
+  if pay.kind = 'plus' then
+    update public.user_perks set
+      plus_until = case when plus_until - make_interval(days => 30 * pay.months) > now() then plus_until - make_interval(days => 30 * pay.months) else null end,
+      banner = case when owner or plus_until - make_interval(days => 30 * pay.months) > now() then banner else null end,
+      updated_at = now()
+    where user_id = pay.user_id;
+  else
+    update public.user_perks set
+      donated_cents = greatest(0, donated_cents - pay.amount_cents),
+      supporter_since = case when donated_cents - pay.amount_cents > 0 then supporter_since else null end,
+      updated_at = now()
+    where user_id = pay.user_id;
+  end if;
+  return 'ok';
+end $$;
+revoke execute on function public.revoke_payment(uuid, text) from public, anon, authenticated;
+grant execute on function public.revoke_payment(uuid, text) to service_role;

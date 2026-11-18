@@ -64,7 +64,7 @@ const ITEMS = [
       return t('Shiori+ e doações');
     },
     get p() {
-      return t('Pagamentos são feitos por Pix pelo Mercado Pago; o Shiori não vê nem guarda dados bancários. O Shiori+ é um pagamento único por período, sem renovação automática, e só libera extras visuais e sociais. Você pode pedir reembolso em até 7 dias pela página de feedback. Doações não dão direito a nada além do selo de Apoiador.');
+      return t('Pagamentos são feitos por Pix pelo Mercado Pago; o Shiori não vê nem guarda dados bancários. O Shiori+ é um pagamento único por período, sem renovação automática, e só libera extras visuais e sociais. Você pode pedir reembolso em até 7 dias na página Apoiar, e ele é automático. Doações não dão direito a nada além do selo de Apoiador.');
     },
   },
   {

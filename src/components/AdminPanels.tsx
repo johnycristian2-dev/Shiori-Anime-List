@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bug, Lightbulb, MessageCircle } from 'lucide-react';
 import { t } from '../lib/i18n';
 import { useUI } from '../store/ui';
-import { allBugs, saveConfig, updateBug, useConfig, type AppConfig, type BugRow } from '../sync/perks';
+import { allBugs, brl, recentPayments, refundPayment, saveConfig, updateBug, useConfig, type AppConfig, type BugRow } from '../sync/perks';
 import { EmptyState, ErrorBox, Spinner } from './ui';
 import { timeAgo } from './Social';
 
@@ -93,13 +93,16 @@ export function ConfigAdmin() {
       await saveConfig('kofi_url', form.kofi_url.trim());
       await saveConfig('apoiase_url', form.apoiase_url.trim());
       await saveConfig('payments_on', form.payments_on ? 'true' : 'false');
+      await saveConfig('pix_key', form.pix_key.trim());
+      await saveConfig('pix_name', form.pix_name.trim());
+      await saveConfig('pix_city', form.pix_city.trim());
       qc.invalidateQueries({ queryKey: ['app-config'] });
       toast(t('Configuração salva'));
     } catch (e) {
       toast((e as Error).message, 'err');
     }
   };
-  const field = (k: 'amazon_tag' | 'kofi_url' | 'apoiase_url', label: string, ph: string, help: string) => (
+  const field = (k: 'amazon_tag' | 'kofi_url' | 'apoiase_url' | 'pix_key' | 'pix_name' | 'pix_city', label: string, ph: string, help: string) => (
     <label className="block">
       <span className="text-sm font-extrabold">{label}</span>
       <input className="field mt-1" value={form[k]} placeholder={ph} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
@@ -111,6 +114,12 @@ export function ConfigAdmin() {
       {field('amazon_tag', t('Tag de afiliado da Amazon'), 'seunome-20', t('Do painel do Associados Amazon. Vazio = botão "Comprar" escondido.'))}
       {field('kofi_url', t('Link do Ko-fi'), 'https://ko-fi.com/...', t('Opcional. Aparece na página Apoiar.'))}
       {field('apoiase_url', t('Link do Apoia.se'), 'https://apoia.se/...', t('Opcional. Aparece na página Apoiar.'))}
+      <div className="space-y-3 rounded-[var(--radius-sm)] border-2 border-line p-3">
+        <b className="text-sm">{t('Pix direto do seu banco (usado enquanto o Mercado Pago estiver desligado)')}</b>
+        {field('pix_key', t('Chave Pix'), t('chave aleatória'), t('Use uma chave aleatória: CPF, telefone ou e-mail ficariam públicos.'))}
+        {field('pix_name', t('Nome que aparece no Pix'), 'Johny', t('Até 25 letras, sem acento.'))}
+        {field('pix_city', t('Cidade'), 'Erechim', t('Até 15 letras.'))}
+      </div>
       <label className="flex items-center gap-2 text-sm font-extrabold">
         <input type="checkbox" checked={form.payments_on} onChange={(e) => setForm({ ...form, payments_on: e.target.checked })} />
         {t('Pagamentos via Pix ligados (Shiori+ e doação)')}
@@ -119,6 +128,45 @@ export function ConfigAdmin() {
         {t('Só ligue depois de colocar o token do Mercado Pago no segredo MP_ACCESS_TOKEN do Supabase (Edge Functions → Secrets).')}
       </p>
       <button className="manga-btn" onClick={save}>{t('Salvar')}</button>
+      <PaymentsAdmin />
+    </div>
+  );
+}
+
+function PaymentsAdmin() {
+  const toast = useUI((s) => s.toast);
+  const q = useQuery({ queryKey: ['payments-admin'], queryFn: recentPayments });
+  if (!q.data?.length) return null;
+  return (
+    <div className="border-t-2 border-line pt-4">
+      <b className="text-sm">{t('Pagamentos recentes')}</b>
+      <div className="mt-2 space-y-2">
+        {q.data.map((p) => (
+          <div key={p.id} className="flex flex-wrap items-center gap-2 rounded-[var(--radius-sm)] bg-panel-2 p-2 text-xs">
+            <span className="font-extrabold">{p.kind === 'plus' ? `Shiori+ ${p.months}m` : t('Doação')}</span>
+            <span>{brl(p.amount_cents)}</span>
+            <span className="text-muted">{new Date(p.created_at).toLocaleDateString('pt-BR')}</span>
+            <span className="text-muted">{p.status}</span>
+            {p.status === 'approved' && (
+              <button
+                className="manga-btn ghost ml-auto !py-0.5 text-xs"
+                onClick={async () => {
+                  if (!confirm(t('Devolver esse Pix e tirar o que ele liberou?'))) return;
+                  try {
+                    await refundPayment(p.id);
+                    toast(t('Reembolsado'));
+                    q.refetch();
+                  } catch (e) {
+                    toast((e as Error).message, 'err');
+                  }
+                }}
+              >
+                {t('Reembolsar')}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
