@@ -91,7 +91,7 @@ function WatchPanel({ code, userId, myName, playback }: { code: string; userId: 
               {playback.by_name && t(' · último comando: {0}', playback.by_name)}
             </div>
           </div>
-          <a href={playback.episode_url} target="_blank" rel="noreferrer" className="manga-btn cyan w-full justify-center !py-2 sm:w-auto">
+          <a href={safeCrunchy(playback.episode_url)} target="_blank" rel="noreferrer" className="manga-btn cyan w-full justify-center !py-2 sm:w-auto">
             <ExternalLink size={15} /> {t('Abrir episódio')}
           </a>
         </div>
@@ -256,4 +256,9 @@ export default function PartyLive({ code, userId, myName, hostId }: { code: stri
       <ChatPanel code={code} userId={userId} myName={myName} hostId={hostId} messages={messages} />
     </div>
   );
+}
+
+/** Só deixa link https do Crunchyroll (o link vem de outros participantes da sala). */
+function safeCrunchy(url: string | null | undefined) {
+  return url && /^https:\/\/([a-z0-9-]+\.)*crunchyroll\.com\//i.test(url) ? url : undefined;
 }

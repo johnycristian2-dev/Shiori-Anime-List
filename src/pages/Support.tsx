@@ -150,12 +150,12 @@ export default function Support() {
         )}
         {(cfg?.kofi_url || cfg?.apoiase_url) && (
           <div className="mt-5 flex flex-wrap gap-2 border-t-2 border-line pt-4">
-            {cfg.kofi_url && (
+            {/^https:\/\//.test(cfg.kofi_url) && (
               <a className="manga-btn ghost !py-2" href={cfg.kofi_url} target="_blank" rel="noreferrer">
                 ☕ Ko-fi
               </a>
             )}
-            {cfg.apoiase_url && (
+            {/^https:\/\//.test(cfg.apoiase_url) && (
               <a className="manga-btn ghost !py-2" href={cfg.apoiase_url} target="_blank" rel="noreferrer">
                 {t('Apoio mensal no Apoia.se')}
               </a>

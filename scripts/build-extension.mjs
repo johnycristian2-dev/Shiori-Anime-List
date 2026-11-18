@@ -25,6 +25,9 @@ if (!URL || !KEY) {
 }
 
 const manifest = JSON.parse(readFileSync(resolve(src, 'manifest.json'), 'utf8'));
+// versão publicada não conversa com sites locais (só com EXT_DEV=1)
+if (!process.env.EXT_DEV)
+  for (const cs of manifest.content_scripts) cs.matches = cs.matches.filter((m) => !/localhost|127\.0\.0\.1/.test(m));
 manifest.host_permissions = manifest.host_permissions.map((h) => h.replace('__SUPABASE_HOST__', new globalThis.URL(URL).origin));
 
 rmSync(out, { recursive: true, force: true });

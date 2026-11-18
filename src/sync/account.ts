@@ -127,6 +127,9 @@ export const myBirthdate = (): string | undefined => useCloudUser.getState().use
 export async function setBirthdate(birthdate: string) {
   const age = ageFrom(birthdate);
   if (!(age >= MIN_AGE)) throw new Error(t('Você precisa ter pelo menos {0} anos para criar uma conta.', MIN_AGE));
+  // a data que vale é a do servidor (definida uma vez só); o metadata é só pra tela
+  const { error: e1 } = await sb().rpc('set_birthdate', { p_date: birthdate });
+  if (e1 && !/already_set/.test(e1.message)) throw friendly(e1);
   const { data, error } = await sb().auth.updateUser({ data: { birthdate } });
   if (error) throw friendly(error);
   useCloudUser.setState({ user: data.user });

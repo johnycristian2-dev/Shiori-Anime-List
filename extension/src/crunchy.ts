@@ -61,10 +61,14 @@ const cleanTitle = () =>
     .trim()
     .slice(0, 120);
 
+const CR_ORIGIN = /^https:\/\/([a-z0-9-]+\.)*crunchyroll\.com$/;
+
 function shareDown(msg: { shiori: 'top-url'; href: string; title: string; meta: EpMeta | null }) {
   document.querySelectorAll('iframe').forEach((f) => {
     try {
-      f.contentWindow?.postMessage(msg, '*');
+      // só pros players do próprio Crunchyroll (anúncios e outros iframes não recebem nada)
+      const origin = new URL(f.src, location.href).origin;
+      if (CR_ORIGIN.test(origin)) f.contentWindow?.postMessage(msg, origin);
     } catch {
       /* frame sem acesso */
     }
@@ -78,10 +82,12 @@ if (isTop) {
     shareDown({ shiori: 'top-url', href: topHref, title: topTitle, meta: topMeta });
   };
   setInterval(share, 1500);
-  window.addEventListener('message', (e) => e.data?.shiori === 'need-url' && share());
+  window.addEventListener('message', (e) => CR_ORIGIN.test(e.origin) && e.data?.shiori === 'need-url' && share());
 } else {
   window.addEventListener('message', (e) => {
     if (e.data?.shiori !== 'top-url' || typeof e.data.href !== 'string') return;
+    // só aceita de quem está acima na página e é do Crunchyroll
+    if (e.source !== window.parent || !CR_ORIGIN.test(e.origin)) return;
     if (!/^https:\/\/([a-z0-9-]+\.)*crunchyroll\.com\//.test(e.data.href)) return;
     topHref = e.data.href;
     topTitle = String(e.data.title ?? '').slice(0, 120);
@@ -549,7 +555,7 @@ const ui = (() => {
       if (!host) return;
       if (!p || !p.episode_url) return bannerEl.classList.remove('on');
       root.querySelector('.btxt')!.textContent = `A sala está em outro episódio${p.title ? `: ${p.title}` : ''}`;
-      (root.querySelector('.bgo') as HTMLAnchorElement).href = p.episode_url;
+      (root.querySelector('.bgo') as HTMLAnchorElement).href = /^https:\/\/([a-z0-9-]+\.)*crunchyroll\.com\//i.test(p.episode_url) ? p.episode_url : '#';
       bannerEl.classList.add('on');
     },
   };
