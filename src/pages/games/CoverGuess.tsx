@@ -2,8 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Dumbbell, Play, X } from 'lucide-react';
 import { ErrorBox, SectionTitle, Spinner } from '../../components/ui';
-import { dayNumber, hashString, isMainEntry, rng, sample, shuffle, todayKey, useAnimeTitle, usePool, type PoolAnime } from '../../games/core';
-import { Board, NextIn, ShareButton, SITE, useSubmit } from '../../games/shared';
+import { dayNumber, isMainEntry, rng, sample, shuffle, todayKey, useAnimeTitle, usePool, type PoolAnime } from '../../games/core';
+import { coverAnswer, coverRound, gameCoverUrl } from '../../sync/games';
+import { useUI } from '../../store/ui';
+import { Board, NextIn, ShareButton, SITE, useNeedsLogin, useSubmit } from '../../games/shared';
+import { openAuth } from '../../sync/account';
 import { t } from '../../lib/i18n';
 
 const ROUNDS = 10;
@@ -40,6 +43,7 @@ const readResult = (day: string): Result | null => {
 export default function CoverGuess() {
   const pool = usePool();
   const title = useAnimeTitle();
+  const toast = useUI((s) => s.toast);
   const [day] = useState(todayKey);
   const [practice, setPractice] = useState(false);
   const [seed, setSeed] = useState(0);
@@ -50,20 +54,29 @@ export default function CoverGuess() {
   const [score, setScore] = useState(0);
   const [marks, setMarks] = useState<Result['marks']>([]);
   const [elapsed, setElapsed] = useState(0);
+  // desafio do dia: a rodada vem do servidor (opções + link da capa que não diz qual é)
+  const [live, setLive] = useState<{ options: number[]; img: string; answer?: number } | null>(null);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [busy, setBusy] = useState(false);
   const t0 = useRef(0);
   const submit = useSubmit('imagem');
+  const needsLogin = useNeedsLogin();
 
-  const rounds = useMemo(
-    () => (pool.data ? makeRounds(pool.data, rng(practice ? seed : hashString('imagem-' + day))) : []),
-    [pool.data, practice, seed, day]
-  );
-  const round = rounds[i];
+  const rounds = useMemo(() => (pool.data && practice ? makeRounds(pool.data, rng(seed)) : []), [pool.data, practice, seed]);
+  const byId = useMemo(() => new Map((pool.data ?? []).map((a) => [a.id, a])), [pool.data]);
+  const round: Round | null = practice
+    ? rounds[i] ?? null
+    : live
+      ? {
+          answer: (live.answer ? byId.get(live.answer) : undefined) ?? ({ id: -1, c: '' } as PoolAnime),
+          options: live.options.map((id) => byId.get(id)).filter(Boolean) as PoolAnime[],
+        }
+      : null;
+  const imgSrc = practice ? round?.answer.c : live ? gameCoverUrl(live.img) : undefined;
 
   // relógio da rodada
   useEffect(() => {
     if (phase !== 'play') return;
-    t0.current = performance.now();
-    setElapsed(0);
     const id = setInterval(() => {
       const e = (performance.now() - t0.current) / 1000;
       setElapsed(e);
@@ -81,46 +94,104 @@ export default function CoverGuess() {
       </div>
     );
 
-  function start(isPractice: boolean) {
+  function finishDaily(res: Result, ans: number[]) {
+    setDaily(res);
+    setAnswers(ans);
+    setPhase('done');
+    try {
+      localStorage.setItem(KEY(day), JSON.stringify(res));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function nextLive() {
+    const r = await coverRound();
+    if (r.done) {
+      finishDaily({ score: r.score, marks: r.marks }, r.answers ?? []);
+      return;
+    }
+    setI(r.i ?? 0);
+    setScore(r.score);
+    setMarks(r.marks);
+    setPicked(null);
+    setLive({ options: r.options ?? [], img: r.img ?? '' });
+    t0.current = performance.now() - (r.elapsed ?? 0) * 1000;
+    setElapsed(r.elapsed ?? 0);
+    setPhase('play');
+  }
+
+  async function start(isPractice: boolean) {
     setPractice(isPractice);
-    setSeed(Math.floor(Math.random() * 2 ** 31));
     setI(0);
     setScore(0);
     setMarks([]);
     setPicked(null);
-    setPhase('play');
+    if (isPractice) {
+      setSeed(Math.floor(Math.random() * 2 ** 31));
+      t0.current = performance.now();
+      setElapsed(0);
+      setPhase('play');
+      return;
+    }
+    setBusy(true);
+    try {
+      await nextLive();
+    } catch (e) {
+      toast((e as Error).message, 'err');
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function choose(idx: number) {
-    if (phase !== 'play' || !round) return;
-    const e = Math.min(SECONDS, (performance.now() - t0.current) / 1000);
-    const ok = idx >= 0 && round.options[idx].id === round.answer.id;
-    const pts = ok ? Math.max(10, Math.round(100 * (1 - e / SECONDS))) : 0;
-    const nextScore = score + pts;
-    const nextMarks = [...marks, ok ? 'hit' : 'miss'] as Result['marks'];
+  async function choose(idx: number) {
+    if (phase !== 'play' || !round || busy) return;
+    if (practice) {
+      const e = Math.min(SECONDS, (performance.now() - t0.current) / 1000);
+      const ok = idx >= 0 && round.options[idx].id === round.answer.id;
+      const pts = ok ? Math.max(10, Math.round(100 * (1 - e / SECONDS))) : 0;
+      setPicked(idx);
+      setScore(score + pts);
+      setMarks([...marks, ok ? 'hit' : 'miss']);
+      setPhase('feedback');
+      setTimeout(() => {
+        if (i + 1 < ROUNDS) {
+          setI(i + 1);
+          setPicked(null);
+          t0.current = performance.now();
+          setElapsed(0);
+          setPhase('play');
+        } else setPhase('done');
+      }, 1400);
+      return;
+    }
+    // desafio do dia: quem confere e cronometra é o servidor
+    setBusy(true);
     setPicked(idx);
-    setScore(nextScore);
-    setMarks(nextMarks);
-    setPhase('feedback');
-    setTimeout(() => {
-      if (i + 1 < ROUNDS) {
-        setI(i + 1);
-        setPicked(null);
-        setPhase('play');
-      } else {
-        setPhase('done');
-        if (!practice) {
-          const res = { score: nextScore, marks: nextMarks };
-          setDaily(res);
+    try {
+      const r = await coverAnswer(idx >= 0 ? round.options[idx].id : -1);
+      setLive((l) => (l ? { ...l, answer: r.answer } : l));
+      setScore(r.score);
+      setMarks(r.marks);
+      setAnswers((a) => [...a, r.answer]);
+      setPhase('feedback');
+      setTimeout(async () => {
+        if (r.done) {
+          finishDaily({ score: r.score, marks: r.marks }, [...answers, r.answer]);
+          submit(day, r.score);
+        } else {
           try {
-            localStorage.setItem(KEY(day), JSON.stringify(res));
-          } catch {
-            /* ignore */
+            await nextLive();
+          } catch (e) {
+            toast((e as Error).message, 'err');
           }
-          submit(day, nextScore, { hits: nextMarks.filter((m) => m === 'hit').length });
         }
-      }
-    }, 1400);
+        setBusy(false);
+      }, 1400);
+    } catch (e) {
+      toast((e as Error).message, 'err');
+      setBusy(false);
+    }
   }
 
   const blur = phase === 'play' ? Math.max(0, 28 * (1 - elapsed / SECONDS)) : 0;
@@ -138,8 +209,17 @@ export default function CoverGuess() {
               <p className="mx-auto max-w-md text-sm font-bold text-muted">
                 {t('{0} capas borradas que vão ficando nítidas. Quanto mais rápido acertar, mais pontos (até 100 por capa). O desafio é o mesmo pra todo mundo hoje e só a primeira tentativa vale pro ranking.', ROUNDS)}
               </p>
-              <button className="manga-btn mx-auto !px-6 !py-3" onClick={() => start(false)}>
-                <Play size={18} /> {t('Começar desafio de hoje')}
+              {needsLogin ? (
+                <button className="manga-btn mx-auto !px-6 !py-3" onClick={() => openAuth('signin')}>
+                  <Play size={18} /> {t('Entre pra jogar o desafio de hoje')}
+                </button>
+              ) : (
+                <button className="manga-btn mx-auto !px-6 !py-3" disabled={busy} onClick={() => start(false)}>
+                  <Play size={18} /> {t('Começar desafio de hoje')}
+                </button>
+              )}
+              <button className="manga-btn ghost mx-auto" onClick={() => start(true)}>
+                <Dumbbell size={16} /> {t('Treinar com outras capas')}
               </button>
             </div>
           )}
@@ -158,7 +238,7 @@ export default function CoverGuess() {
               </div>
               <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-2xl border-[3px] border-black bg-panel">
                 <img
-                  src={round.answer.c}
+                  src={imgSrc}
                   alt=""
                   draggable={false}
                   className="aspect-[3/4] w-full select-none object-cover"
@@ -193,11 +273,11 @@ export default function CoverGuess() {
                 <span className="text-lg text-muted">/1000</span>
               </div>
               <div className="text-2xl tracking-widest">{shown.marks.map((m) => (m === 'hit' ? '🟩' : '🟥')).join('')}</div>
-              {!practice && rounds.length > 0 && (
+              {!practice && answers.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-1.5">
-                  {rounds.map((r) => (
-                    <Link key={r.answer.id} to={`/anime/${r.answer.id}`} title={title(r.answer)}>
-                      <img src={r.answer.c} alt="" className="h-14 w-10 rounded border-2 border-black object-cover" />
+                  {answers.map((id) => byId.get(id)).filter(Boolean).map((a) => (
+                    <Link key={a!.id} to={`/anime/${a!.id}`} title={title(a!)}>
+                      <img src={a!.c} alt="" className="h-14 w-10 rounded border-2 border-black object-cover" />
                     </Link>
                   ))}
                 </div>

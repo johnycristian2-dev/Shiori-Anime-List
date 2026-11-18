@@ -21,6 +21,75 @@ function friendly(e: { message?: string } | null) {
   return new Error(m || t('Algo deu errado.'));
 }
 
+/* ---------- jogos com o servidor como juiz ---------- */
+// O anime secreto, as capas e os números ficam no servidor. O navegador manda só o chute.
+
+export type Hit = 'ok' | 'near' | 'no';
+export interface AnimedleView {
+  guesses: { id: number; cells: { hit: Hit; arrow?: 'up' | 'down' | null }[] }[];
+  done: boolean;
+  won: boolean;
+  secret: number | null;
+  hint: string | null;
+  score: number | null;
+}
+export interface CoverRoundView {
+  done: boolean;
+  i?: number;
+  options?: number[];
+  img?: string;
+  elapsed?: number;
+  score: number;
+  marks: ('hit' | 'miss')[];
+  answers?: number[];
+}
+export interface CoverAnswerView {
+  ok: boolean;
+  answer: number;
+  pts: number;
+  score: number;
+  marks: ('hit' | 'miss')[];
+  done: boolean;
+}
+export interface HlStart {
+  run: string;
+  left: number;
+  left_value: number;
+  right: number;
+  score: number;
+}
+export interface HlAnswer {
+  ok: boolean;
+  right_value: number;
+  score: number;
+  done: boolean;
+  next?: number;
+}
+
+const supaUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+/** Capa servida pelo servidor (link temporário que não diz qual é o anime). */
+export const gameCoverUrl = (token: string) => `${supaUrl}/functions/v1/game-cover?t=${encodeURIComponent(token)}`;
+
+/** Jogar precisa de conta: o servidor guarda o andamento e confere cada jogada. */
+async function play<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  if (!supabase) throw new Error(t('Algo deu errado.'));
+  const { data: sess } = await supabase.auth.getSession();
+  if (!sess.session) throw new Error(t('Entre na sua conta pra jogar.'));
+  const { data, error } = await supabase.rpc(fn, args);
+  if (error) {
+    if (/too_fast/.test(error.message)) throw new Error(t('Calma, uma resposta por vez 🙂'));
+    throw friendly(error);
+  }
+  return data as T;
+}
+export const animedleState = () => play<AnimedleView>('animedle_state');
+export const animedleGuess = (id: number) => play<AnimedleView>('animedle_guess', { p_media: id });
+export const coverRound = () => play<CoverRoundView>('cover_round');
+export const coverAnswer = (choice: number) => play<CoverAnswerView>('cover_answer', { p_choice: choice });
+export const hlStart = (mode: 'p' | 'sc') => play<HlStart>('hl_start', { p_mode: mode });
+export const hlAnswer = (run: string, higher: boolean) => play<HlAnswer>('hl_answer', { p_run: run, p_higher: higher });
+
+/** (antigo) gravava a pontuação mandada pelo navegador; o servidor não aceita mais. */
 export async function submitScore(game: GameId, day: string, score: number, detail?: Record<string, unknown>) {
   if (!supabase) return null;
   const { data: s } = await supabase.auth.getSession();

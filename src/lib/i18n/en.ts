@@ -1576,6 +1576,10 @@ const en: Record<string, string> = {
   "Se esse e-mail ainda não tem conta, nenhum código é enviado: crie uma conta.": "If this email has no account yet, no code is sent: create an account.",
   "Contas novas só podem mandar links depois de 24 horas.": "New accounts can only send links after 24 hours.",
   "Você está curtindo rápido demais. Espere um pouco.": "You're liking too fast. Wait a bit.",
+  "Entre na sua conta pra jogar.": "Sign in to play.",
+  "Calma, uma resposta por vez 🙂": "Easy, one answer at a time 🙂",
+  "Entre na sua conta pra jogar. É grátis e o servidor guarda seu resultado e seu ranking com os amigos.": "Sign in to play. It's free and the server keeps your result and your ranking with friends.",
+  "Entre pra jogar o desafio de hoje": "Sign in to play today's challenge",
 };
 
 export default en;

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Crown, Share2, Trophy } from 'lucide-react';
+import { Crown, LogIn, Share2, Trophy } from 'lucide-react';
+import { openAuth } from '../sync/account';
 import { Link } from 'react-router-dom';
 import { Spinner } from '../components/ui';
 import { useCloudUser } from '../sync/cloud';
-import { dayBoard, myHistory, submitScore, type GameId } from '../sync/games';
+import { dayBoard, myHistory, type GameId } from '../sync/games';
 import { useUI } from '../store/ui';
 import { shiftDay, todayKey } from './core';
 import { t } from '../lib/i18n';
@@ -54,13 +55,10 @@ export function useStreak(game: GameId) {
 export function useSubmit(game: GameId) {
   const qc = useQueryClient();
   const toast = useUI((s) => s.toast);
-  return async (day: string, score: number, detail?: Record<string, unknown>) => {
+  // A pontuação já foi gravada pelo servidor; aqui só guarda no aparelho (sequência) e atualiza o ranking.
+  return async (day: string, score: number, _detail?: Record<string, unknown>) => {
+    void toast;
     recordLocal(game, day, score);
-    try {
-      await submitScore(game, day, score, detail);
-    } catch (e) {
-      toast((e as Error).message, 'err');
-    }
     qc.invalidateQueries({ queryKey: ['game-board', game, day] });
     qc.invalidateQueries({ queryKey: ['game-history', game] });
   };
@@ -162,3 +160,22 @@ export function ShareButton({ text }: { text: string }) {
 }
 
 export const SITE = 'shiori-anime-list.vercel.app';
+
+/** Os jogos valendo ranking precisam de conta (o servidor confere cada jogada). */
+export function useNeedsLogin() {
+  const user = useCloudUser((s) => s.user);
+  const ready = useCloudUser((s) => s.ready);
+  return ready && (!user || user.is_anonymous);
+}
+export function LoginToPlay({ title, jp }: { title: string; jp: string }) {
+  return (
+    <div className="panel mx-auto max-w-md space-y-4 p-6 text-center">
+      <div className="font-jp text-5xl text-pink/40">{jp}</div>
+      <h2 className="font-display text-2xl">{title}</h2>
+      <p className="text-sm font-bold text-muted">{t('Entre na sua conta pra jogar. É grátis e o servidor guarda seu resultado e seu ranking com os amigos.')}</p>
+      <button className="manga-btn mx-auto" onClick={() => openAuth('signin')}>
+        <LogIn size={16} /> {t('Entrar ou criar conta')}
+      </button>
+    </div>
+  );
+}

@@ -1,49 +1,21 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Flame, Search } from 'lucide-react';
 import { EmptyState, ErrorBox, SectionTitle, Spinner } from '../../components/ui';
 import { FORMAT_LABEL, genrePt } from '../../lib/labels';
-import { allNames, dayNumber, hashString, isMainEntry, norm, rng, shuffle, todayKey, useAnimeTitle, usePool, type PoolAnime } from '../../games/core';
-import { Board, NextIn, ShareButton, SITE, useStreak, useSubmit } from '../../games/shared';
+import { allNames, dayNumber, norm, todayKey, useAnimeTitle, usePool, type PoolAnime } from '../../games/core';
+import { animedleGuess, animedleState, gameCoverUrl, type AnimedleView } from '../../sync/games';
+import { useUI } from '../../store/ui';
+import { Board, LoginToPlay, NextIn, ShareButton, SITE, useNeedsLogin, useStreak, useSubmit } from '../../games/shared';
 import { t } from '../../lib/i18n';
 
 const MAX = 8;
 type Hit = 'ok' | 'near' | 'no';
 interface Cell {
   hit: Hit;
-  arrow?: 'up' | 'down';
+  arrow?: 'up' | 'down' | null;
   text: string;
-}
-
-/** Anime secreto do dia: uma ordem fixa embaralhada dos ~300 mais populares (sem continuações). */
-export function secretFor(pool: PoolAnime[], day: string) {
-  const cands = pool
-    .filter((a) => isMainEntry(a) && ['TV', 'MOVIE', 'ONA'].includes(a.f))
-    .sort((a, b) => b.p - a.p)
-    .slice(0, 300);
-  const order = shuffle(cands, rng(hashString('animedle-v1')));
-  const n = dayNumber(day) - 1;
-  return order[((n % order.length) + order.length) % order.length];
-}
-
-const near = (a: number, b: number, d: number) => Math.abs(a - b) <= d;
-const arrow = (guess: number, secret: number) => (secret > guess ? 'up' : secret < guess ? 'down' : undefined);
-
-export function compare(g: PoolAnime, s: PoolAnime): Cell[] {
-  const shared = g.g.filter((x) => s.g.includes(x)).length;
-  const sameGenres = shared === g.g.length && shared === s.g.length;
-  return [
-    { hit: sameGenres ? 'ok' : shared ? 'near' : 'no', text: g.g.slice(0, 3).map(genrePt).join(', ') || '—' },
-    { hit: g.y === s.y ? 'ok' : near(g.y, s.y, 3) ? 'near' : 'no', arrow: arrow(g.y, s.y), text: String(g.y) },
-    { hit: g.s && s.s && g.s.toLowerCase() === s.s.toLowerCase() ? 'ok' : 'no', text: g.s ?? '—' },
-    { hit: g.f === s.f ? 'ok' : 'no', text: FORMAT_LABEL[g.f] ?? g.f },
-    {
-      hit: g.ep === s.ep ? 'ok' : g.ep && s.ep && near(g.ep, s.ep, 3) ? 'near' : 'no',
-      arrow: g.ep && s.ep ? arrow(g.ep, s.ep) : undefined,
-      text: g.ep ? String(g.ep) : '?',
-    },
-    { hit: g.sc === s.sc ? 'ok' : near(g.sc, s.sc, 4) ? 'near' : 'no', arrow: arrow(g.sc, s.sc), text: `${g.sc}%` },
-  ];
 }
 
 const COLS = () => [t('Gêneros'), t('Ano'), t('Estúdio'), t('Formato'), t('Episódios'), t('Nota')];
@@ -54,71 +26,80 @@ const COLOR: Record<Hit, string> = {
   no: 'bg-panel-2 text-[var(--text)]',
 };
 
-function load(day: string): number[] {
-  try {
-    return JSON.parse(localStorage.getItem(`shiori-animedle-${day}`) || '[]');
-  } catch {
-    return [];
-  }
-}
+/** Texto de cada coluna vem do próprio chute (é público); a cor e a seta vêm do servidor. */
+const texts = (g: PoolAnime) => [
+  g.g.slice(0, 3).map(genrePt).join(', ') || '—',
+  String(g.y),
+  g.s ?? '—',
+  FORMAT_LABEL[g.f] ?? g.f,
+  g.ep ? String(g.ep) : '?',
+  `${g.sc}%`,
+];
 
 export default function Animedle() {
   const pool = usePool();
   const title = useAnimeTitle();
+  const toast = useUI((s) => s.toast);
   const [day] = useState(todayKey);
-  const [guesses, setGuesses] = useState<number[]>(() => load(day));
   const [term, setTerm] = useState('');
+  const [busy, setBusy] = useState(false);
   const submit = useSubmit('animedle');
   const { streak, wins, played } = useStreak('animedle');
+  const qc = useQueryClient();
+  const needsLogin = useNeedsLogin();
+  const state = useQuery({ queryKey: ['animedle', day], queryFn: animedleState, staleTime: Infinity, retry: 1, enabled: !needsLogin });
 
   const byId = useMemo(() => new Map((pool.data ?? []).map((a) => [a.id, a])), [pool.data]);
-  const secret = useMemo(() => (pool.data ? secretFor(pool.data, day) : null), [pool.data, day]);
-  const won = !!secret && guesses.includes(secret.id);
-  const over = won || guesses.length >= MAX;
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`shiori-animedle-${day}`, JSON.stringify(guesses));
-    } catch {
-      /* ignore */
-    }
-  }, [day, guesses]);
+  const view = state.data;
+  const guessed = useMemo(() => new Set(view?.guesses.map((g) => g.id) ?? []), [view]);
+  const over = !!view?.done;
+  const won = !!view?.won;
+  const secret = view?.secret ? byId.get(view.secret) ?? null : null;
 
   const suggestions = useMemo(() => {
     const q = norm(term);
     if (!q || !pool.data) return [];
     return pool.data
-      .filter((a) => !guesses.includes(a.id) && allNames(a).some((n) => norm(n).includes(q)))
+      .filter((a) => !guessed.has(a.id) && allNames(a).some((n) => norm(n).includes(q)))
       .sort((a, b) => b.p - a.p)
       .slice(0, 8);
-  }, [term, pool.data, guesses]);
+  }, [term, pool.data, guessed]);
 
+  if (needsLogin) return <LoginToPlay title={t('Animedle')} jp="今日のアニメ" />;
   if (pool.error) return <ErrorBox error={pool.error} onRetry={() => pool.refetch()} />;
-  if (!pool.data || !secret)
+  if (state.error) return <ErrorBox error={state.error} onRetry={() => state.refetch()} />;
+  if (!pool.data || !view)
     return (
       <div className="grid h-[50vh] place-items-center">
         <Spinner className="h-10 w-10 text-pink" />
       </div>
     );
 
-  const guess = (a: PoolAnime) => {
-    if (over || guesses.includes(a.id)) return;
-    const next = [...guesses, a.id];
-    setGuesses(next);
+  const guess = async (a: PoolAnime) => {
+    if (over || busy || guessed.has(a.id)) return;
+    setBusy(true);
     setTerm('');
-    const done = a.id === secret.id || next.length >= MAX;
-    if (done) {
-      const score = a.id === secret.id ? MAX + 1 - next.length : 0;
-      submit(day, score, { guesses: next.length, won: a.id === secret.id });
+    try {
+      const v = await animedleGuess(a.id);
+      qc.setQueryData(['animedle', day], v);
+      if (v.done) submit(day, v.score ?? 0);
+    } catch (e) {
+      toast((e as Error).message, 'err');
+    } finally {
+      setBusy(false);
     }
   };
 
-  const rows = guesses.map((id) => byId.get(id)).filter(Boolean) as PoolAnime[];
-  const wrong = rows.filter((r) => r.id !== secret.id).length;
-  const blur = over ? null : wrong >= 7 ? 6 : wrong >= 5 ? 16 : null;
+  const rows = view.guesses
+    .map((g) => ({ a: byId.get(g.id), cells: g.cells }))
+    .filter((r): r is { a: PoolAnime; cells: AnimedleView['guesses'][number]['cells'] } => !!r.a)
+    .map((r) => ({ a: r.a, cells: r.cells.map((c, i) => ({ hit: c.hit, arrow: c.arrow, text: texts(r.a)[i] }) as Cell) }));
+  const wrong = rows.filter((r) => !r.cells.every((c) => c.hit === 'ok')).length;
+  const blur = over || !view.hint ? null : wrong >= 7 ? 6 : 16;
+  const guesses = view.guesses.length;
   const shareText = [
-    `Animedle Shiori #${dayNumber(day)} ${won ? guesses.length : 'X'}/${MAX}`,
-    ...rows.map((r) => compare(r, secret).map((c) => EMOJI[c.hit]).join('')),
+    `Animedle Shiori #${dayNumber(day)} ${won ? guesses : 'X'}/${MAX}`,
+    ...rows.map((r) => r.cells.map((c) => EMOJI[c.hit]).join('')),
     SITE,
   ].join('\n');
 
@@ -144,7 +125,7 @@ export default function Animedle() {
         <div className="space-y-4">
           {blur !== null && (
             <div className="panel flex items-center gap-4 p-3">
-              <img src={secret.c} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" style={{ filter: `blur(${blur}px)` }} />
+              <img src={gameCoverUrl(view.hint!)} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" style={{ filter: `blur(${blur}px)` }} />
               <div className="text-sm font-bold text-muted">{t('Dica: a capa do anime secreto (vai ficando mais nítida).')}</div>
             </div>
           )}
@@ -154,7 +135,8 @@ export default function Animedle() {
               <Search className="absolute left-3 top-3.5 text-muted" size={16} />
               <input
                 className="field !pl-9 !py-3"
-                placeholder={t('Digite o nome de um anime… ({0} de {1})', guesses.length + 1, MAX)}
+                placeholder={t('Digite o nome de um anime… ({0} de {1})', guesses + 1, MAX)}
+                disabled={busy}
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && suggestions[0] && guess(suggestions[0])}
@@ -172,11 +154,11 @@ export default function Animedle() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : secret ? (
             <div className={`panel pop-in flex flex-wrap items-center gap-4 p-4 ${won ? 'border-[#4ade80]' : ''}`}>
               <img src={secret.c} alt="" className="w-24 rounded-xl border-[3px] border-black" />
               <div className="min-w-[200px] flex-1">
-                <div className="text-sm font-black text-muted">{won ? t('Acertou em {0}! 🎉', guesses.length) : t('Não foi dessa vez. Era…')}</div>
+                <div className="text-sm font-black text-muted">{won ? t('Acertou em {0}! 🎉', guesses) : t('Não foi dessa vez. Era…')}</div>
                 <Link to={`/anime/${secret.id}`} className="font-display text-2xl hover:underline">
                   {title(secret)}
                 </Link>
@@ -191,7 +173,7 @@ export default function Animedle() {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
 
           {!rows.length ? (
             <EmptyState jp="謎" title={t('Qual será o anime de hoje?')}>
@@ -202,13 +184,13 @@ export default function Animedle() {
               {rows
                 .slice()
                 .reverse()
-                .map((r) => {
-                  const cells = compare(r, secret);
+                .map(({ a: r, cells }) => {
+                  const right = cells.every((c) => c.hit === 'ok');
                   return (
                     <div key={r.id} className="pop-in panel p-2">
                       <div className="mb-2 flex items-center gap-2">
                         <img src={r.c} alt="" className="h-9 w-6 rounded border border-black object-cover" />
-                        <span className={`min-w-0 flex-1 truncate text-sm font-extrabold ${r.id === secret.id ? 'text-[#4ade80]' : ''}`}>{title(r)}</span>
+                        <span className={`min-w-0 flex-1 truncate text-sm font-extrabold ${right && won ? 'text-[#4ade80]' : ''}`}>{title(r)}</span>
                       </div>
                       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
                         {cells.map((c, i) => (

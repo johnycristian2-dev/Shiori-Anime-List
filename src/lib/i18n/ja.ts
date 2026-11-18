@@ -1604,6 +1604,10 @@ const ja: Record<string, string> = {
   "Se esse e-mail ainda não tem conta, nenhum código é enviado: crie uma conta.": "このメールにアカウントがない場合、コードは送られません：アカウントを作成してください。",
   "Contas novas só podem mandar links depois de 24 horas.": "新しいアカウントは24時間たつまでリンクを送れません。",
   "Você está curtindo rápido demais. Espere um pouco.": "いいねが速すぎます。少し待ってください。",
+  "Entre na sua conta pra jogar.": "プレイするにはログインしてください。",
+  "Calma, uma resposta por vez 🙂": "落ち着いて、1回ずつ答えてね 🙂",
+  "Entre na sua conta pra jogar. É grátis e o servidor guarda seu resultado e seu ranking com os amigos.": "プレイするにはログインしてください。無料で、結果と友達とのランキングはサーバーに保存されます。",
+  "Entre pra jogar o desafio de hoje": "ログインして今日のチャレンジをプレイ",
 };
 
 export default ja;

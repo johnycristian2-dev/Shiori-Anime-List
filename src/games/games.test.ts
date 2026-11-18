@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { dayNumber, rng, shiftDay, todayKey, type PoolAnime } from './core';
-import { compare, secretFor } from '../pages/games/Animedle';
 import { makeRounds } from '../pages/games/CoverGuess';
 import { buildQuiz } from '../sync/partyQuiz';
 import poolFile from '../../public/games/anime-pool.json';
@@ -14,20 +13,6 @@ describe('mini jogos', () => {
     expect(dayNumber('2027-03-01')).toBe(106);
     expect(shiftDay('2026-12-31', 1)).toBe('2027-01-01');
     expect(todayKey(new Date('2026-11-17T02:30:00Z'))).toBe('2026-11-16'); // 23h30 em Brasília
-  });
-
-  it('o anime secreto é igual pra todo mundo e muda todo dia', () => {
-    const a = secretFor(pool, '2026-11-20');
-    expect(secretFor(pool, '2026-11-20').id).toBe(a.id);
-    const week = new Set(Array.from({ length: 30 }, (_, i) => secretFor(pool, shiftDay('2026-11-17', i)).id));
-    expect(week.size).toBe(30); // nada repete em 30 dias
-  });
-
-  it('compara chute e secreto', () => {
-    const s = pool[0];
-    expect(compare(s, s).every((c) => c.hit === 'ok')).toBe(true);
-    const other = pool.find((a) => a.y < s.y - 5)!;
-    expect(compare(other, s)[1]).toMatchObject({ hit: 'no', arrow: 'up' });
   });
 
   it('capas do dia: 10 rodadas iguais pra mesma semente, com 4 opções e a certa incluída', () => {
