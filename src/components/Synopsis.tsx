@@ -27,7 +27,7 @@ function writeCache(key: string, text: string) {
 
 /**
  * Sinopse no idioma do site. O AniList só tem inglês; pt e ja são traduzidos
- * pela função /api/translate (com cache na CDN e no navegador).
+ * pelo MyMemory direto do navegador (com cache local).
  */
 export function useSynopsis(id: number, original: string | null | undefined) {
   const lang = getLang();
@@ -41,15 +41,8 @@ export function useSynopsis(id: number, original: string | null | undefined) {
     queryFn: async () => {
       const cached = readCache()[key];
       if (cached) return cached;
-      let text = '';
-      try {
-        const res = await fetch(`/api/translate?id=${id}&lang=${lang}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        text = ((await res.json()) as { text: string }).text;
-      } catch {
-        // Sem a função (ex.: GitHub Pages) ou ela falhou: traduz direto do navegador
-        text = await freeTranslate(base, lang as 'pt' | 'ja');
-      }
+      // tradução automática gratuita (MyMemory), sem IA e sem custo pro site
+      const text = await freeTranslate(base, lang as 'pt' | 'ja');
       if (text) writeCache(key, text);
       return text || base;
     },

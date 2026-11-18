@@ -96,13 +96,14 @@ export function ConfigAdmin() {
       await saveConfig('pix_key', form.pix_key.trim());
       await saveConfig('pix_name', form.pix_name.trim());
       await saveConfig('pix_city', form.pix_city.trim());
+      await saveConfig('turnstile_site', form.turnstile_site.trim());
       qc.invalidateQueries({ queryKey: ['app-config'] });
       toast(t('Configuração salva'));
     } catch (e) {
       toast((e as Error).message, 'err');
     }
   };
-  const field = (k: 'amazon_tag' | 'kofi_url' | 'apoiase_url' | 'pix_key' | 'pix_name' | 'pix_city', label: string, ph: string, help: string) => (
+  const field = (k: 'amazon_tag' | 'kofi_url' | 'apoiase_url' | 'pix_key' | 'pix_name' | 'pix_city' | 'turnstile_site', label: string, ph: string, help: string) => (
     <label className="block">
       <span className="text-sm font-extrabold">{label}</span>
       <input className="field mt-1" value={form[k]} placeholder={ph} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
@@ -120,6 +121,7 @@ export function ConfigAdmin() {
         {field('pix_name', t('Nome que aparece no Pix'), 'Johny', t('Até 25 letras, sem acento.'))}
         {field('pix_city', t('Cidade'), 'Erechim', t('Até 15 letras.'))}
       </div>
+      {field('turnstile_site', t('Chave do site do Cloudflare Turnstile (anti-robô)'), '0x4AAAA…', t('A chave pública (Site Key). A secreta vai só no Supabase. Salve aqui ANTES de ligar o captcha no Supabase.'))}
       <label className="flex items-center gap-2 text-sm font-extrabold">
         <input type="checkbox" checked={form.payments_on} onChange={(e) => setForm({ ...form, payments_on: e.target.checked })} />
         {t('Pagamentos via Pix ligados (Shiori+ e doação)')}

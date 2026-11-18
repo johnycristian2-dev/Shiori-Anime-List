@@ -2,6 +2,7 @@
  * Watch party: sala com código de 6 letras, cada um sugere animes e vota (até 3 votos por pessoa).
  * O anfitrião encerra e o mais votado vence (empate = sorteio). Tudo em tempo real (Supabase Realtime).
  */
+import { captchaToken } from '../lib/captcha';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Media } from '../types';
@@ -54,7 +55,7 @@ const sb = () => {
 export async function ensureSession() {
   const { data } = await sb().auth.getSession();
   if (data.session) return data.session.user;
-  const { data: anon, error } = await sb().auth.signInAnonymously();
+  const { data: anon, error } = await sb().auth.signInAnonymously({ options: { captchaToken: await captchaToken() } });
   if (error) throw new Error(t(
     'Não deu pra entrar como convidado. Ative "Anonymous sign-ins" no Supabase ou entre com sua conta em Sync.'
   ));

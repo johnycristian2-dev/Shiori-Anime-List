@@ -52,9 +52,10 @@ export interface AppConfig {
   pix_key: string;
   pix_name: string;
   pix_city: string;
+  turnstile_site: string;
 }
 async function loadConfig(): Promise<AppConfig> {
-  const c: AppConfig = { amazon_tag: '', kofi_url: '', apoiase_url: '', payments_on: false, pix_key: '', pix_name: '', pix_city: '' };
+  const c: AppConfig = { amazon_tag: '', kofi_url: '', apoiase_url: '', payments_on: false, pix_key: '', pix_name: '', pix_city: '', turnstile_site: '' };
   if (!supabase) return c;
   const { data } = await supabase.from('app_config').select('key, value');
   for (const r of data ?? []) {

@@ -189,3 +189,9 @@ begin
 end $$;
 revoke execute on function public.revoke_payment(uuid, text) from public, anon, authenticated;
 grant execute on function public.revoke_payment(uuid, text) to service_role;
+
+-- Chave pública do Cloudflare Turnstile (anti-robô no login)
+alter table public.app_config drop constraint if exists app_config_key_check;
+alter table public.app_config add constraint app_config_key_check
+  check (key in ('amazon_tag', 'kofi_url', 'apoiase_url', 'payments_on', 'pix_key', 'pix_name', 'pix_city', 'turnstile_site'));
+insert into public.app_config (key, value) values ('turnstile_site', '') on conflict (key) do nothing;

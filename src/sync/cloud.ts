@@ -4,6 +4,7 @@
  * - A cada mudança local: espera 1,5s sem mudanças e envia (lendo e mesclando antes, pra não perder nada).
  * - Outro aparelho mudou? O Realtime avisa e a gente mescla na hora.
  */
+import { captchaToken } from '../lib/captcha';
 import type { RealtimeChannel, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { redirectUrl, supabase } from '../lib/supabase';
@@ -162,7 +163,7 @@ export function startCloudSync() {
 export const cloud = {
   syncNow: () => syncNow(true),
   async signInEmail(email: string) {
-    const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectUrl() } });
+    const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectUrl(), captchaToken: await captchaToken() } });
     if (error) throw error;
   },
   async signInGoogle() {

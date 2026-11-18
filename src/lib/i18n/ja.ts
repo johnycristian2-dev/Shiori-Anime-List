@@ -1595,6 +1595,12 @@ const ja: Record<string, string> = {
   "Até 7 dias depois de pagar, o reembolso é automático: o Pix volta na hora.": "支払いから7日以内なら返金は自動で、Pixはすぐ戻ります。",
   "Você escolhe": "金額を自分で",
   "Esse Pix vai direto pro criador do Shiori. Quer o selo de Apoiador? Mande o comprovante pela página de feedback.": "このPixはShioriの作者に直接届きます。サポーターバッジが欲しい場合は、フィードバックページから領収書を送ってください。",
+  "Não deu pra carregar a verificação anti-robô. Confira sua internet.": "ロボット確認を読み込めませんでした。接続を確認してください。",
+  "Só confirmando que você não é um robô 🤖": "ロボットでないことを確認中 🤖",
+  "A verificação anti-robô falhou. Tente de novo.": "ロボット確認に失敗しました。もう一度お試しください。",
+  "A verificação anti-robô expirou. Tente de novo.": "ロボット確認の期限が切れました。もう一度お試しください。",
+  "Chave do site do Cloudflare Turnstile (anti-robô)": "Cloudflare Turnstileのサイトキー（ロボット対策）",
+  "A chave pública (Site Key). A secreta vai só no Supabase. Salve aqui ANTES de ligar o captcha no Supabase.": "公開キー（Site Key）。シークレットはSupabaseだけに入れます。Supabaseでキャプチャをオンにする前にここで保存してください。",
 };
 
 export default ja;

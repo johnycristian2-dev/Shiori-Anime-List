@@ -2,7 +2,7 @@
  * Tradução gratuita pelo MyMemory (https://mymemory.translated.net), sem chave.
  * Usada como reserva quando a IA (AI Gateway) não está disponível.
  * Limite: ~500 bytes por pedido, então o texto vai em pedaços por frase.
- * Sem dependências: é usado tanto no navegador quanto na função /api/translate.
+ * Sem dependências: roda direto no navegador.
  */
 
 const TARGET: Record<string, string> = { pt: 'pt-BR', ja: 'ja' };

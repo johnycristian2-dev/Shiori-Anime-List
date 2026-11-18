@@ -1567,6 +1567,12 @@ const en: Record<string, string> = {
   "Até 7 dias depois de pagar, o reembolso é automático: o Pix volta na hora.": "Up to 7 days after paying, refunds are automatic: the Pix comes back right away.",
   "Você escolhe": "You choose",
   "Esse Pix vai direto pro criador do Shiori. Quer o selo de Apoiador? Mande o comprovante pela página de feedback.": "This Pix goes straight to Shiori's creator. Want the Supporter badge? Send the receipt through the feedback page.",
+  "Não deu pra carregar a verificação anti-robô. Confira sua internet.": "Couldn't load the anti-bot check. Check your internet.",
+  "Só confirmando que você não é um robô 🤖": "Just confirming you're not a robot 🤖",
+  "A verificação anti-robô falhou. Tente de novo.": "The anti-bot check failed. Try again.",
+  "A verificação anti-robô expirou. Tente de novo.": "The anti-bot check expired. Try again.",
+  "Chave do site do Cloudflare Turnstile (anti-robô)": "Cloudflare Turnstile site key (anti-bot)",
+  "A chave pública (Site Key). A secreta vai só no Supabase. Salve aqui ANTES de ligar o captcha no Supabase.": "The public key (Site Key). The secret one goes only in Supabase. Save it here BEFORE turning on captcha in Supabase.",
 };
 
 export default en;

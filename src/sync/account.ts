@@ -2,6 +2,7 @@
  * Conta Shiori: cadastro com e-mail e senha (ou Google), perfil com foto, banner e bio.
  * A sincronização da lista continua em cloud.ts; aqui é só identidade e perfil.
  */
+import { captchaToken as captchaToken_ } from '../lib/captcha';
 import { create } from 'zustand';
 import { redirectUrl, supabase } from '../lib/supabase';
 import { getLang, t } from '../lib/i18n';
@@ -53,10 +54,12 @@ export async function signUp(p: { email: string; password: string; username: str
   const age = ageFrom(p.birthdate);
   if (!(age >= MIN_AGE)) throw new Error(t('Você precisa ter pelo menos {0} anos para criar uma conta.', MIN_AGE));
   if (age > 120) throw new Error(t('Confira a data de nascimento.'));
+  const captchaToken = await captchaToken_();
   const { data, error } = await sb().auth.signUp({
     email: p.email.trim(),
     password: p.password,
     options: {
+      captchaToken,
       emailRedirectTo: redirectUrl(),
       // data de nascimento fica só nos dados privados da conta, nunca no perfil público
       data: { username, display_name: p.displayName.trim(), birthdate: p.birthdate, lang: getLang() },
@@ -68,7 +71,7 @@ export async function signUp(p: { email: string; password: string; username: str
 }
 
 export async function signIn(email: string, password: string) {
-  const { error } = await sb().auth.signInWithPassword({ email: email.trim(), password });
+  const { error } = await sb().auth.signInWithPassword({ email: email.trim(), password, options: { captchaToken: await captchaToken_() } });
   if (error) throw friendly(error);
 }
 
@@ -79,7 +82,10 @@ export async function signInGoogle() {
 
 /** Manda um código de 6 dígitos (e um link de reserva) pra entrar sem senha */
 export async function sendLoginCode(email: string) {
-  const { error } = await sb().auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: redirectUrl(), shouldCreateUser: false } });
+  const { error } = await sb().auth.signInWithOtp({
+    email: email.trim(),
+    options: { emailRedirectTo: redirectUrl(), shouldCreateUser: false, captchaToken: await captchaToken_() },
+  });
   if (error) {
     if (/Signups not allowed for otp/i.test(error.message)) throw new Error(t('Não existe conta com esse e-mail. Crie uma conta.'));
     throw friendly(error);
@@ -103,14 +109,14 @@ export async function verifyCode(email: string, code: string, type: CodeType) {
 /** Reenvia o código certo pra cada situação */
 export async function resendCode(email: string, type: CodeType) {
   if (type === 'signup') {
-    const { error } = await sb().auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: redirectUrl() } });
+    const { error } = await sb().auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: redirectUrl(), captchaToken: await captchaToken_() } });
     if (error) throw friendly(error);
   } else if (type === 'recovery') await resetPassword(email);
   else await sendLoginCode(email);
 }
 
 export async function resetPassword(email: string) {
-  const { error } = await sb().auth.resetPasswordForEmail(email.trim(), { redirectTo: redirectUrl() });
+  const { error } = await sb().auth.resetPasswordForEmail(email.trim(), { redirectTo: redirectUrl(), captchaToken: await captchaToken_() });
   if (error) throw friendly(error);
 }
 
