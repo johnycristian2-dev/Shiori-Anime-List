@@ -9,6 +9,8 @@ import { useUI } from '../store/ui';
 import { useCloudUser } from '../sync/cloud';
 import { amIAdmin, loadReports, REPORT_REASONS, setReportStatus } from '../sync/social';
 import { BugsAdmin, ConfigAdmin } from '../components/AdminPanels';
+import { AdminContent, AdminLog, AdminOverview, AdminSite, AdminUsers, OwnerBadge } from '../components/OwnerPanel';
+import { amIOwner } from '../sync/admin';
 import { reportedContent, setChatMessageHidden, setCommentHidden, setPostHidden } from '../sync/posts';
 
 const KIND: Record<string, () => string> = {
@@ -23,8 +25,9 @@ export default function Moderation() {
   const user = useCloudUser((s) => s.user);
   const toast = useUI((s) => s.toast);
   const [status, setStatus] = useState<'open' | 'resolved' | 'dismissed'>('open');
-  const [tab, setTab] = useState<'reports' | 'bugs' | 'config'>('reports');
+  const [tab, setTab] = useState<string>('overview');
   const admin = useQuery({ queryKey: ['is-admin', user?.id], queryFn: amIAdmin, enabled: !!user, staleTime: Infinity });
+  const owner = useQuery({ queryKey: ['is-owner', user?.id], queryFn: amIOwner, enabled: !!user && !!admin.data, staleTime: Infinity });
   const q = useQuery({ queryKey: ['reports', status], queryFn: () => loadReports(status), enabled: !!admin.data });
 
   if (admin.isLoading) return <Spinner className="mx-auto mt-20 h-8 w-8 text-pink" />;
@@ -45,33 +48,55 @@ export default function Moderation() {
     }
   };
 
+  const isOwner = !!owner.data;
+  const TABS: [string, string][] = [
+    ['overview', t('Visão geral')],
+    ['users', t('Usuários')],
+    ['content', t('Conteúdo')],
+    ['reports', t('Denúncias')],
+    ['bugs', t('Bugs e ideias')],
+    ['site', t('Site')],
+    ...(isOwner ? ([['config', t('Apoio e afiliados')]] as [string, string][]) : []),
+    ['log', t('Registro')],
+  ];
   const tabs = (
-    <div className="mb-5 flex flex-wrap gap-2 border-b-2 border-line pb-4">
-      {(
-        [
-          ['reports', t('Denúncias')],
-          ['bugs', t('Bugs e ideias')],
-          ['config', t('Apoio e afiliados')],
-        ] as const
-      ).map(([id, label]) => (
-        <button key={id} className={`manga-btn !py-1.5 text-sm ${tab === id ? '' : 'ghost'}`} onClick={() => setTab(id)}>
+    <div className="mb-5 flex gap-2 overflow-x-auto border-b-2 border-line pb-4">
+      {TABS.map(([id, label]) => (
+        <button key={id} className={`manga-btn shrink-0 !py-1.5 text-sm ${tab === id ? '' : 'ghost'}`} onClick={() => setTab(id)}>
           {label}
         </button>
       ))}
     </div>
   );
+  const title = (
+    <SectionTitle title={t('Moderação')} jp="管理" action={isOwner ? <OwnerBadge /> : undefined} />
+  );
   if (tab !== 'reports')
     return (
       <>
-        <SectionTitle title={t('Moderação')} jp="管理" />
+        {title}
         {tabs}
-        {tab === 'bugs' ? <BugsAdmin /> : <ConfigAdmin />}
+        {tab === 'overview' ? (
+          <AdminOverview goto={setTab} />
+        ) : tab === 'users' ? (
+          <AdminUsers owner={isOwner} />
+        ) : tab === 'content' ? (
+          <AdminContent />
+        ) : tab === 'site' ? (
+          <AdminSite />
+        ) : tab === 'log' ? (
+          <AdminLog />
+        ) : tab === 'bugs' ? (
+          <BugsAdmin />
+        ) : isOwner ? (
+          <ConfigAdmin />
+        ) : null}
       </>
     );
 
   return (
     <>
-      <SectionTitle title={t('Moderação')} jp="管理" />
+      {title}
       {tabs}
       <div className="mb-5 flex flex-wrap gap-2">
         {(

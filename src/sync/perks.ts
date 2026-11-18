@@ -53,13 +53,17 @@ export interface AppConfig {
   pix_name: string;
   pix_city: string;
   turnstile_site: string;
+  announcement: string;
+  announcement_kind: string;
+  community_paused: boolean;
 }
 async function loadConfig(): Promise<AppConfig> {
-  const c: AppConfig = { amazon_tag: '', kofi_url: '', apoiase_url: '', payments_on: false, pix_key: '', pix_name: '', pix_city: '', turnstile_site: '' };
+  const c: AppConfig = { amazon_tag: '', kofi_url: '', apoiase_url: '', payments_on: false, pix_key: '', pix_name: '', pix_city: '', turnstile_site: '', announcement: '', announcement_kind: 'info', community_paused: false };
   if (!supabase) return c;
   const { data } = await supabase.from('app_config').select('key, value');
   for (const r of data ?? []) {
     if (r.key === 'payments_on') c.payments_on = r.value === 'true';
+    else if (r.key === 'community_paused') c.community_paused = r.value === 'true';
     else if (r.key in c) (c as unknown as Record<string, string>)[r.key] = r.value;
   }
   return c;

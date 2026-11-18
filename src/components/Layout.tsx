@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import AnnouncementBar from './AnnouncementBar';
 import { useOutsideClose } from './ui';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Bug, CalendarDays, ChevronDown, Compass, Dices, Gamepad2, Layers, Medal, ListChecks, Map, Menu, Palette, RefreshCw, Search, Gift, Popcorn, Sparkles, Timer, Trophy, Users, X, MessageCircle } from 'lucide-react';
@@ -468,7 +469,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               </button>
               {more && (
                 <>
-                  <div className="pop-in panel absolute left-0 top-12 z-50 w-60 p-1.5 shadow-[6px_6px_0_var(--shadow)]">
+                  <div className="pop-in panel absolute left-0 top-12 z-50 max-h-[calc(100dvh-5.5rem)] w-60 overflow-y-auto overscroll-contain p-1.5 shadow-[6px_6px_0_var(--shadow)]">
                     {MORE.map(({ to, label, jp, icon: Icon }) => (
                       <NavLink
                         key={to}
@@ -505,6 +506,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
+      <AnnouncementBar />
       <main className="relative z-10 mx-auto max-w-7xl px-4 pb-32 pt-6 xl:pb-16">{children}</main>
 
       {/* Navegação inferior no celular */}
@@ -550,7 +552,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 z-[60] xl:hidden" onClick={() => setSheet(false)}>
           <div className="absolute inset-0 bg-black/60" />
           <div
-            className="pop-in absolute inset-x-0 bottom-0 rounded-t-3xl border-t-[3px] border-black bg-bg p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
+            className="pop-in absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto overscroll-contain rounded-t-3xl border-t-[3px] border-black bg-bg p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-line" />
