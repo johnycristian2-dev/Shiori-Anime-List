@@ -292,7 +292,7 @@ export default function ChatRoom() {
         </Link>
         {info.media?.cover ? (
           <Link to={mediaPath(info.media)}>
-            <img src={info.media.cover} alt="" className="h-12 w-9 rounded-md border-2 border-black object-cover" />
+            <img loading="lazy" decoding="async" src={info.media.cover} alt="" className="h-12 w-9 rounded-md border-2 border-black object-cover" />
           </Link>
         ) : (
           <span className="grid h-12 w-12 place-items-center rounded-[var(--radius-sm)] border-2 border-black bg-pink font-jp text-lg font-black text-[var(--on-pink)]">{info.jp.slice(0, 2)}</span>

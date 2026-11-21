@@ -43,6 +43,9 @@ function Hero({ items }: { items?: Media[] }) {
           key={`c${m.id}`}
           src={coverOf(m)}
           alt=""
+          fetchPriority={i === 0 ? 'high' : 'auto'}
+          width={112}
+          height={160}
           className="pop-in w-28 rounded-xl border-[3px] border-black shadow-[4px_4px_0_var(--pink)] sm:hidden"
         />
         <span className="inline-flex w-fit items-center gap-2 rounded-lg border-2 border-black bg-yellow px-2.5 py-1 text-xs font-black text-black -rotate-2">
@@ -63,14 +66,17 @@ function Hero({ items }: { items?: Media[] }) {
           <Link to={mediaPath(m)} className="manga-btn ghost">
             <Info size={16} />{' '}{t('Detalhes')}
           </Link>
-          <div className="ml-auto flex gap-1.5">
+          <div className="ml-auto flex">
             {list.map((x, j) => (
               <button
                 key={x.id}
                 onClick={() => setI(j)}
                 aria-label={t('Destaque {0}', j + 1)}
-                className={`h-2.5 rounded-full border border-black transition-all ${j === i % list.length ? 'w-8 bg-pink' : 'w-2.5 bg-white/50'}`}
-              />
+                aria-current={j === i % list.length}
+                className="grid h-8 min-w-6 place-items-center px-[3px]"
+              >
+                <span className={`block h-2.5 rounded-full border border-black transition-all ${j === i % list.length ? 'w-8 bg-pink' : 'w-2.5 bg-white/50'}`} />
+              </button>
             ))}
           </div>
         </div>
@@ -324,9 +330,7 @@ function AnimeDiscover() {
             <div className="text-xs font-bold text-muted">
               {d}–{d + 9}
             </div>
-            <div className="absolute -bottom-3 -right-1 font-jp text-5xl font-black text-pink/15 transition group-hover:text-pink/30">
-              {d}
-            </div>
+            <div aria-hidden data-deco={d} className="deco-text absolute -bottom-3 -right-1 font-jp text-5xl font-black text-pink/15 transition group-hover:text-pink/30" />
           </Link>
         ))}
       </div>

@@ -282,7 +282,7 @@ export default function ProfileEdit() {
       {/* Banner + foto */}
       <section className="mb-6 overflow-hidden rounded-[calc(var(--radius)*1.3)] border-[3px] border-black bg-panel shadow-[6px_6px_0_var(--pink)]">
         <div className="halftone relative h-40 bg-panel-2 sm:h-56">
-          {profile.banner_url ? <img src={profile.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <div className="speedlines absolute inset-0 opacity-60" />}
+          {profile.banner_url ? <img loading="lazy" decoding="async" src={profile.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <div className="speedlines absolute inset-0 opacity-60" />}
           <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-2">
             <button className="manga-btn !py-1.5 text-sm" onClick={() => bannerFile.current?.click()} disabled={!!busy}>
               {busy === 'banner' ? <Spinner className="h-4 w-4" /> : <Upload size={14} />} {t('Enviar banner')}

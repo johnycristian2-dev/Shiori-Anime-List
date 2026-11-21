@@ -180,7 +180,7 @@ export default function EpisodeBell() {
                 {items.map((i) => (
                   <div key={i.id} className="flex items-center gap-3 rounded-xl bg-panel-2 p-2">
                     <Link to={`/anime/${i.mediaId}`} onClick={() => setOpen(false)}>
-                      <img src={i.entry.cover ?? ''} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />
+                      <img loading="lazy" decoding="async" src={i.entry.cover ?? ''} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />
                     </Link>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-extrabold">{name(i.entry)}</div>

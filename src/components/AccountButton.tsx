@@ -61,7 +61,7 @@ export default function AccountButton() {
       {open && (
         <div className="pop-in panel absolute right-0 top-12 z-50 w-72 overflow-hidden !p-0 shadow-[6px_6px_0_var(--shadow)]">
           <div className="relative h-20 bg-panel-2">
-            {profile?.banner_url && <img src={profile.banner_url} alt="" className="h-full w-full object-cover opacity-80" />}
+            {profile?.banner_url && <img loading="lazy" decoding="async" src={profile.banner_url} alt="" className="h-full w-full object-cover opacity-80" />}
             <div className="absolute inset-0 bg-linear-to-t from-panel to-transparent" />
           </div>
           <div className="relative z-10 -mt-7 flex items-end gap-3 px-4">

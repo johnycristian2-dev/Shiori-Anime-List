@@ -215,7 +215,7 @@ function PickCard({ p, c, mine, swaps, onDrop }: { p: PickPoints; c?: CatalogAni
   const fresh = Date.now() - new Date(p.picked_at).getTime() < 86_400_000;
   return (
     <div className="relative overflow-hidden rounded-xl border-[3px] border-black bg-panel-2">
-      {c?.cover && <img src={c.cover} alt="" className="aspect-[3/4] w-full object-cover" />}
+      {c?.cover && <img loading="lazy" decoding="async" src={c.cover} alt="" className="aspect-[3/4] w-full object-cover" />}
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-2 text-white">
         <div className="line-clamp-2 text-xs font-extrabold leading-tight">{c ? title(c) : '?'}</div>
@@ -373,7 +373,7 @@ function LeagueRoom({ id }: { id: string }) {
                 <span className="mt-1 flex gap-1">
                   {m.active.map((p) => {
                     const c = byId.get(p.media_id);
-                    return c?.cover ? <img key={p.pick_id} src={c.cover} alt="" title={c.title.r} className="h-9 w-6 rounded border border-black object-cover" /> : null;
+                    return c?.cover ? <img loading="lazy" decoding="async" key={p.pick_id} src={c.cover} alt="" title={c.title.r} className="h-9 w-6 rounded border border-black object-cover" /> : null;
                   })}
                   {!m.active.length && <span className="text-[11px] font-bold text-muted">{t('ainda montando o time')}</span>}
                 </span>

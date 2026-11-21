@@ -690,7 +690,7 @@ export function AdminErrors() {
                 <button className="min-w-0 flex-1 text-left" onClick={() => setOpen(open === e.id ? null : e.id)} aria-expanded={open === e.id}>
                   <div className="break-words font-bold">{e.message}</div>
                   <div className="mt-1 text-xs text-muted">
-                    {t('{n}x', { n: e.count })} · {t('{n} pessoa(s)', { n: e.users })} · {timeAgo(e.last_at)} · {e.page ?? '—'} · {e.device ?? '—'}
+                    {t('{0}x', e.count)} · {t('{0} pessoa(s)', e.users)} · {timeAgo(e.last_at)} · {e.page ?? '—'} · {e.device ?? '—'}
                     {e.version ? ` · v${e.version}` : ''}
                   </div>
                 </button>

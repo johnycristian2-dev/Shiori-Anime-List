@@ -27,7 +27,7 @@ export default function AnimeRow({
   const scroll = (d: number) => ref.current?.scrollBy({ left: d * ref.current.clientWidth * 0.8, behavior: 'smooth' });
 
   return (
-    <section className="mb-10">
+    <section className="cv-auto -mx-4 mb-10 px-4">
       <SectionTitle title={title} jp={jp} action={action} />
       <div className="relative">
         <div ref={ref} className="no-scrollbar -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3 pt-1">

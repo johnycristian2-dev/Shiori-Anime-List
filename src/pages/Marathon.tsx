@@ -43,7 +43,7 @@ function Picker() {
       <div className="space-y-2">
         {(q.data?.media ?? []).map((m) => (
           <button key={m.id} onClick={() => nav(`/maratona/${m.id}`)} className="panel flex w-full items-center gap-3 p-2 text-left hover:border-pink">
-            <img src={coverOf(m)} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />
+            <img loading="lazy" decoding="async" src={coverOf(m)} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />
             <div className="min-w-0">
               <div className="truncate font-extrabold">{title(m)}</div>
               <div className="text-xs font-bold text-muted">{[m.format && FORMAT_LABEL[m.format], m.seasonYear].filter(Boolean).join(' · ')}</div>
@@ -131,7 +131,7 @@ export default function Marathon() {
       <SectionTitle title={t('Planejador de maratona')} jp="一気見" action={<Link to="/maratona">{t('Trocar anime')}</Link>} />
 
       <div className="mb-6 flex items-center gap-4">
-        {coverOf(root) && <img src={coverOf(root)} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />}
+        {coverOf(root) && <img loading="lazy" decoding="async" src={coverOf(root)} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" />}
         <div>
           <div className="font-display text-2xl">{title(root)}</div>
           <div className="text-sm font-bold text-muted">

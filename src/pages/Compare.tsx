@@ -224,7 +224,7 @@ export default function Compare() {
         <div className="panel mb-10 divide-y-2 divide-line">
           {r.forThem.slice(0, 10).map((e) => (
             <Link key={e.mediaId} to={`/anime/${e.mediaId}`} className="flex items-center gap-3 p-2.5 hover:bg-panel-2">
-              {e.cover && <img src={e.cover} alt="" className="h-12 w-9 rounded border-2 border-black object-cover" />}
+              {e.cover && <img loading="lazy" decoding="async" src={e.cover} alt="" className="h-12 w-9 rounded border-2 border-black object-cover" />}
               <span className="min-w-0 flex-1 truncate font-bold">{titleOf(e)}</span>
               {e.score > 0 && <span className="rounded border-2 border-black bg-yellow px-1.5 text-xs font-black text-black">★ {e.score}</span>}
             </Link>
@@ -240,7 +240,7 @@ export default function Compare() {
           <div className="panel divide-y-2 divide-line">
             {r.disagree.slice(0, 8).map((p) => (
               <Link key={p.me.mediaId} to={`/anime/${p.me.mediaId}`} className="flex items-center gap-3 p-2.5 hover:bg-panel-2">
-                {p.me.cover && <img src={p.me.cover} alt="" className="h-12 w-9 rounded border-2 border-black object-cover" />}
+                {p.me.cover && <img loading="lazy" decoding="async" src={p.me.cover} alt="" className="h-12 w-9 rounded border-2 border-black object-cover" />}
                 <span className="min-w-0 flex-1 truncate font-bold">{titleOf(p.me)}</span>
                 <span className="text-xs font-black">
                   <span className="text-pink">{t('Você ★')}{p.me.score}</span>{' '}{t('vs')}{' '}<span className="text-cyan">★{p.them.score}</span>

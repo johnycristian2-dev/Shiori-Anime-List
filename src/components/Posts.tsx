@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import { Eye, EyeOff, Flag, Heart, MessageCircle, MoreHorizontal, Pencil, Search, Send, Star, Trash2, X } from 'lucide-react';
 import { useSearch } from '../api/hooks';
 import { t } from '../lib/i18n';
-import { useTitle, coverOf } from '../lib/format';
+import { useTitle, coverOf, thumbOf } from '../lib/format';
 import { isManga, mediaPath, unitShort } from '../lib/media';
 import { maskProfanity } from '../lib/profanity';
 import { useList } from '../store/list';
@@ -86,7 +86,7 @@ function MediaPicker({ onPick, type }: { onPick: (m: PostMedia) => void; type: M
                   setQ('');
                 }}
               >
-                <img src={coverOf(m)} alt="" className="h-10 w-7 rounded object-cover" />
+                <img loading="lazy" decoding="async" src={thumbOf(m)} alt="" className="h-10 w-7 rounded object-cover" />
                 <span className="truncate">{title(m)}</span>
               </button>
             ))
@@ -173,7 +173,7 @@ export function PostComposer({ media, onPosted }: { media?: (PostMedia & { total
       {!media && (
         target ? (
           <div className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-panel-2 p-2 text-sm font-bold">
-            {target.cover && <img src={target.cover} alt="" className="h-10 w-7 rounded object-cover" />}
+            {target.cover && <img loading="lazy" decoding="async" src={target.cover} alt="" className="h-10 w-7 rounded object-cover" />}
             <span className="flex-1 truncate">{target.titleEnglish || target.title}</span>
             <button type="button" className="text-muted hover:text-ink" onClick={() => setPicked(null)} aria-label={t('Remover')}>
               <X size={16} />

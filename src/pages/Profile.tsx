@@ -335,7 +335,7 @@ export default function Profile() {
                 <X />
               </button>
             </div>
-            <img src={card.url} alt="" className={`mx-auto rounded-xl border-2 border-black ${card.kind === 'story' ? 'max-h-[65vh] w-auto' : 'w-full'}`} />
+            <img loading="lazy" decoding="async" src={card.url} alt="" className={`mx-auto rounded-xl border-2 border-black ${card.kind === 'story' ? 'max-h-[65vh] w-auto' : 'w-full'}`} />
             <div className="mt-4 flex gap-2">
               <a className="manga-btn flex-1" href={card.url} download={card.kind === 'story' ? 'shiori-story.png' : 'shiori-lista.png'}>
                 <Download size={16} />{' '}{t('Baixar')}

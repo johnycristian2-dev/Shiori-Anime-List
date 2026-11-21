@@ -5,7 +5,7 @@ export default function Avatar({ url, name, size = 36, className = '' }: { url?:
   const initial = (name || '?').trim()[0]?.toUpperCase() ?? '?';
   const [failed, setFailed] = useState<string | null>(null);
   return url && failed !== url ? (
-    <img
+    <img loading="lazy" decoding="async"
       onError={() => setFailed(url)}
       src={url}
       alt=""

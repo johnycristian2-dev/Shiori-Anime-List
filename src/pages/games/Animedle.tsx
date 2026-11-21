@@ -125,7 +125,7 @@ export default function Animedle() {
         <div className="space-y-4">
           {blur !== null && (
             <div className="panel flex items-center gap-4 p-3">
-              <img src={gameCoverUrl(view.hint!)} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" style={{ filter: `blur(${blur}px)` }} />
+              <img loading="lazy" decoding="async" src={gameCoverUrl(view.hint!)} alt="" className="h-24 w-16 rounded-lg border-2 border-black object-cover" style={{ filter: `blur(${blur}px)` }} />
               <div className="text-sm font-bold text-muted">{t('Dica: a capa do anime secreto (vai ficando mais nítida).')}</div>
             </div>
           )}
@@ -146,7 +146,7 @@ export default function Animedle() {
                 <div className="panel absolute inset-x-0 top-full z-20 mt-1 max-h-80 overflow-y-auto p-1">
                   {suggestions.map((a) => (
                     <button key={a.id} onClick={() => guess(a)} className="flex w-full items-center gap-2 rounded-lg p-1.5 text-left hover:bg-panel-2">
-                      <img src={a.c} alt="" className="h-10 w-7 rounded border border-black object-cover" />
+                      <img loading="lazy" decoding="async" src={a.c} alt="" className="h-10 w-7 rounded border border-black object-cover" />
                       <span className="min-w-0 flex-1 truncate text-sm font-bold">{title(a)}</span>
                       <span className="text-xs font-bold text-muted">{a.y}</span>
                     </button>
@@ -156,7 +156,7 @@ export default function Animedle() {
             </div>
           ) : secret ? (
             <div className={`panel pop-in flex flex-wrap items-center gap-4 p-4 ${won ? 'border-[#4ade80]' : ''}`}>
-              <img src={secret.c} alt="" className="w-24 rounded-xl border-[3px] border-black" />
+              <img loading="lazy" decoding="async" src={secret.c} alt="" className="w-24 rounded-xl border-[3px] border-black" />
               <div className="min-w-[200px] flex-1">
                 <div className="text-sm font-black text-muted">{won ? t('Acertou em {0}! 🎉', guesses) : t('Não foi dessa vez. Era…')}</div>
                 <Link to={`/anime/${secret.id}`} className="font-display text-2xl hover:underline">
@@ -189,7 +189,7 @@ export default function Animedle() {
                   return (
                     <div key={r.id} className="pop-in panel p-2">
                       <div className="mb-2 flex items-center gap-2">
-                        <img src={r.c} alt="" className="h-9 w-6 rounded border border-black object-cover" />
+                        <img loading="lazy" decoding="async" src={r.c} alt="" className="h-9 w-6 rounded border border-black object-cover" />
                         <span className={`min-w-0 flex-1 truncate text-sm font-extrabold ${right && won ? 'text-[#4ade80]' : ''}`}>{title(r)}</span>
                       </div>
                       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">

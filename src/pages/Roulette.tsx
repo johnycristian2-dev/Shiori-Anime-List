@@ -143,7 +143,7 @@ export default function Roulette() {
               .reverse()
               .map((l) => (
                 <Link key={l.day} to={`/anime/${l.mediaId}`} title={`${l.day} · ${l.title} · ${l.rarity}`} className="relative shrink-0">
-                  {l.cover && <img src={l.cover} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />}
+                  {l.cover && <img loading="lazy" decoding="async" src={l.cover} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />}
                   <span
                     className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded border border-black px-1 text-[8px] font-black"
                     style={{ background: rarityByScore(l.rarity === 'SSR' ? 90 : l.rarity === 'SR' ? 80 : 0).color }}
@@ -189,7 +189,7 @@ export default function Roulette() {
             className={`relative h-full overflow-hidden rounded-3xl border-[3px] border-black ${phase === 'reveal' ? 'pop-in' : ''}`}
             style={{ boxShadow: phase === 'reveal' && r ? r.glow : '8px 8px 0 var(--pink)' }}
           >
-            {cover && <img src={cover} alt="" className={`h-full w-full object-cover ${phase === 'spinning' ? 'blur-[2px] saturate-150' : ''}`} />}
+            {cover && <img loading="lazy" decoding="async" src={cover} alt="" className={`h-full w-full object-cover ${phase === 'spinning' ? 'blur-[2px] saturate-150' : ''}`} />}
             {phase === 'reveal' && r && (
               <>
                 <div className="absolute inset-0 bg-linear-to-t from-black via-black/20 to-transparent" />

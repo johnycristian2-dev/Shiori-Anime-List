@@ -67,7 +67,8 @@ export const useUI = create<UIState>()(
       setRotateFavorites: (rotateFavorites) => set({ rotateFavorites }),
       titleLang: 'romaji',
       lang: (typeof navigator !== 'undefined' && navigator.language?.startsWith('ja') ? 'ja' : typeof navigator !== 'undefined' && navigator.language?.startsWith('en') ? 'en' : 'pt') as 'pt' | 'en' | 'ja',
-      setLang: (lang) => set({ lang }),
+      // troca só depois que o arquivo do idioma chegou (sem piscar português no meio)
+      setLang: (lang) => void import('../lib/i18n').then((m) => m.loadLang(lang)).then(() => set({ lang })),
       kind: 'ANIME',
       cleanText: true,
       setCleanText: (cleanText) => set({ cleanText }),

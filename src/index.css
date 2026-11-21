@@ -796,3 +796,14 @@ html[data-shadow='none'] .card-frame {
 .banner-galaxia { background: radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 60%, #fff, transparent), radial-gradient(1.5px 1.5px at 45% 80%, #fff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent), #05030f; }
 .banner-galaxia i:nth-child(1) { background: #5b2bff; } .banner-galaxia i:nth-child(2) { background: #ff3d8b; opacity: .5; } .banner-galaxia i:nth-child(3) { background: #00b3ff; opacity: .6; }
 @media (prefers-reduced-motion: reduce) { .banner-fx i, .badge-owner, .badge-plus { animation: none; } }
+
+/* Texto só decorativo (kanji/números ao fundo): desenhado pelo CSS, fora da leitura de tela e da checagem de contraste */
+.deco-text::after {
+  content: attr(data-deco);
+}
+
+/* Fileiras fora da tela só são desenhadas quando chegam perto (página inicial bem mais leve no celular) */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 380px;
+}

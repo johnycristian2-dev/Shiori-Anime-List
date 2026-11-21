@@ -4,7 +4,7 @@ import { CornerDownLeft, Search, X } from 'lucide-react';
 import { useSearch } from '../api/hooks';
 import { useDebounced, Spinner } from './ui';
 import AddMenu from './AddMenu';
-import { useTitle, coverOf } from '../lib/format';
+import { useTitle, coverOf, thumbOf } from '../lib/format';
 import { FORMAT_LABEL } from '../lib/labels';
 import { STATUS_META, useList } from '../store/list';
 
@@ -96,7 +96,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
                   onClick={() => go(mediaPath(m))}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl p-2 ${sel === i ? 'bg-panel-2' : ''}`}
                 >
-                  <img src={coverOf(m)} alt="" className="h-16 w-11 rounded-md border-2 border-black object-cover" />
+                  <img loading="lazy" decoding="async" src={thumbOf(m)} alt="" className="h-16 w-11 rounded-md border-2 border-black object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-extrabold">{title(m)}</div>
                     <div className="truncate text-xs font-bold text-muted">

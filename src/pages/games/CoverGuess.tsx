@@ -237,7 +237,7 @@ export default function CoverGuess() {
                 {practice && <span className="chip cursor-default !px-2 !py-0.5 !text-[10px]">{t('treino')}</span>}
               </div>
               <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-2xl border-[3px] border-black bg-panel">
-                <img
+                <img loading="lazy" decoding="async"
                   src={imgSrc}
                   alt=""
                   draggable={false}
@@ -277,7 +277,7 @@ export default function CoverGuess() {
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {answers.map((id) => byId.get(id)).filter(Boolean).map((a) => (
                     <Link key={a!.id} to={`/anime/${a!.id}`} title={title(a!)}>
-                      <img src={a!.c} alt="" className="h-14 w-10 rounded border-2 border-black object-cover" />
+                      <img loading="lazy" decoding="async" src={a!.c} alt="" className="h-14 w-10 rounded border-2 border-black object-cover" />
                     </Link>
                   ))}
                 </div>

@@ -26,5 +26,7 @@ jobs:
         run: npx vitest run
       - name: Build
         run: npx vite build
+      - name: Traduções completas
+        run: node scripts/i18n-missing.mjs --strict
       - name: Extensão (manifestos válidos)
         run: node scripts/check-extension.mjs

@@ -91,5 +91,8 @@ export function fuzzyDate(d: { year?: number | null; month: number | null; day: 
 }
 
 /** Capa na melhor resolução disponível (extraLarge ≈ 460px; large ≈ 230px fica borrada em tela retina). */
+/** Capa pequena (~230px): pra miniaturas, economiza bastante no celular. */
+export const thumbOf = (m: { coverImage: { extraLarge?: string | null; large?: string | null } }) =>
+  m.coverImage.large ?? m.coverImage.extraLarge ?? '';
 export const coverOf = (m: { coverImage: { extraLarge?: string | null; large?: string | null } }) =>
   m.coverImage.extraLarge ?? m.coverImage.large ?? '';

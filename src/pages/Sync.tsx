@@ -367,7 +367,7 @@ export default function Sync() {
           ) : viewer ? (
             <>
               <div className="flex items-center gap-3 text-ink">
-                {viewer.avatar?.medium && <img src={viewer.avatar.medium} alt="" className="h-10 w-10 rounded-full border-2 border-black" />}
+                {viewer.avatar?.medium && <img loading="lazy" decoding="async" src={viewer.avatar.medium} alt="" className="h-10 w-10 rounded-full border-2 border-black" />}
                 <b>{viewer.name}</b>
                 <button className="ml-auto text-muted hover:text-pink" onClick={logout} aria-label={t('Sair')}>
                   <LogOut size={16} />

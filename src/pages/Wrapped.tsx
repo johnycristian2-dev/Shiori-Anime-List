@@ -113,7 +113,7 @@ export default function Wrapped() {
         <Slide bg="bg-pink text-[var(--on-pink)]" jp="一気見">
           <div className="text-lg font-black">{t('O anime que você mais maratonou')}</div>
           <div className="mt-4 flex items-center gap-5">
-            {e.cover && <img src={e.cover} alt="" className="w-28 rounded-xl border-[3px] border-black shadow-[5px_5px_0_#000] sm:w-36" />}
+            {e.cover && <img loading="lazy" decoding="async" src={e.cover} alt="" className="w-28 rounded-xl border-[3px] border-black shadow-[5px_5px_0_#000] sm:w-36" />}
             <div className="min-w-0">
               <div className="break-words font-display text-2xl leading-tight sm:text-3xl">{name(e)}</div>
               <div className="mt-2 text-xl font-black">{s.mostWatched.eps}{' '}{t('episódios')}</div>
@@ -130,7 +130,7 @@ export default function Wrapped() {
             {s.topRated.map((e, k) => (
               <div key={e.mediaId} className="flex items-center gap-3">
                 <span className="w-8 font-display text-2xl text-pink">#{k + 1}</span>
-                {e.cover && <img src={e.cover} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />}
+                {e.cover && <img loading="lazy" decoding="async" src={e.cover} alt="" className="h-14 w-10 rounded-md border-2 border-black object-cover" />}
                 <span className="min-w-0 flex-1 truncate font-extrabold">{name(e)}</span>
                 <span className="rounded-md border-2 border-black bg-yellow px-1.5 font-black text-black">★ {e.score}</span>
               </div>
@@ -269,7 +269,7 @@ export default function Wrapped() {
       {card && (
         <div className="fixed inset-0 z-[150] grid place-items-center bg-black/75 p-4" onClick={() => setCard(null)}>
           <div className="pop-in panel max-h-full w-full max-w-md overflow-auto p-4" onClick={(e) => e.stopPropagation()}>
-            <img src={card.url} alt="" className="w-full rounded-xl border-2 border-black" />
+            <img loading="lazy" decoding="async" src={card.url} alt="" className="w-full rounded-xl border-2 border-black" />
             <div className="mt-4 flex gap-2">
               <a className="manga-btn flex-1" href={card.url} download={`retrospectiva-${year}.png`}>
                 <Download size={16} />{' '}{t('Baixar')}

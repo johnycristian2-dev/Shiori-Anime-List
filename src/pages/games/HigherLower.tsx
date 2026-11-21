@@ -34,7 +34,7 @@ function Card({ a, mode, value, revealed, hidden, label }: { a: PoolAnime; mode:
   const shown = !hidden ? fmt(value ?? 0, mode) : revealed && value !== null ? fmt(n, mode) : '?';
   return (
     <div className="pop-in relative overflow-hidden rounded-2xl border-[3px] border-black bg-panel">
-      <img src={a.c} alt="" className="aspect-[3/4] w-full object-cover" />
+      <img loading="lazy" decoding="async" src={a.c} alt="" className="aspect-[3/4] w-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-3 text-white">
         <div className="line-clamp-2 text-sm font-extrabold leading-tight sm:text-base">{title(a)}</div>

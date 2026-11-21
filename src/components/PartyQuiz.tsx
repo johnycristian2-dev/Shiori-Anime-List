@@ -227,7 +227,7 @@ export default function PartyQuiz({
         <div>
           <div className="mb-4 flex items-center gap-4">
             {q.image && (
-              <img
+              <img loading="lazy" decoding="async"
                 src={q.image}
                 alt=""
                 className="h-28 w-20 shrink-0 rounded-xl border-[3px] border-black object-cover"
@@ -261,7 +261,7 @@ export default function PartyQuiz({
                   } ${revealed && !correct && !wrongPick ? 'opacity-60' : ''}`}
                 >
                   <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border-2 border-black font-display text-black ${COLORS[k]}`}>{LETTERS[k]}</span>
-                  {o.c && <img src={o.c} alt="" className="h-12 w-8 shrink-0 rounded border border-black object-cover" />}
+                  {o.c && <img loading="lazy" decoding="async" src={o.c} alt="" className="h-12 w-8 shrink-0 rounded border border-black object-cover" />}
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-2 text-sm">{optLabel(o)}</span>
                     {revealed && q.extra?.[k] && <span className="block text-[11px] font-black opacity-80">{q.extra[k]}</span>}
