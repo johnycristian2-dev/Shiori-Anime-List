@@ -4,3 +4,4 @@ dist
 .env.local
 extension/dist
 *.tsbuildinfo
+extension/store/*.zip

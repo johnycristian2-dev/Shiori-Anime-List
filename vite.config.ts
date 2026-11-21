@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 // endereços normais (/anime/123): os arquivos sempre vêm da raiz
 export default defineConfig({
   base: '/',
+  define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify((process.env.VERCEL_GIT_COMMIT_SHA ?? 'local').slice(0, 7)) },
   plugins: [
     react(),
     tailwindcss(),

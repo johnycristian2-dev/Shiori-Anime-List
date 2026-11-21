@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { SectionTitle } from '../components/ui';
 import { t } from '../lib/i18n';
 
@@ -68,6 +69,15 @@ const ITEMS = [
     },
   },
   {
+    id: 'extensao',
+    get h() {
+      return t('Extensão Shiori Watch Party');
+    },
+    get p() {
+      return t('A extensão só funciona nas páginas do Crunchyroll e do Shiori. Ela lê o nome do anime, o número do episódio e o estado do player (tocando, pausado, tempo) pra marcar o episódio na sua lista e sincronizar a watch party. Guarda no navegador a sua sessão do Shiori, suas opções e o código da sala. Envia ao Shiori só a atualização da lista, os comandos do player e as mensagens do chat da sala, e consulta o AniList pra achar o anime certo. Ela não lê seu histórico, outras abas, senhas de outros sites nem dados de pagamento, não mostra anúncios e não vende nem compartilha dados com ninguém.');
+    },
+  },
+  {
     get h() {
       return t('Links de afiliado');
     },
@@ -78,12 +88,17 @@ const ITEMS = [
 ];
 
 export default function Terms() {
+  const { hash, pathname } = useLocation();
+  useEffect(() => {
+    const id = pathname === '/privacidade' ? 'extensao' : hash.slice(1);
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, [hash, pathname]);
   return (
     <div className="mx-auto max-w-3xl">
       <SectionTitle title={t('Termos e privacidade')} jp="規約" />
       <div className="panel space-y-5 p-6">
         {ITEMS.map((i) => (
-          <div key={i.h}>
+          <div key={i.h} id={'id' in i ? i.id : undefined} className="scroll-mt-24">
             <h3 className="font-display text-lg">{i.h}</h3>
             <p className="mt-1 text-sm text-ink/85">{i.p}</p>
           </div>

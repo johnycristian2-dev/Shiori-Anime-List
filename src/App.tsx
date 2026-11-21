@@ -70,6 +70,7 @@ export default function App() {
           <Route path="/perfil" element={<Profile />} />
           <Route path="/perfil/editar" element={<ProfileEdit />} />
           <Route path="/termos" element={<Terms />} />
+          <Route path="/privacidade" element={<Terms />} />
           <Route path="/amigos" element={<Friends />} />
           <Route path="/moderacao" element={<Moderation />} />
           <Route path="/chat" element={<Chat />} />

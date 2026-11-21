@@ -6,6 +6,7 @@ import App from './App';
 import { captureOAuthToken } from './store/auth';
 import { startCloudSync } from './sync/cloud';
 import { watchPreloadErrors } from './lib/lazyPage';
+import { watchErrors } from './lib/errorLog';
 import { wireAccount } from './sync/account';
 import { wireSocial } from './sync/social';
 import { startAniListSync } from './sync/anilistSync';
@@ -17,6 +18,7 @@ if (window.location.hash.startsWith('#/')) {
 }
 captureOAuthToken();
 watchPreloadErrors();
+watchErrors();
 wireAccount();
 wireSocial();
 startCloudSync();

@@ -59,3 +59,34 @@ export async function disablePush() {
     await sub.unsubscribe();
   }
 }
+
+// ─── avisos da equipe (denúncia, bug, pagamento) neste aparelho ───
+async function currentEndpoint() {
+  if (!pushSupported() || Notification.permission !== 'granted') return null;
+  const sub = await (await registration()).pushManager.getSubscription();
+  return sub?.endpoint ?? null;
+}
+
+export async function staffAlertsOn() {
+  const ep = await currentEndpoint();
+  if (!ep || !supabase) return false;
+  const { data } = await supabase.rpc('my_staff_alerts', { p_endpoint: ep });
+  return !!data;
+}
+
+export async function setStaffAlerts(on: boolean) {
+  if (!supabase) throw new Error(t('As contas ainda não foram ativadas neste site.'));
+  let ep = await currentEndpoint();
+  if (!ep && on) {
+    await enablePush();
+    ep = await currentEndpoint();
+  }
+  if (!ep) return;
+  const { data, error } = await supabase.rpc('set_staff_alerts', { p_endpoint: ep, p_on: on });
+  if (error) throw new Error(error.message);
+  if (on && !data) {
+    // inscrição deste aparelho é de outra conta (ou sumiu): refaz
+    await enablePush();
+    await supabase.rpc('set_staff_alerts', { p_endpoint: ep, p_on: on });
+  }
+}

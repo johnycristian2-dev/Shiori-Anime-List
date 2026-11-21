@@ -132,3 +132,20 @@ export async function accountAction(action: 'ban' | 'unban' | 'delete', user: st
     throw friendly({ message: code || error.message });
   }
 }
+
+// ─── erros do site (capturados no navegador das pessoas) ───
+export interface ClientError {
+  id: number;
+  message: string;
+  stack: string | null;
+  page: string | null;
+  device: string | null;
+  version: string | null;
+  count: number;
+  users: number;
+  first_at: string;
+  last_at: string;
+  resolved: boolean;
+}
+export const clientErrors = (resolved = false) => rpc<ClientError[]>('admin_client_errors', { p_resolved: resolved });
+export const resolveError = (id: number, all = false) => rpc<void>('admin_resolve_error', { p_id: id, p_all: all });

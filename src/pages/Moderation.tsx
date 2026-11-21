@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Check, ShieldAlert, VolumeX, X } from 'lucide-react';
@@ -9,7 +10,7 @@ import { useUI } from '../store/ui';
 import { useCloudUser } from '../sync/cloud';
 import { amIAdmin, loadReports, REPORT_REASONS, setReportStatus } from '../sync/social';
 import { BugsAdmin, ConfigAdmin } from '../components/AdminPanels';
-import { AdminContent, AdminLog, AdminOverview, AdminSite, AdminUsers, OwnerBadge } from '../components/OwnerPanel';
+import { AdminContent, AdminLog, AdminOverview, AdminSite, AdminUsers, OwnerBadge, AdminErrors } from '../components/OwnerPanel';
 import { amIOwner } from '../sync/admin';
 import { reportedContent, setChatMessageHidden, setCommentHidden, setPostHidden } from '../sync/posts';
 
@@ -25,7 +26,9 @@ export default function Moderation() {
   const user = useCloudUser((s) => s.user);
   const toast = useUI((s) => s.toast);
   const [status, setStatus] = useState<'open' | 'resolved' | 'dismissed'>('open');
-  const [tab, setTab] = useState<string>('overview');
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') ?? 'overview';
+  const setTab = (id: string) => setParams(id === 'overview' ? {} : { tab: id }, { replace: true });
   const admin = useQuery({ queryKey: ['is-admin', user?.id], queryFn: amIAdmin, enabled: !!user, staleTime: Infinity });
   const owner = useQuery({ queryKey: ['is-owner', user?.id], queryFn: amIOwner, enabled: !!user && !!admin.data, staleTime: Infinity });
   const q = useQuery({ queryKey: ['reports', status], queryFn: () => loadReports(status), enabled: !!admin.data });
@@ -55,6 +58,7 @@ export default function Moderation() {
     ['content', t('Conteúdo')],
     ['reports', t('Denúncias')],
     ['bugs', t('Bugs e ideias')],
+    ['errors', t('Erros')],
     ['site', t('Site')],
     ...(isOwner ? ([['config', t('Apoio e afiliados')]] as [string, string][]) : []),
     ['log', t('Registro')],
@@ -82,6 +86,8 @@ export default function Moderation() {
           <AdminUsers owner={isOwner} />
         ) : tab === 'content' ? (
           <AdminContent />
+        ) : tab === 'errors' ? (
+          <AdminErrors />
         ) : tab === 'site' ? (
           <AdminSite />
         ) : tab === 'log' ? (

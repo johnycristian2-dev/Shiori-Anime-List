@@ -62,3 +62,20 @@ const zip = resolve(root, 'public/shiori-extension.zip');
 rmSync(zip, { force: true });
 execFileSync('zip', ['-qr', zip, '.'], { cwd: out });
 console.log(`[extensão] v${manifest.version} → extension/dist e public/shiori-extension.zip`);
+
+// Pacote da Chrome Web Store: mesmo código, manifesto só com o que o Chrome entende
+// (sem o "background.scripts" e as configurações do Firefox, que geram aviso na revisão).
+const chrome = structuredClone(manifest);
+delete chrome.background.scripts;
+delete chrome.browser_specific_settings;
+const storeDir = resolve(root, 'extension/store');
+const tmp = resolve(storeDir, 'chrome');
+rmSync(tmp, { recursive: true, force: true });
+mkdirSync(tmp, { recursive: true });
+cpSync(out, tmp, { recursive: true });
+writeFileSync(resolve(tmp, 'manifest.json'), JSON.stringify(chrome, null, 2));
+const storeZip = resolve(storeDir, `shiori-chrome-webstore-v${manifest.version}.zip`);
+rmSync(storeZip, { force: true });
+execFileSync('zip', ['-qr', storeZip, '.'], { cwd: tmp });
+rmSync(tmp, { recursive: true, force: true });
+console.log(`[extensão] pacote da Chrome Web Store → extension/store/${storeZip.split('/').pop()}`);

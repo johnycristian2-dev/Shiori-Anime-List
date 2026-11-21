@@ -29,9 +29,12 @@ import { t } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { brl, useConfig } from '../sync/perks';
 import { miniProfiles } from '../sync/social';
+import { pushSupported, setStaffAlerts, staffAlertsOn } from '../sync/push';
 import {
   accountAction,
   adminStats,
+  clientErrors,
+  resolveError,
   bannedTerms,
   grantPlus,
   modLog,
@@ -639,5 +642,106 @@ export function OwnerBadge() {
     <span className="badge-owner inline-flex items-center gap-1 rounded-full border-2 border-black px-2 py-0.5 text-[11px] font-black uppercase">
       <Crown size={12} /> {t('Painel do dono')}
     </span>
+  );
+}
+
+/** Aba "Erros": o que quebrou no navegador das pessoas, agrupado por tipo. */
+export function AdminErrors() {
+  const toast = useUI((s) => s.toast);
+  const [done, setDone] = useState(false);
+  const [open, setOpen] = useState<number | null>(null);
+  const q = useQuery({ queryKey: ['client-errors', done], queryFn: () => clientErrors(done) });
+  const fix = async (id: number, all = false) => {
+    try {
+      await resolveError(id, all);
+      toast(all ? t('Todos marcados como resolvidos') : t('Marcado como resolvido'));
+      q.refetch();
+    } catch (e) {
+      toast((e as Error).message, 'err');
+    }
+  };
+  return (
+    <div className="space-y-4">
+      <StaffAlerts />
+      <div className="flex flex-wrap items-center gap-2">
+        <button className={`manga-btn !py-1 text-sm ${done ? 'ghost' : ''}`} onClick={() => setDone(false)}>
+          {t('Abertos')}
+        </button>
+        <button className={`manga-btn !py-1 text-sm ${done ? '' : 'ghost'}`} onClick={() => setDone(true)}>
+          {t('Resolvidos')}
+        </button>
+        {!done && !!q.data?.length && (
+          <ConfirmButton className="manga-btn ghost ml-auto !py-1 text-sm" onConfirm={() => fix(0, true)}>
+            {t('Resolver todos')}
+          </ConfirmButton>
+        )}
+      </div>
+      {q.isLoading ? (
+        <Spinner className="mx-auto mt-10 h-8 w-8 text-pink" />
+      ) : q.error ? (
+        <ErrorBox error={q.error} onRetry={() => q.refetch()} />
+      ) : !q.data?.length ? (
+        <EmptyState jp="無事" title={done ? t('Nenhum erro resolvido ainda') : t('Nenhum erro aberto. Tudo certo!')} />
+      ) : (
+        <div className="panel divide-y-2 divide-line">
+          {q.data.map((e) => (
+            <div key={e.id} className="p-3 text-sm">
+              <div className="flex items-start gap-2">
+                <button className="min-w-0 flex-1 text-left" onClick={() => setOpen(open === e.id ? null : e.id)} aria-expanded={open === e.id}>
+                  <div className="break-words font-bold">{e.message}</div>
+                  <div className="mt-1 text-xs text-muted">
+                    {t('{n}x', { n: e.count })} · {t('{n} pessoa(s)', { n: e.users })} · {timeAgo(e.last_at)} · {e.page ?? '—'} · {e.device ?? '—'}
+                    {e.version ? ` · v${e.version}` : ''}
+                  </div>
+                </button>
+                {!done && (
+                  <button className="manga-btn ghost shrink-0 !px-2 !py-1 text-xs" onClick={() => fix(e.id)}>
+                    {t('Resolvido')}
+                  </button>
+                )}
+              </div>
+              {open === e.id && e.stack && (
+                <pre className="mt-2 max-h-60 overflow-auto rounded-lg bg-panel-2 p-2 text-[11px] leading-snug">{e.stack}</pre>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Liga os avisos de denúncia / bug / pagamento neste aparelho. */
+export function StaffAlerts() {
+  const toast = useUI((s) => s.toast);
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    staffAlertsOn().then(setOn, () => setOn(false));
+  }, []);
+  if (!pushSupported()) return null;
+  const flip = async () => {
+    setBusy(true);
+    try {
+      await setStaffAlerts(!on);
+      setOn(!on);
+      toast(!on ? t('Avisos da equipe ligados neste aparelho') : t('Avisos da equipe desligados'));
+    } catch (e) {
+      toast((e as Error).message, 'err');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="panel flex flex-wrap items-center gap-3 p-3">
+      <BellRing size={20} className="text-pink" aria-hidden />
+      <div className="min-w-0 flex-1 text-sm">
+        <b>{t('Avisos no celular')}</b>
+        <div className="text-xs text-muted">{t('Receba notificação quando chegar denúncia, bug ou pagamento.')}</div>
+      </div>
+      <button className={`manga-btn !py-1.5 text-sm ${on ? 'ghost' : ''}`} disabled={busy || on === null} onClick={flip}>
+        {on ? t('Desligar') : t('Ligar neste aparelho')}
+      </button>
+    </div>
   );
 }

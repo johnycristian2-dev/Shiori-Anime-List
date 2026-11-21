@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { reportError } from '../lib/errorLog';
 import { RefreshCw, RotateCcw } from 'lucide-react';
 import { t } from '../lib/i18n';
 
@@ -21,6 +22,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode; rese
 
   componentDidCatch(error: Error) {
     console.error('[Shiori] tela quebrou:', error);
+    reportError(error, 'tela');
   }
 
   render() {
