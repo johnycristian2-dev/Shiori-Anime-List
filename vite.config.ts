@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// base './' permite hospedar em qualquer subpasta (GitHub Pages, Vercel, Netlify)
+// endereços normais (/anime/123): os arquivos sempre vêm da raiz
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -18,8 +18,8 @@ export default defineConfig({
         short_name: 'Shiori',
         description: 'Monte sua lista de animes por tops, temporadas, gêneros e recomendações.',
         lang: 'pt-BR',
-        start_url: './',
-        scope: './',
+        start_url: '/',
+        scope: '/',
         display: 'standalone',
         theme_color: '#0c0a1d',
         background_color: '#0c0a1d',
@@ -32,7 +32,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // versão nova assume na hora e apaga os arquivos velhos (evita tela travada depois de atualizar)
-        navigateFallbackDenylist: [/\.zip$/, /^\/api\//],
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/\.zip$/, /^\/api\//, /\.(xml|txt|png|json)$/],
         importScripts: ['push-sw.js'], // avisos de episódio novo
         skipWaiting: true,
         clientsClaim: true,

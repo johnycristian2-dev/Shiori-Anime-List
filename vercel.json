@@ -38,5 +38,23 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/anime/:id(\\d+)",
+      "destination": "/api/page?t=anime&id=:id"
+    },
+    {
+      "source": "/manga/:id(\\d+)",
+      "destination": "/api/page?t=manga&id=:id"
+    },
+    {
+      "source": "/u/:name",
+      "destination": "/api/page?t=u&id=:name"
+    },
+    {
+      "source": "/((?!api/|assets/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

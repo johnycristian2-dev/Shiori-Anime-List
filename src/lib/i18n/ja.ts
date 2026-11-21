@@ -1463,7 +1463,7 @@ const ja: Record<string, string> = {
   "Trocar esse anime? Os pontos dele ficam guardados e você gasta 1 troca.": "このアニメを入れ替えますか？ポイントは残り、入れ替えを1回使います。",
   "{0} jogadores": "{0}人",
   "AniList atualizado {0}": "AniList更新 {0}",
-  "Entra na minha liga de anime no Shiori! Código: {0} — https://shiori-anime-list.vercel.app/#/liga": "Shioriのアニメリーグに参加しよう！コード：{0} — https://shiori-anime-list.vercel.app/#/liga",
+  "Entra na minha liga de anime no Shiori! Código: {0} — https://shiori-anime-list.vercel.app/liga": "Shioriのアニメリーグに参加しよう！コード：{0} — https://shiori-anime-list.vercel.app/liga",
   "Convite copiado! Mande pros amigos": "招待をコピーしました！友達に送ろう",
   "Meu time": "マイチーム",
   "Trocas: {0}/3": "入れ替え：{0}/3",

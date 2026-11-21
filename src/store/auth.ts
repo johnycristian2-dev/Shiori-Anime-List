@@ -42,7 +42,7 @@ export const authorizeUrl = () =>
 
 /**
  * O AniList devolve o token no hash: #access_token=...&expires_in=...
- * Como usamos HashRouter, capturamos isso antes do app montar.
+ * Capturamos isso antes do app montar.
  */
 export function captureOAuthToken() {
   const h = window.location.hash;
@@ -51,7 +51,7 @@ export function captureOAuthToken() {
   const token = p.get('access_token');
   const exp = Number(p.get('expires_in') || 0);
   if (token) useAuth.getState().setToken(token, exp ? Date.now() + exp * 1000 : Date.now() + 365 * 864e5);
-  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/sync`);
+  window.history.replaceState(null, '', '/sync');
 }
 
 export function validToken() {

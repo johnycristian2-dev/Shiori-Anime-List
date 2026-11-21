@@ -395,7 +395,7 @@ export default function AuthModal() {
             <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--pink)]" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
             <span>
               {t('Li e aceito os')}{' '}
-              <a href="#/termos" target="_blank" rel="noreferrer" className="text-cyan underline">
+              <a href="/termos" target="_blank" rel="noreferrer" className="text-cyan underline">
                 {t('termos de uso e privacidade')}
               </a>
               .

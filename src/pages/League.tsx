@@ -315,7 +315,7 @@ function LeagueRoom({ id }: { id: string }) {
           className="manga-btn yellow"
           onClick={() =>
             navigator.clipboard
-              .writeText(t('Entra na minha liga de anime no Shiori! Código: {0} — https://shiori-anime-list.vercel.app/#/liga', data.league.code))
+              .writeText(t('Entra na minha liga de anime no Shiori! Código: {0} — https://shiori-anime-list.vercel.app/liga', data.league.code))
               .then(() => toast(t('Convite copiado! Mande pros amigos')))
               .catch(() => toast(data.league.code, 'info'))
           }

@@ -203,7 +203,7 @@ function Room({ code }: { code: string }) {
   const isHost = state.room.host === user.id;
   const myVotes = state.votes.filter((v) => v.user_id === user.id).map((v) => v.media_id);
   const nameOf = (id: string) => state.members.find((m) => m.user_id === id)?.name ?? '?';
-  const link = `${window.location.origin}${window.location.pathname}#/party/${code}`;
+  const link = `${window.location.origin}/party/${code}`;
   const existing = new Set(state.items.map((i) => i.media_id));
   const winner = state.room.status === 'done' ? state.room.winner : null;
   const r = winner ? rarityOf(winner.averageScore) : null;

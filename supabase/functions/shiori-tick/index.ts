@@ -123,7 +123,7 @@ async function sendPushes(since: Date, until: Date) {
           title: pt ? `Saiu o episódio ${a.episode}!` : `Episode ${a.episode} is out!`,
           body: `${title}${a.media.episodes ? ` · ${a.episode}/${a.media.episodes}` : ''}`,
           icon: a.media.coverImage?.large,
-          url: `${SITE}/#/anime/${a.mediaId}`,
+          url: `${SITE}/anime/${a.mediaId}`,
           tag: `ep-${a.mediaId}-${a.episode}`,
         });
         try {

@@ -1435,7 +1435,7 @@ const en: Record<string, string> = {
   "Trocar esse anime? Os pontos dele ficam guardados e você gasta 1 troca.": "Swap this anime? Its points are kept and you use 1 swap.",
   "{0} jogadores": "{0} players",
   "AniList atualizado {0}": "AniList updated {0}",
-  "Entra na minha liga de anime no Shiori! Código: {0} — https://shiori-anime-list.vercel.app/#/liga": "Join my anime league on Shiori! Code: {0} — https://shiori-anime-list.vercel.app/#/liga",
+  "Entra na minha liga de anime no Shiori! Código: {0} — https://shiori-anime-list.vercel.app/liga": "Join my anime league on Shiori! Code: {0} — https://shiori-anime-list.vercel.app/liga",
   "Convite copiado! Mande pros amigos": "Invite copied! Send it to your friends",
   "Meu time": "My team",
   "Trocas: {0}/3": "Swaps: {0}/3",

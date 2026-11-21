@@ -333,7 +333,7 @@ export async function renderStoryCard(opts: {
   ctx.fillStyle = PINK;
   ctx.font = '34px "Dela Gothic One"';
   ctx.font = '30px "Dela Gothic One"';
-  ctx.fillText(fitText(ctx, opts.username ? `shiori-anime-list.vercel.app/#/u/${opts.username}` : 'shiori-anime-list.vercel.app', W - 100), W / 2, H - 44);
+  ctx.fillText(fitText(ctx, opts.username ? `shiori-anime-list.vercel.app/u/${opts.username}` : 'shiori-anime-list.vercel.app', W - 100), W / 2, H - 44);
 
   drawPlusFrame(ctx, opts.style ?? 'padrao');
 

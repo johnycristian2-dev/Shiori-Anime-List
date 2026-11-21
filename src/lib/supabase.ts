@@ -19,5 +19,5 @@ export const supabase: SupabaseClient | null =
 
 export const CLOUD_ENABLED = !!supabase;
 
-/** URL de volta após login: a página atual, sem query nem hash. */
-export const redirectUrl = () => `${window.location.origin}${window.location.pathname}`;
+/** URL de volta após login: a raiz do site (o mesmo endereço liberado no Supabase). */
+export const redirectUrl = () => `${window.location.origin}/`;

@@ -146,4 +146,4 @@ export async function publishSnapshot(userId: string, force = false) {
   await supabase.from('profiles').update({ snapshot: buildSnapshot(), updated_at: new Date().toISOString() }).eq('user_id', userId);
 }
 
-export const profileUrl = (username: string) => `${window.location.origin}${window.location.pathname}#/u/${username}`;
+export const profileUrl = (username: string) => `${window.location.origin}/u/${username}`;
