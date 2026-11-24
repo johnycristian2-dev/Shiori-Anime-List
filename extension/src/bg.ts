@@ -51,11 +51,22 @@ async function getConfig() {
   return { room: (r[K_ROOM] as string | undefined) ?? null, name: (r[K_NAME] as string | undefined) ?? null };
 }
 
+// nome do chat fica em memória pra não ler storage/perfil a cada mensagem;
+// zera ao trocar de nome ou de conta
+let cachedName: { userId: string; name: string } | null = null;
+
 async function myName(userId: string) {
-  const { name } = await getConfig();
-  if (name) return name;
-  const { data } = await sb.from('profiles').select('username').eq('id', userId).maybeSingle();
-  return ((data?.username as string | undefined) ?? 'Otaku').slice(0, 24);
+  if (cachedName?.userId === userId) return cachedName.name;
+  const { name: saved } = await getConfig();
+  if (saved) {
+    cachedName = { userId, name: saved };
+    return saved;
+  }
+  const { data, error } = await sb.from('profiles').select('username').eq('id', userId).maybeSingle();
+  const name = ((data?.username as string | undefined) ?? 'Otaku').slice(0, 24);
+  // se a consulta falhou, não guarda o "Otaku" padrão: tenta de novo na próxima
+  if (!error) cachedName = { userId, name };
+  return name;
 }
 
 async function status(): Promise<Status> {
@@ -113,9 +124,13 @@ function subscribe(code: string) {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'party_messages', filter }, (p) =>
       broadcast({ type: 'message', message: p.new as ChatMsg })
     )
-    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'party_messages' }, (p) =>
-      broadcast({ type: 'unmessage', id: (p.old as ChatMsg).id })
-    )
+    // o Realtime não aceita filtro em DELETE, então chegam remoções de outras salas;
+    // se a linha antiga trouxer o código (REPLICA IDENTITY FULL), descarta as de fora
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'party_messages' }, (p) => {
+      const old = p.old as Partial<ChatMsg>;
+      if (old.id === undefined || (old.code && old.code !== channelRoom)) return;
+      broadcast({ type: 'unmessage', id: old.id });
+    })
     .subscribe((s) => {
       // reconectou depois de cair: manda o estado atual de novo
       if (s === 'SUBSCRIBED') ports.forEach((port) => hello(port).catch(() => {}));
@@ -267,12 +282,14 @@ async function handle(req: Req): Promise<unknown> {
     case 'login': {
       const { error } = await sb.auth.signInWithPassword({ email: req.email.trim(), password: req.password });
       if (error) throw new Error(friendly(error));
+      cachedName = null;
       ports.forEach((p) => hello(p).catch(() => {}));
       return status();
     }
     case 'logout':
       await sb.auth.signOut();
       await store.remove([K_ROOM]);
+      cachedName = null;
       unsubscribe();
       broadcast({ type: 'idle', reason: 'login' });
       return status();
@@ -284,7 +301,10 @@ async function handle(req: Req): Promise<unknown> {
       if (code && !/^[A-Z0-9]{6}$/.test(code)) throw new Error('Código de sala inválido.');
       if (code) await store.set({ [K_ROOM]: code });
       else await store.remove(K_ROOM);
-      if (req.name?.trim()) await store.set({ [K_NAME]: req.name.trim().slice(0, 24) });
+      if (req.name?.trim()) {
+        await store.set({ [K_NAME]: req.name.trim().slice(0, 24) });
+        cachedName = null;
+      }
       unsubscribe();
       if (code) ports.forEach((p) => hello(p).catch((e) => send(p, { type: 'error', message: friendly(e) })));
       else broadcast({ type: 'idle', reason: 'room' });
