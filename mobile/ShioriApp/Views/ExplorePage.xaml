@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:ani="clr-namespace:Shiori.Core.AniList;assembly=Shiori.Core"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
+             x:Class="ShioriApp.Views.ExplorePage"
+             x:DataType="vm:ExploreViewModel"
+             x:Name="Page"
+             Title="Explorar"
+             BackgroundColor="{StaticResource Bg}">
+
+    <ContentPage.Resources>
+        <Style TargetType="Picker">
+            <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            <Setter Property="TitleColor" Value="{StaticResource Muted}" />
+            <Setter Property="BackgroundColor" Value="{StaticResource Panel}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="MinimumWidthRequest" Value="150" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid>
+        <CollectionView ItemsSource="{Binding Results}" SelectionMode="None" Margin="16,0"
+                        RemainingItemsThreshold="6" RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="0,12,0,12" Spacing="6">
+                    <FlexLayout Wrap="Wrap">
+                        <Picker Title="Tipo" ItemsSource="{Binding Types}" SelectedItem="{Binding Type}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}" />
+                        <Picker Title="Ordem" ItemsSource="{Binding Sorts}" SelectedItem="{Binding Sort}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}" />
+                        <Picker Title="Gênero" ItemsSource="{Binding Genres}" SelectedItem="{Binding Genre}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}" />
+                        <Picker Title="Temporada" ItemsSource="{Binding Seasons}" SelectedItem="{Binding Season}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}"
+                                IsVisible="{Binding IsAnime}" />
+                        <Picker Title="Ano" ItemsSource="{Binding Years}" SelectedItem="{Binding Year}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}" />
+                        <Picker Title="Formato" ItemsSource="{Binding Formats}" SelectedItem="{Binding Format}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}" />
+                        <Picker Title="País" ItemsSource="{Binding Countries}" SelectedItem="{Binding Country}" ItemDisplayBinding="{Binding Label, x:DataType=vm:Choice}" />
+                    </FlexLayout>
+                    <Button Text="Limpar filtros" Style="{StaticResource Ghost}" HorizontalOptions="Start" Command="{Binding ClearFiltersCommand}" />
+                    <controls:ErrorView />
+                    <Label Text="Nenhum título com esses filtros. Tente tirar algum." Style="{StaticResource Muted}" IsVisible="{Binding IsEmpty}"
+                           HorizontalTextAlignment="Center" Margin="0,24" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="{OnIdiom Phone=3, Default=6}" VerticalItemSpacing="14" HorizontalItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="ani:MediaSummary">
+                    <controls:MediaCard>
+                        <controls:MediaCard.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenMediaCommand, Source={x:Reference Page}, x:DataType=vm:ExploreViewModel}" CommandParameter="{Binding Id}" />
+                        </controls:MediaCard.GestureRecognizers>
+                    </controls:MediaCard>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.Footer>
+                <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource Pink}" Margin="0,16" />
+            </CollectionView.Footer>
+        </CollectionView>
+    </Grid>
+</ContentPage>

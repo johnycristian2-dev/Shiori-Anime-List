@@ -17,5 +17,8 @@ public partial class MoreViewModel : BaseViewModel
         SiteSections.All.GroupBy(s => s.Group).Select(g => new SectionGroup(g.Key, g)).ToList();
 
     [RelayCommand]
-    private Task OpenAsync(SiteSection section) => Navigation.OpenWebAsync(section.Route, section.Title);
+    private Task OpenAsync(SiteSection section) =>
+        section.NativeRoute is { } native
+            ? Navigation.OpenNativeAsync(native)            // tela nativa do app
+            : Navigation.OpenWebAsync(section.Route, section.Title); // parte web, já logada
 }

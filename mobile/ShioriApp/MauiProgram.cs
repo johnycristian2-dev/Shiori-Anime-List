@@ -47,6 +47,8 @@ public static class MauiProgram
         builder.Services.AddTransient<CharacterPage>().AddTransient<CharacterViewModel>();
         builder.Services.AddTransient<StaffPage>().AddTransient<StaffViewModel>();
         builder.Services.AddTransient<StudioPage>().AddTransient<StudioViewModel>();
+        builder.Services.AddTransient<CalendarPage>().AddTransient<CalendarViewModel>();
+        builder.Services.AddTransient<ExplorePage>().AddTransient<ExploreViewModel>();
         builder.Services.AddTransient<WebPage>();
 
 #if DEBUG
