@@ -103,6 +103,17 @@ public sealed class ListDocument
         if (Get(id) is { } entry) SetProgress(id, entry.Progress + delta, now);
     }
 
+    /// <summary>Ids que a pessoa pulou no Swipe (o site guarda igual, em <c>skipped</c>).</summary>
+    public IReadOnlyList<int> Skipped =>
+        _root["skipped"]!.AsArray().Select(Int).OfType<int>().ToList();
+
+    /// <summary>Pular no Swipe: não mostra mais esse título.</summary>
+    public void Skip(int id)
+    {
+        if (Skipped.Contains(id)) return;
+        _root["skipped"]!.AsArray().Add(id);
+    }
+
     public void SetStatus(int id, ListStatus status, long now)
     {
         if (EntriesNode[Key(id)] is not JsonObject e) return;
