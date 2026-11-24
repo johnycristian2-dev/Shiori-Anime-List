@@ -84,4 +84,19 @@ public class ListServiceTests
         var ex = await Assert.ThrowsAsync<ShioriException>(() => service.LoadAsync());
         Assert.Equal(ShioriException.NoConnection, ex.Message);
     }
+    [Fact]
+    public async Task SignedOut_ClearsCache()
+    {
+        var http = new FakeHandler()
+            .Respond(HttpStatusCode.OK, "[{\"doc\":{\"entries\":{}}}]")
+            .Respond(HttpStatusCode.NoContent, "");
+        var auth = await LoggedIn(http);
+        var service = new ListService(http.Client(), auth);
+        await service.LoadAsync();
+        Assert.NotNull(service.Cached);
+
+        await auth.SignOutAsync();
+
+        Assert.Null(service.Cached);
+    }
 }

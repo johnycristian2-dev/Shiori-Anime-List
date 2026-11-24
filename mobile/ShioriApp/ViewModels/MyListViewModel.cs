@@ -61,7 +61,7 @@ public partial class MyListViewModel : BaseViewModel
 
     [RelayCommand]
     private Task IncrementAsync(ListEntryView entry) => RunAsync(() =>
-        _list.UpdateAsync(d => d.SetProgress(entry.MediaId, entry.Progress + 1, ListService.Now())));
+        _list.UpdateAsync(d => d.AddProgress(entry.MediaId, +1, ListService.Now())));
 
     private void Show(ListDocument doc)
     {

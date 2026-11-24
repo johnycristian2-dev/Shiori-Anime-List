@@ -21,6 +21,17 @@ public sealed class AuthService(HttpClient http, ISessionStore store)
     /// <summary>Disparado quando a sessão acaba (sair ou token recusado): o app volta ao Login.</summary>
     public event Action? SignedOut;
 
+    /// <summary>Por que a sessão acabou sozinha (ex.: "Sua sessão expirou."); null quando a pessoa saiu.</summary>
+    public string? SignOutReason { get; private set; }
+
+    /// <summary>Lê o motivo uma vez só (a tela de Login mostra e apaga).</summary>
+    public string? TakeSignOutReason()
+    {
+        var reason = SignOutReason;
+        SignOutReason = null;
+        return reason;
+    }
+
     /// <summary>Lê a sessão guardada no aparelho (ao abrir o app).</summary>
     public async Task<Session?> RestoreAsync()
     {
@@ -57,11 +68,17 @@ public sealed class AuthService(HttpClient http, ISessionStore store)
             {
                 renewed = await RequestTokenAsync("refresh_token", new JsonObject { ["refresh_token"] = current.RefreshToken });
             }
-            catch (ShioriException e) when (e.Message != ShioriException.NoConnection)
+            catch (ShioriException e) when (e.StatusCode is 400 or 401 or 403)
             {
-                // refresh token recusado (expirou ou foi trocado em outro lugar): sessão acabou
-                await ClearAsync();
-                throw new ShioriException("Sua sessão expirou. Entre de novo.", e);
+                // refresh token recusado (expirou ou foi trocado em outro lugar): a sessão acabou
+                const string expired = "Sua sessão expirou. Entre de novo.";
+                await ClearAsync(expired);
+                throw new ShioriException(expired, e);
+            }
+            catch (ShioriException e) when (e.StatusCode is not null)
+            {
+                // erro passageiro do servidor (5xx, 429): mantém a sessão e deixa tentar de novo
+                throw new ShioriException(ShioriException.ServerTrouble, e) { StatusCode = e.StatusCode };
             }
             await SetAsync(renewed);
             return renewed;
@@ -73,14 +90,16 @@ public sealed class AuthService(HttpClient http, ISessionStore store)
     /// A parte web também renova o token, e o Supabase troca o refresh token a cada renovação.
     /// Ao sair da parte web, o app adota a sessão de lá se for do mesmo usuário e mais nova.
     /// </summary>
-    public async Task AdoptIfNewerAsync(string? webJson)
+    /// <returns>Quem está logado na parte web: ninguém, outra pessoa ou a mesma do app.</returns>
+    public async Task<WebSession> AdoptIfNewerAsync(string? webJson)
     {
-        if (string.IsNullOrWhiteSpace(webJson) || Current is null) return;
+        if (string.IsNullOrWhiteSpace(webJson) || Current is null) return WebSession.Missing;
         Session web;
         try { web = Session.Parse(webJson); }
-        catch (FormatException) { return; }
-        if (web.UserId != Current.UserId || web.ExpiresAt <= Current.ExpiresAt) return;
-        await SetAsync(web);
+        catch (FormatException) { return WebSession.Missing; }
+        if (web.UserId != Current.UserId) return WebSession.OtherUser;
+        if (web.ExpiresAt > Current.ExpiresAt) await SetAsync(web);
+        return WebSession.SameUser;
     }
 
     public async Task SignOutAsync()
@@ -95,7 +114,7 @@ public sealed class AuthService(HttpClient http, ISessionStore store)
             }
             catch (HttpRequestException) { /* sem internet: sai do mesmo jeito */ }
         }
-        await ClearAsync();
+        await ClearAsync(reason: null);
     }
 
     // ------------------------------------------------------------------
@@ -112,7 +131,8 @@ public sealed class AuthService(HttpClient http, ISessionStore store)
         using (res)
         {
             var text = await res.Content.ReadAsStringAsync();
-            if (!res.IsSuccessStatusCode) throw new ShioriException(FriendlyError(text));
+            if (!res.IsSuccessStatusCode)
+                throw new ShioriException((int)res.StatusCode >= 500 ? ShioriException.ServerTrouble : FriendlyError(text)) { StatusCode = (int)res.StatusCode };
             try { return Session.Parse(text); }
             catch (FormatException e) { throw new ShioriException("Resposta inesperada do servidor.", e); }
         }
@@ -154,10 +174,22 @@ public sealed class AuthService(HttpClient http, ISessionStore store)
         await store.SaveAsync(session.RawJson);
     }
 
-    private async Task ClearAsync()
+    private async Task ClearAsync(string? reason)
     {
+        SignOutReason = reason;
         Current = null;
         await store.ClearAsync();
         SignedOut?.Invoke();
     }
+}
+
+/// <summary>Quem está logado na parte web (WebView) em relação ao app.</summary>
+public enum WebSession
+{
+    /// <summary>Nenhuma sessão no site (ou ilegível).</summary>
+    Missing,
+    /// <summary>Outra conta (ex.: trocou de usuário no app): os dados do site precisam ser limpos.</summary>
+    OtherUser,
+    /// <summary>A mesma conta do app.</summary>
+    SameUser,
 }

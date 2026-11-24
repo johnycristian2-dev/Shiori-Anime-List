@@ -74,7 +74,7 @@ public sealed class ListDocument
     public void SetProgress(int id, int progress, long now)
     {
         if (EntriesNode[Key(id)] is not JsonObject e) return;
-        var before = (int?)e["progress"] ?? 0;
+        var before = Int(e["progress"]) ?? 0;
         var status = ReadStatus(e);
         var total = TotalOf(e);
 
@@ -94,6 +94,15 @@ public sealed class ListDocument
         if (next > before) Log(id, "ep", now, next - before);
     }
 
+    /// <summary>
+    /// Soma ao progresso SALVO (não ao que a tela mostrava): se o site andou enquanto o app estava aberto,
+    /// o +1 parte do número novo e não desfaz o que foi feito lá.
+    /// </summary>
+    public void AddProgress(int id, int delta, long now)
+    {
+        if (Get(id) is { } entry) SetProgress(id, entry.Progress + delta, now);
+    }
+
     public void SetStatus(int id, ListStatus status, long now)
     {
         if (EntriesNode[Key(id)] is not JsonObject e) return;
@@ -109,7 +118,7 @@ public sealed class ListDocument
     {
         if (EntriesNode[Key(id)] is not JsonObject e) return;
         var value = Math.Clamp(score, 0, 10);
-        var before = (int?)e["score"] ?? 0;
+        var before = Int(e["score"]) ?? 0;
         e["score"] = value;
         e["updatedAt"] = now;
         if (value > 0 && value != before) Log(id, "score", now, value);
@@ -170,25 +179,37 @@ public sealed class ListDocument
     }
 
     private static int? TotalOf(JsonObject e) =>
-        (string?)e["type"] == "MANGA" ? (int?)e["chapters"] : (int?)e["episodes"];
+        (string?)e["type"] == "MANGA" ? Int(e["chapters"]) : Int(e["episodes"]);
+
+    /// <summary>Lê um número inteiro mesmo que tenha vindo como 7.5 ou 3.0 (listas importadas).</summary>
+    private static int? Int(JsonNode? n) => Long(n) is { } v ? (int)v : null;
+
+    private static long? Long(JsonNode? n)
+    {
+        if (n is not JsonValue v) return null;
+        if (v.TryGetValue<int>(out var i)) return i;      // criado pelo app
+        if (v.TryGetValue<long>(out var l)) return l;     // lido do banco
+        if (v.TryGetValue<double>(out var d) && double.IsFinite(d)) return (long)Math.Round(d, MidpointRounding.AwayFromZero);
+        return null;
+    }
 
     private static ListStatus ReadStatus(JsonObject e) =>
         Enum.TryParse<ListStatus>((string?)e["status"], out var s) ? s : ListStatus.PLANNING;
 
     private static ListEntryView? ToView(JsonNode? node)
     {
-        if (node is not JsonObject e || (int?)e["mediaId"] is not { } id) return null;
+        if (node is not JsonObject e || Int(e["mediaId"]) is not { } id) return null;
         return new ListEntryView(
             id,
             (string?)e["titleEnglish"] ?? (string?)e["title"] ?? "???",
             (string?)e["cover"],
             ReadStatus(e),
-            (int?)e["progress"] ?? 0,
+            Int(e["progress"]) ?? 0,
             TotalOf(e),
-            (int?)e["score"] ?? 0,
+            Int(e["score"]) ?? 0,
             (bool?)e["favorite"] ?? false,
             (string?)e["type"] ?? "ANIME",
-            (long?)e["updatedAt"] ?? 0);
+            Long(e["updatedAt"]) ?? 0);
     }
 
     /// <summary>Histórico usado pela Retrospectiva do site.</summary>

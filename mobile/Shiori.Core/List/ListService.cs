@@ -9,10 +9,17 @@ namespace Shiori.Core.List;
 /// Para nunca apagar o que foi feito no site, TODA gravação segue: buscar o doc atual → aplicar a
 /// mudança → gravar. Assim o que o site salvou enquanto o app estava aberto continua lá.
 /// </summary>
-public sealed class ListService(HttpClient http, AuthService auth)
+public sealed class ListService
 {
-    private readonly SupabaseRest _rest = new(http, auth);
+    private readonly SupabaseRest _rest;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
+
+    public ListService(HttpClient http, AuthService auth)
+    {
+        _rest = new SupabaseRest(http, auth);
+        // trocou de conta: a lista guardada era da pessoa anterior
+        auth.SignedOut += () => Cached = null;
+    }
 
     /// <summary>Último doc lido (para as telas mostrarem sem esperar a rede).</summary>
     public ListDocument? Cached { get; private set; }

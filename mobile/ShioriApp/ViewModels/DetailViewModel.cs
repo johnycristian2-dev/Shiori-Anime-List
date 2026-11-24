@@ -78,10 +78,10 @@ public partial class DetailViewModel(AniListClient anilist, ListService list) : 
     });
 
     [RelayCommand]
-    private Task IncrementAsync() => SaveAsync(d => d.SetProgress(_id, (d.Get(_id)?.Progress ?? 0) + 1, ListService.Now()));
+    private Task IncrementAsync() => SaveAsync(d => d.AddProgress(_id, +1, ListService.Now()));
 
     [RelayCommand]
-    private Task DecrementAsync() => SaveAsync(d => d.SetProgress(_id, (d.Get(_id)?.Progress ?? 0) - 1, ListService.Now()));
+    private Task DecrementAsync() => SaveAsync(d => d.AddProgress(_id, -1, ListService.Now()));
 
     [RelayCommand]
     private Task ScoreUpAsync() => SaveAsync(d => d.SetScore(_id, (d.Get(_id)?.Score ?? 0) + 1, ListService.Now()));
@@ -114,6 +114,7 @@ public partial class DetailViewModel(AniListClient anilist, ListService list) : 
         ErrorMessage = null;
         try { SetEntry((await list.UpdateAsync(change)).Get(_id)); }
         catch (ShioriException e) { ErrorMessage = e.Message; }
+        catch (Exception) { ErrorMessage = "Não foi possível salvar. Tente de novo."; }
         finally { IsSaving = false; }
     }
 

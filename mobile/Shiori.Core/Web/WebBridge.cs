@@ -18,8 +18,13 @@ public static class WebBridge
     /// </summary>
     public const string BootPath = "/robots.txt";
 
-    /// <summary>JavaScript que grava a sessão e vai para a rota pedida.</summary>
-    public static string BuildInjectScript(string sessionJson, string route) =>
+    /// <summary>
+    /// JavaScript que grava a sessão e vai para a rota pedida.
+    /// <paramref name="clearSiteData"/> apaga antes tudo que o site guardou (lista, preferências) —
+    /// usado quando a parte web tinha outra conta, para não misturar a lista de uma pessoa com a de outra.
+    /// </summary>
+    public static string BuildInjectScript(string sessionJson, string route, bool clearSiteData = false) =>
+        (clearSiteData ? "localStorage.clear(); " : "") +
         $"localStorage.setItem({Js(Config.SessionStorageKey)}, {Js(sessionJson)}); location.replace({Js(SafeRoute(route))});";
 
     /// <summary>
@@ -28,9 +33,6 @@ public static class WebBridge
     /// </summary>
     public static string ReadSessionScript =>
         $"(function(){{var v=localStorage.getItem({Js(Config.SessionStorageKey)});return v?btoa(unescape(encodeURIComponent(v))):'';}})()";
-
-    /// <summary>JavaScript que apaga a sessão do site (ao sair da conta).</summary>
-    public static string ClearScript => $"localStorage.removeItem({Js(Config.SessionStorageKey)});";
 
     /// <summary>Converte o retorno de <see cref="ReadSessionScript"/> de volta no JSON da sessão.</summary>
     public static string? DecodeReadResult(string? result)

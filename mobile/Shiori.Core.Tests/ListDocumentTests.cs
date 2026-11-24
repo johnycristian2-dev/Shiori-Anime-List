@@ -227,4 +227,29 @@ public class ListDocumentTests
         Assert.Equal("Quero ver", ListStatusInfo.Label(ListStatus.PLANNING));
         Assert.Equal("#ff6b6b", ListStatusInfo.Color(ListStatus.DROPPED));
     }
+    [Fact]
+    public void AddProgress_UsesStoredProgress()
+    {
+        // O site já foi para o ep 1000; a tela do app ainda mostrava outro número. +1 tem que dar 1001.
+        var doc = ListDocument.Parse(JsonNode.Parse(SiteDoc));
+        doc.AddProgress(21, +1, T0);
+        Assert.Equal(1001, doc.Get(21)!.Progress);
+        doc.AddProgress(999, +1, T0); // não está na lista: nada acontece
+        Assert.Null(doc.Get(999));
+    }
+
+    [Fact]
+    public void ToView_ToleratesDecimalNumbers()
+    {
+        var doc = ListDocument.Parse(JsonNode.Parse("""
+            { "entries": { "5": { "mediaId": 5, "title": "A", "status": "WATCHING", "progress": 3.0, "score": 7.5, "episodes": 12.0, "updatedAt": 1.7e12 } } }
+            """));
+        var e = Assert.Single(doc.Entries);
+        Assert.Equal(8, e.Score);
+        Assert.Equal(3, e.Progress);
+        Assert.Equal(12, e.Total);
+        Assert.Equal(1_700_000_000_000, e.UpdatedAt);
+        doc.SetProgress(5, 4, T0); // e também dá para mexer nela
+        Assert.Equal(4, doc.Get(5)!.Progress);
+    }
 }

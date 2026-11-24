@@ -36,7 +36,16 @@ public partial class HomeViewModel : BaseViewModel
         _list.Changed += doc => MainThread.BeginInvokeOnMainThread(() => FillContinue(doc));
     }
 
-    public Task InitAsync() => Trending.Count > 0 ? Task.CompletedTask : RunAsync(LoadAsync);
+    /// <summary>
+    /// Primeira vez: carrega tudo. Depois: só a lista (pode ter mudado no site ou trocado de conta).
+    /// </summary>
+    public async Task InitAsync()
+    {
+        if (Trending.Count == 0) { await RunAsync(LoadAsync); return; }
+        var doc = await LoadListSafeAsync();
+        if (doc is not null) FillContinue(doc);
+        else { ContinueWatching.Clear(); HasContinue = false; }
+    }
 
     protected override async Task LoadAsync()
     {
@@ -59,7 +68,7 @@ public partial class HomeViewModel : BaseViewModel
     /// <summary>+1 episódio direto do Início.</summary>
     [RelayCommand]
     private Task IncrementAsync(ListEntryView entry) => RunAsync(() =>
-        _list.UpdateAsync(d => d.SetProgress(entry.MediaId, entry.Progress + 1, ListService.Now())));
+        _list.UpdateAsync(d => d.AddProgress(entry.MediaId, +1, ListService.Now())));
 
     private async Task<ListDocument?> LoadListSafeAsync()
     {

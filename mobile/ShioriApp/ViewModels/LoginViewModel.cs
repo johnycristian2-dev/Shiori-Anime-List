@@ -17,6 +17,12 @@ public partial class LoginViewModel(AuthService auth) : BaseViewModel
     [NotifyCanExecuteChangedFor(nameof(SignInCommand))]
     public partial string Password { get; set; } = "";
 
+    /// <summary>Se a sessão acabou sozinha (token expirado), explica na tela de Login.</summary>
+    public void ShowSignOutReason()
+    {
+        if (auth.TakeSignOutReason() is { } reason) ErrorMessage = reason;
+    }
+
     private bool CanSignIn() => Email.Contains('@') && Password.Length > 0;
 
     [RelayCommand(CanExecute = nameof(CanSignIn))]

@@ -71,4 +71,12 @@ public class WebBridgeTests
             Assert.False(string.IsNullOrWhiteSpace(s.Group));
         });
     }
+    [Fact]
+    public void InjectScript_ClearsSiteDataOnlyWhenAsked()
+    {
+        var json = Sessions.Json();
+        var clear = WebBridge.BuildInjectScript(json, "/", clearSiteData: true);
+        Assert.StartsWith("localStorage.clear();", clear);
+        Assert.DoesNotContain("localStorage.clear()", WebBridge.BuildInjectScript(json, "/"));
+    }
 }

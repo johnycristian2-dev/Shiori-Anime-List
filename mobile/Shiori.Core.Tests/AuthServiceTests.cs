@@ -151,4 +151,61 @@ public class AuthServiceTests
         Assert.Null(auth.Current);
         Assert.True(signedOut);
     }
+    // --- Correções da revisão ---
+
+    [Fact]
+    public async Task RefreshServerError_KeepsSession()
+    {
+        var store = new MemoryStore { Json = Sessions.Json(expiresAt: Now - 10) };
+        var http = new FakeHandler().Respond(HttpStatusCode.ServiceUnavailable, "{\"msg\":\"upstream\"}");
+        var auth = new AuthService(http.Client(), store);
+        await auth.RestoreAsync();
+        var signedOut = false;
+        auth.SignedOut += () => signedOut = true;
+
+        var ex = await Assert.ThrowsAsync<ShioriException>(() => auth.GetValidSessionAsync());
+
+        Assert.Equal("O servidor está com problema. Tente de novo em instantes.", ex.Message);
+        Assert.NotNull(store.Json);
+        Assert.NotNull(auth.Current);
+        Assert.False(signedOut);
+    }
+
+    [Fact]
+    public async Task RefreshFailure_SetsSignOutReason()
+    {
+        var store = new MemoryStore { Json = Sessions.Json(expiresAt: Now - 10) };
+        var http = new FakeHandler().Respond(HttpStatusCode.BadRequest, """{"error_code":"refresh_token_already_used","msg":"Invalid Refresh Token"}""");
+        var auth = new AuthService(http.Client(), store);
+        await auth.RestoreAsync();
+
+        await Assert.ThrowsAsync<ShioriException>(() => auth.GetValidSessionAsync());
+
+        Assert.Equal("Sua sessão expirou. Entre de novo.", auth.SignOutReason);
+        Assert.Equal("Sua sessão expirou. Entre de novo.", auth.TakeSignOutReason());
+        Assert.Null(auth.SignOutReason); // lido uma vez só
+    }
+
+    [Fact]
+    public async Task ManualSignOut_HasNoReason()
+    {
+        var auth = new AuthService(new FakeHandler().Respond(HttpStatusCode.NoContent, "").Client(), new MemoryStore { Json = Sessions.Json() });
+        await auth.RestoreAsync();
+        await auth.SignOutAsync();
+        Assert.Null(auth.SignOutReason);
+    }
+
+    [Fact]
+    public async Task AdoptIfNewer_ReportsWhoIsInTheWebView()
+    {
+        var auth = new AuthService(new FakeHandler().Client(), new MemoryStore { Json = Sessions.Json(expiresAt: 1000, userId: "u1") });
+        await auth.RestoreAsync();
+
+        Assert.Equal(WebSession.Missing, await auth.AdoptIfNewerAsync(null));
+        Assert.Equal(WebSession.Missing, await auth.AdoptIfNewerAsync("lixo"));
+        Assert.Equal(WebSession.OtherUser, await auth.AdoptIfNewerAsync(Sessions.Json(userId: "u2", expiresAt: 9999)));
+        Assert.Equal(WebSession.SameUser, await auth.AdoptIfNewerAsync(Sessions.Json(userId: "u1", expiresAt: 500)));
+        Assert.Equal(WebSession.SameUser, await auth.AdoptIfNewerAsync(Sessions.Json(userId: "u1", expiresAt: 2000, access: "WEB")));
+        Assert.Equal("WEB", auth.Current!.AccessToken);
+    }
 }
