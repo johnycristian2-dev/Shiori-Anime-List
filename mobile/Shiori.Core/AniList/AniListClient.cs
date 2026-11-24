@@ -41,7 +41,10 @@ public sealed partial class AniListClient(HttpClient http)
                 .Select(n => new CharacterSummary((int)n!["id"]!, (string?)n["name"]?["full"] ?? "?", (string?)n["image"]?["large"]))
                 .ToArray() ?? [],
             (long?)next?["airingAt"] is { } at ? DateTimeOffset.FromUnixTimeSeconds(at) : null,
-            (int?)next?["episode"]);
+            (int?)next?["episode"],
+            m["studios"]?["nodes"]?.AsArray().OfType<JsonObject>()
+                .Where(n => (int?)n["id"] is not null)
+                .Select(n => new PersonSummary((int)n["id"]!, (string?)n["name"] ?? "?", null)).ToList() ?? []);
     }
 
     /// <summary>Temporada atual (mesma regra do site: jan–mar inverno, abr–jun primavera…).</summary>

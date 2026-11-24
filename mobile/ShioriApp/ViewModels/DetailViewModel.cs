@@ -21,7 +21,7 @@ public partial class DetailViewModel(AniListClient anilist, ListService list) : 
     private int _id;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Summary), nameof(NotInList), nameof(Subtitle), nameof(NextEpisodeText), nameof(HasNextEpisode), nameof(Studios))]
+    [NotifyPropertyChangedFor(nameof(Summary), nameof(NotInList), nameof(Subtitle), nameof(NextEpisodeText), nameof(HasNextEpisode), nameof(Studios), nameof(StudioRefs))]
     public partial MediaDetail? Detail { get; set; }
 
     [ObservableProperty]
@@ -99,8 +99,13 @@ public partial class DetailViewModel(AniListClient anilist, ListService list) : 
         if (ok) await SaveAsync(d => d.Remove(_id, ListService.Now()));
     }
 
+    public IReadOnlyList<PersonSummary> StudioRefs => Detail?.StudioRefs ?? [];
+
     [RelayCommand]
-    private Task OpenCharacterAsync(CharacterSummary c) => Navigation.OpenWebAsync($"/personagem/{c.Id}", c.Name);
+    private Task OpenCharacterAsync(CharacterSummary c) => Navigation.OpenCharacterAsync(c.Id);
+
+    [RelayCommand]
+    private Task OpenStudioAsync(PersonSummary studio) => Navigation.OpenStudioAsync(studio.Id);
 
     /// <summary>Página completa no site (relacionados, recomendações, reviews, trailers…).</summary>
     [RelayCommand]

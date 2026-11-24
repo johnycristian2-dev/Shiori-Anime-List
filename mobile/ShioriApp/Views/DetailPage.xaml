@@ -106,8 +106,19 @@
                 <VerticalStackLayout Margin="16,0" Spacing="6">
                     <Label Text="Sinopse" Style="{StaticResource SectionTitle}" />
                     <Label Text="{Binding Detail.Description}" TextColor="{StaticResource Ink}" LineHeight="1.3" />
-                    <Label Text="{Binding Studios, StringFormat='Estúdio: {0}'}" Style="{StaticResource Muted}"
-                           IsVisible="{Binding Studios, Converter={StaticResource HasValue}}" />
+                    <!-- Estúdios: toque abre a página do estúdio -->
+                    <FlexLayout BindableLayout.ItemsSource="{Binding StudioRefs}" Wrap="Wrap" Margin="0,4,0,0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="ani:PersonSummary">
+                                <Border Style="{StaticResource Chip}" BackgroundColor="{StaticResource Panel}" Stroke="{StaticResource Line}" StrokeThickness="1" Margin="0,0,6,6">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenStudioCommand, Source={x:Reference Page}, x:DataType=vm:DetailViewModel}" CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="{Binding Name, StringFormat='🎬 {0}'}" FontSize="12" TextColor="{StaticResource Pink}" />
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
                 </VerticalStackLayout>
 
                 <!-- Personagens -->

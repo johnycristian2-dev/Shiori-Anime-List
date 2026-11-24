@@ -12,4 +12,5 @@ public sealed record MediaDetail(
     string[] Studios,
     CharacterSummary[] Characters,
     DateTimeOffset? NextEpisodeAt,
-    int? NextEpisode);
+    int? NextEpisode,
+    IReadOnlyList<PersonSummary>? StudioRefs = null);

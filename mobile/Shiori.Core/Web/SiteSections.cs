@@ -1,7 +1,11 @@
 namespace Shiori.Core.Web;
 
 /// <summary>Uma seção do site que o app abre na parte web (aba "Mais").</summary>
-public sealed record SiteSection(string Group, string Title, string Description, string Route, string Glyph);
+/// <param name="NativeRoute">Rota da tela nativa do app, quando existe (senão abre o site na parte web).</param>
+public sealed record SiteSection(string Group, string Title, string Description, string Route, string Glyph, string? NativeRoute = null)
+{
+    public bool IsNative => NativeRoute is not null;
+}
 
 /// <summary>
 /// Todas as telas do site que não são nativas no app. As nativas são:
@@ -11,11 +15,11 @@ public static class SiteSections
 {
     public static readonly IReadOnlyList<SiteSection> All =
     [
-        new("Descobrir", "Explorar", "Filtre por gênero, temporada, formato e nota", "/explorar", "🧭"),
-        new("Descobrir", "Swipe", "Arraste para a direita no que quer ver", "/swipe", "💫"),
-        new("Descobrir", "Calendário", "Episódios da semana e o que estreia", "/calendario", "📅"),
-        new("Descobrir", "Pra você", "Recomendações pelo seu gosto", "/pra-voce", "✨"),
-        new("Descobrir", "Roleta", "Deixe a sorte escolher o próximo", "/roleta", "🎲"),
+        new("Descobrir", "Explorar", "Filtre por gênero, temporada, formato e nota", "/explorar", "🧭", "explore"),
+        new("Descobrir", "Swipe", "Arraste para a direita no que quer ver", "/swipe", "💫", "swipe"),
+        new("Descobrir", "Calendário", "Episódios da semana e o que estreia", "/calendario", "📅", "calendar"),
+        new("Descobrir", "Pra você", "Recomendações pelo seu gosto", "/pra-voce", "✨", "foryou"),
+        new("Descobrir", "Roleta", "Deixe a sorte escolher o próximo", "/roleta", "🎲", "roulette"),
         new("Descobrir", "Maratona", "Planeje uma maratona com tempo total", "/maratona", "🍿"),
         new("Descobrir", "Comparar", "Compare listas com outra pessoa", "/comparar", "⚖️"),
         new("Descobrir", "Retrospectiva", "Seu ano em animes", "/retrospectiva", "🎞️"),

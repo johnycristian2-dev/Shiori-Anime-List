@@ -85,6 +85,7 @@ public class AniListClientTests
         Assert.Equal("A elfa Frieren.\n\nDepois da jornada.\"Fim\"", d.Description);
         Assert.Equal("https://img/banner.jpg", d.Banner);
         Assert.Equal(["Madhouse"], d.Studios);
+        Assert.Equal(new PersonSummary(11, "Madhouse", null), Assert.Single(d.StudioRefs!));
         Assert.Equal(new CharacterSummary(1, "Frieren", "f.jpg"), Assert.Single(d.Characters));
         Assert.Equal(5, d.NextEpisode);
         Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1800000000), d.NextEpisodeAt);

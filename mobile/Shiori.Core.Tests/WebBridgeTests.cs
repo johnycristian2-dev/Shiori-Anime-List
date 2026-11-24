@@ -72,6 +72,16 @@ public class WebBridgeTests
         });
     }
     [Fact]
+    public void Sections_NativeScreensAreMarked()
+    {
+        var native = SiteSections.All.Where(s => s.IsNative).ToDictionary(s => s.Route, s => s.NativeRoute);
+        Assert.Equal(new Dictionary<string, string?>
+        {
+            ["/explorar"] = "explore", ["/swipe"] = "swipe", ["/calendario"] = "calendar", ["/pra-voce"] = "foryou", ["/roleta"] = "roulette",
+        }, native);
+    }
+
+    [Fact]
     public void InjectScript_ClearsSiteDataOnlyWhenAsked()
     {
         var json = Sessions.Json();
