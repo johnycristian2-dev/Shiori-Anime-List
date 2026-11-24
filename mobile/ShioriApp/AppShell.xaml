@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Navegação do app (Shell):
+  - "login": tela de entrada, fora das abas;
+  - TabBar: as 5 abas de baixo;
+  - "detail" e "web" são registradas em AppShell.xaml.cs e abrem por cima das abas.
+-->
 <Shell
     x:Class="ShioriApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:ShioriApp"
-    Title="ShioriApp">
+    xmlns:views="clr-namespace:ShioriApp.Views"
+    Title="Shiori"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.BackgroundColor="{StaticResource Bg}"
+    Shell.ForegroundColor="{StaticResource Ink}"
+    Shell.TitleColor="{StaticResource Ink}"
+    Shell.TabBarBackgroundColor="{StaticResource Panel}"
+    Shell.TabBarForegroundColor="{StaticResource Pink}"
+    Shell.TabBarTitleColor="{StaticResource Pink}"
+    Shell.TabBarUnselectedColor="{StaticResource Muted}">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <ShellContent Route="login" ContentTemplate="{DataTemplate views:LoginPage}" />
 
+    <TabBar Route="main">
+        <ShellContent Route="home" Title="Início" Icon="tab_home.png" ContentTemplate="{DataTemplate views:HomePage}" />
+        <ShellContent Route="search" Title="Buscar" Icon="tab_search.png" ContentTemplate="{DataTemplate views:SearchPage}" />
+        <ShellContent Route="mylist" Title="Minha lista" Icon="tab_list.png" ContentTemplate="{DataTemplate views:MyListPage}" />
+        <ShellContent Route="profile" Title="Perfil" Icon="tab_profile.png" ContentTemplate="{DataTemplate views:ProfilePage}" />
+        <ShellContent Route="more" Title="Mais" Icon="tab_more.png" ContentTemplate="{DataTemplate views:MorePage}" />
+    </TabBar>
 </Shell>
