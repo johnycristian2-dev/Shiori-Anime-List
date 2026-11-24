@@ -36,7 +36,10 @@ public static class MauiProgram
 
         // Telas + ViewModels
         builder.Services.AddTransient<LoginPage>().AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<HomePage>().AddTransient<SearchPage>().AddTransient<MyListPage>().AddTransient<ProfilePage>();
+        builder.Services.AddTransient<HomePage>().AddTransient<HomeViewModel>();
+        builder.Services.AddTransient<SearchPage>().AddTransient<SearchViewModel>();
+        builder.Services.AddTransient<DetailPage>().AddTransient<DetailViewModel>();
+        builder.Services.AddTransient<MyListPage>().AddTransient<ProfilePage>();
         builder.Services.AddTransient<MorePage>().AddTransient<MoreViewModel>();
         builder.Services.AddTransient<WebPage>();
 

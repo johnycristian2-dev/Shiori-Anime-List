@@ -95,6 +95,18 @@ public class AniListClientTests
     }
 
     [Fact]
+    public async Task Detail_CollapsesBlankLines()
+    {
+        var detail = "{\"data\":{\"Media\": " + MediaJson.TrimEnd().TrimEnd('}') +
+            ", \"description\": \"Fim da jornada.<br><br>\\n<br><br>\\n(Source: Crunchyroll)\" }}}";
+        var http = new FakeHandler().Respond(HttpStatusCode.OK, detail);
+
+        var d = await new AniListClient(http.Client()).DetailAsync(1);
+
+        Assert.Equal("Fim da jornada.\n\n(Source: Crunchyroll)", d.Description);
+    }
+
+    [Fact]
     public async Task HttpError_ThrowsShioriException()
     {
         var down = new FakeHandler().Respond(HttpStatusCode.InternalServerError, "oops");

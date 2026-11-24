@@ -1,8 +1,94 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:ani="clr-namespace:Shiori.Core.AniList;assembly=Shiori.Core"
+             xmlns:list="clr-namespace:Shiori.Core.List;assembly=Shiori.Core"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
              x:Class="ShioriApp.Views.HomePage"
+             x:DataType="vm:HomeViewModel"
+             x:Name="Page"
              Title="Início"
              BackgroundColor="{StaticResource Bg}">
-    <Label Text="Início (em construção)" TextColor="{StaticResource Muted}" VerticalOptions="Center" HorizontalOptions="Center" />
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsLoading}" RefreshColor="{StaticResource Pink}">
+        <ScrollView>
+            <VerticalStackLayout Padding="0,8,0,24" Spacing="8">
+
+                <HorizontalStackLayout Padding="16,8" Spacing="8">
+                    <Label Text="栞" FontSize="28" TextColor="{StaticResource Pink}" VerticalOptions="Center" />
+                    <Label Text="SHIORI" Style="{StaticResource Display}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <controls:ErrorView />
+
+                <!-- Continuar assistindo -->
+                <VerticalStackLayout IsVisible="{Binding HasContinue}" Spacing="8">
+                    <Label Text="Continuar assistindo" Style="{StaticResource SectionTitle}" Margin="16,8,16,0" />
+                    <CollectionView ItemsSource="{Binding ContinueWatching}" HeightRequest="112" SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.Header><BoxView WidthRequest="6" Color="Transparent" /></CollectionView.Header>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="list:ListEntryView">
+                                <Border Style="{StaticResource Card}" WidthRequest="280" Padding="8">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenMediaCommand, Source={x:Reference Page}, x:DataType=vm:HomeViewModel}" CommandParameter="{Binding MediaId}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="60,*,Auto" ColumnSpacing="10">
+                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="88">
+                                            <Image Source="{Binding Cover}" Aspect="AspectFill" />
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                                            <Label Text="{Binding Title}" MaxLines="2" LineBreakMode="TailTruncation" TextColor="{StaticResource Ink}" FontAttributes="Bold" />
+                                            <Label Text="{Binding ProgressText, StringFormat='Episódio {0}'}" Style="{StaticResource Muted}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="2" Text="+1" Style="{StaticResource Square}" VerticalOptions="Center"
+                                                Command="{Binding IncrementCommand, Source={x:Reference Page}, x:DataType=vm:HomeViewModel}" CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Em alta -->
+                <Label Text="Em alta" Style="{StaticResource SectionTitle}" Margin="16,12,16,0" />
+                <CollectionView ItemsSource="{Binding Trending}" HeightRequest="{OnIdiom Phone=230, Default=260}" SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.Header><BoxView WidthRequest="4" Color="Transparent" /></CollectionView.Header>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="ani:MediaSummary">
+                            <controls:MediaCard>
+                                <controls:MediaCard.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenMediaCommand, Source={x:Reference Page}, x:DataType=vm:HomeViewModel}" CommandParameter="{Binding Id}" />
+                                </controls:MediaCard.GestureRecognizers>
+                            </controls:MediaCard>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Temporada atual -->
+                <Label Text="{Binding SeasonTitle}" Style="{StaticResource SectionTitle}" Margin="16,12,16,0" />
+                <CollectionView ItemsSource="{Binding Season}" HeightRequest="{OnIdiom Phone=230, Default=260}" SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.Header><BoxView WidthRequest="4" Color="Transparent" /></CollectionView.Header>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="ani:MediaSummary">
+                            <controls:MediaCard>
+                                <controls:MediaCard.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenMediaCommand, Source={x:Reference Page}, x:DataType=vm:HomeViewModel}" CommandParameter="{Binding Id}" />
+                                </controls:MediaCard.GestureRecognizers>
+                            </controls:MediaCard>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
 </ContentPage>

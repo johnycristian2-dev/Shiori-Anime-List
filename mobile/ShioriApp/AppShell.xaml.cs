@@ -9,5 +9,6 @@ public partial class AppShell : Shell
         InitializeComponent();
         // Telas que abrem por cima das abas (com botão voltar)
         Routing.RegisterRoute("web", typeof(WebPage));
+        Routing.RegisterRoute("detail", typeof(DetailPage));
     }
 }

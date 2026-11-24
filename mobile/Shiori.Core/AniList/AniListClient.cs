@@ -99,6 +99,7 @@ public sealed partial class AniListClient(HttpClient http)
         if (string.IsNullOrWhiteSpace(html)) return null;
         var text = BreakTag().Replace(html, "\n");
         text = AnyTag().Replace(text, "");
+        text = ManyBreaks().Replace(text.Replace("\r", ""), "\n\n"); // no máximo uma linha em branco
         return WebUtility.HtmlDecode(text).Trim();
     }
 
@@ -107,4 +108,7 @@ public sealed partial class AniListClient(HttpClient http)
 
     [GeneratedRegex(@"<[^>]+>")]
     private static partial Regex AnyTag();
+
+    [GeneratedRegex(@"\n[ \t]*\n(?:[ \t]*\n)*")]
+    private static partial Regex ManyBreaks();
 }

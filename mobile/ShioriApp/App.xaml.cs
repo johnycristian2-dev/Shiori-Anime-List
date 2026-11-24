@@ -27,6 +27,14 @@ public partial class App : Application
         shell.Loaded += async (_, _) =>
         {
             var session = await _auth.RestoreAsync();
+#if DEBUG
+            // Só para testes de desenvolvimento: SHIORI_START=//home (ou detail?id=…) abre direto numa tela.
+            if (Environment.GetEnvironmentVariable("SHIORI_START") is { Length: > 0 } start)
+            {
+                await shell.GoToAsync(start.StartsWith("//") ? start : "//home/" + start);
+                return;
+            }
+#endif
             await shell.GoToAsync(session is null ? "//login" : "//home");
         };
         return new Window(shell) { Title = "Shiori" };
