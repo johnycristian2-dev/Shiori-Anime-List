@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:ani="clr-namespace:Shiori.Core.AniList;assembly=Shiori.Core"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
+             x:Class="ShioriApp.Views.CharacterPage"
+             x:DataType="vm:CharacterViewModel"
+             x:Name="Page"
+             Title="{Binding Character.Name}"
+             BackgroundColor="{StaticResource Bg}">
+    <Grid>
+        <CollectionView ItemsSource="{Binding Character.Appearances}" SelectionMode="None" Margin="16,0">
+            <CollectionView.Header>
+                <VerticalStackLayout Spacing="14" Padding="0,16,0,8">
+                    <Grid ColumnDefinitions="120,*" ColumnSpacing="14">
+                        <Border StrokeThickness="2" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 14" HeightRequest="170" BackgroundColor="{StaticResource Panel}">
+                            <Image Source="{Binding Character.Image}" Aspect="AspectFill" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="End">
+                            <Label Text="{Binding Character.Name}" Style="{StaticResource Display}" FontSize="22" />
+                            <Label Text="{Binding Character.NativeName}" Style="{StaticResource Muted}" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Info}" Spacing="2">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:InfoItem">
+                                        <Label FontSize="13">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding Label, StringFormat='{0}: '}" TextColor="{StaticResource Muted}" />
+                                                    <Span Text="{Binding Value}" TextColor="{StaticResource Ink}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                    <controls:ErrorView />
+                    <Label Text="{Binding Character.Description}" TextColor="{StaticResource Ink}" LineHeight="1.3"
+                           IsVisible="{Binding Character.Description, Converter={StaticResource HasValue}}" />
+                    <Label Text="Aparece em" Style="{StaticResource SectionTitle}" Margin="0,8,0,0" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="ani:CharacterAppearance">
+                    <Border Style="{StaticResource Card}" Padding="8">
+                        <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenMediaCommand, Source={x:Reference Page}, x:DataType=vm:CharacterViewModel}" CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+                            <Border StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="80">
+                                <Image Source="{Binding Media.Cover}" Aspect="AspectFill" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Media.DisplayTitle}" TextColor="{StaticResource Ink}" FontAttributes="Bold" MaxLines="2" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Role}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                            <!-- Dublador: toque abre a página dele -->
+                            <VerticalStackLayout Grid.Column="2" WidthRequest="70" Spacing="2" VerticalOptions="Center"
+                                                 IsVisible="{Binding VoiceActor, Converter={StaticResource HasValue}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenVoiceActorCommand, Source={x:Reference Page}, x:DataType=vm:CharacterViewModel}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Border StrokeThickness="0" StrokeShape="RoundRectangle 22" WidthRequest="44" HeightRequest="44" HorizontalOptions="Center">
+                                    <Image Source="{Binding VoiceActor.Image}" Aspect="AspectFill" />
+                                </Border>
+                                <Label Text="{Binding VoiceActor.Name}" FontSize="10" TextColor="{StaticResource Muted}" HorizontalTextAlignment="Center" MaxLines="2" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource Pink}" VerticalOptions="Center" HorizontalOptions="Center" />
+    </Grid>
+</ContentPage>

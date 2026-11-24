@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:ani="clr-namespace:Shiori.Core.AniList;assembly=Shiori.Core"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
+             x:Class="ShioriApp.Views.StudioPage"
+             x:DataType="vm:StudioViewModel"
+             x:Name="Page"
+             Title="{Binding Name}"
+             BackgroundColor="{StaticResource Bg}">
+    <Grid>
+        <CollectionView ItemsSource="{Binding Works}" SelectionMode="None" Margin="16,0"
+                        RemainingItemsThreshold="6" RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="0,16,0,12" Spacing="6">
+                    <Label Text="ESTÚDIO" Style="{StaticResource Caption}" />
+                    <Label Text="{Binding Name}" Style="{StaticResource Display}" FontSize="26" />
+                    <Label Text="Obras principais, das mais populares para as menos." Style="{StaticResource Muted}" />
+                    <controls:ErrorView />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="{OnIdiom Phone=3, Default=6}" VerticalItemSpacing="14" HorizontalItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="ani:MediaSummary">
+                    <controls:MediaCard>
+                        <controls:MediaCard.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenMediaCommand, Source={x:Reference Page}, x:DataType=vm:StudioViewModel}" CommandParameter="{Binding Id}" />
+                        </controls:MediaCard.GestureRecognizers>
+                    </controls:MediaCard>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource Pink}" VerticalOptions="Center" HorizontalOptions="Center" />
+    </Grid>
+</ContentPage>

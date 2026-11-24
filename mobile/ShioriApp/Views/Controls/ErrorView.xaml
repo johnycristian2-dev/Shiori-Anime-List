@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Aviso de erro com "tentar de novo". Usa o BindingContext da tela (qualquer BaseViewModel). -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             x:Class="ShioriApp.Views.Controls.ErrorView"
+             x:DataType="vm:BaseViewModel"
+             IsVisible="{Binding HasError}">
+    <Border Style="{StaticResource Card}" Padding="16" Margin="16" Stroke="{StaticResource Danger}">
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding RetryCommand}" />
+        </Border.GestureRecognizers>
+        <VerticalStackLayout Spacing="6">
+            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Ink}" HorizontalTextAlignment="Center" />
+            <Label Text="Toque para tentar de novo" Style="{StaticResource Muted}" HorizontalTextAlignment="Center" FontSize="12" />
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

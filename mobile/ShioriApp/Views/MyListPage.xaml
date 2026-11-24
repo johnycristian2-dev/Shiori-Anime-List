@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:list="clr-namespace:Shiori.Core.List;assembly=Shiori.Core"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
+             x:Class="ShioriApp.Views.MyListPage"
+             x:DataType="vm:MyListViewModel"
+             x:Name="Page"
+             Title="Minha lista"
+             BackgroundColor="{StaticResource Bg}">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,8,16,0" RowSpacing="10">
+
+        <!-- Anime / Mangá -->
+        <HorizontalStackLayout Spacing="8">
+            <Button Text="Anime" Command="{Binding SetMangaCommand}" CornerRadius="999" Padding="16,6">
+                <Button.CommandParameter><x:Boolean>False</x:Boolean></Button.CommandParameter>
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsAnime}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{StaticResource Line}" />
+                        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Text="Mangá" Command="{Binding SetMangaCommand}" CornerRadius="999" Padding="16,6">
+                <Button.CommandParameter><x:Boolean>True</x:Boolean></Button.CommandParameter>
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsManga}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{StaticResource Line}" />
+                        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </HorizontalStackLayout>
+
+        <!-- Abas de status -->
+        <ScrollView Grid.Row="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+            <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Tabs}" Spacing="8">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StatusTab">
+                        <Button Text="{Binding Text}" CornerRadius="999" Padding="14,6" FontSize="13"
+                                BackgroundColor="{StaticResource Panel}" TextColor="{Binding Color}" BorderColor="{Binding Color}" BorderWidth="1"
+                                Command="{Binding SelectStatusCommand, Source={x:Reference Page}, x:DataType=vm:MyListViewModel}" CommandParameter="{Binding Status}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding Selected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{Binding Color}" />
+                                    <Setter Property="TextColor" Value="{StaticResource OnPink}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
+        </ScrollView>
+
+        <controls:ErrorView Grid.Row="2" />
+
+        <RefreshView Grid.Row="3" Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsLoading}" RefreshColor="{StaticResource Pink}">
+            <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <Label Text="Nada aqui ainda. Use a Busca para adicionar." Style="{StaticResource Muted}" HorizontalTextAlignment="Center" Margin="0,40" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="list:ListEntryView">
+                        <Border Style="{StaticResource Card}" Padding="8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenCommand, Source={x:Reference Page}, x:DataType=vm:MyListViewModel}" CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="12">
+                                <Border StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="80">
+                                    <Image Source="{Binding Cover}" Aspect="AspectFill" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                                    <Label Text="{Binding Title}" MaxLines="2" LineBreakMode="TailTruncation" TextColor="{StaticResource Ink}" FontAttributes="Bold" />
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{Binding ProgressText}" Style="{StaticResource Muted}" />
+                                        <Label Text="{Binding Score, StringFormat='★ {0}'}" TextColor="{StaticResource Yellow}" FontSize="13">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Score}" Value="0">
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Text="♥" TextColor="{StaticResource Pink}" IsVisible="{Binding Favorite}" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" Text="+1" Style="{StaticResource Square}" VerticalOptions="Center"
+                                        Command="{Binding IncrementCommand, Source={x:Reference Page}, x:DataType=vm:MyListViewModel}" CommandParameter="{Binding .}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

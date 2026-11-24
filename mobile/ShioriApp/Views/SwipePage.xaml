@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
+             x:Class="ShioriApp.Views.SwipePage"
+             x:DataType="vm:SwipeViewModel"
+             Title="Swipe"
+             BackgroundColor="{StaticResource Bg}">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16,8,16,16" RowSpacing="10">
+        <Grid ColumnDefinitions="*,Auto">
+            <Picker ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}" ItemDisplayBinding="{Binding Label, x:DataType=vm:SwipeSource}"
+                    TextColor="{StaticResource Ink}" BackgroundColor="{StaticResource Panel}" HorizontalOptions="Start" MinimumWidthRequest="170" />
+            <Label Grid.Column="1" Text="{Binding Added, StringFormat='+{0} na lista'}" TextColor="{StaticResource Cyan}" VerticalOptions="Center" FontAttributes="Bold" />
+        </Grid>
+        <controls:ErrorView Grid.Row="1" />
+
+        <!-- A carta: arraste para os lados ou use os botões -->
+        <Grid Grid.Row="2">
+            <Border x:Name="Card" Style="{StaticResource Card}" Padding="0" StrokeShape="RoundRectangle 22" IsVisible="{Binding HasCard}"
+                    MaximumWidthRequest="420" HorizontalOptions="Fill">
+                <Border.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="OnPan" />
+                    <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                </Border.GestureRecognizers>
+                <Grid RowDefinitions="*,Auto">
+                    <Image Source="{Binding Card.Cover}" Aspect="AspectFill" Grid.RowSpan="2" />
+                    <BoxView Grid.RowSpan="2">
+                        <BoxView.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="Transparent" Offset="0.45" />
+                                <GradientStop Color="#F00c0a1d" Offset="1" />
+                            </LinearGradientBrush>
+                        </BoxView.Background>
+                    </BoxView>
+                    <VerticalStackLayout Grid.Row="1" Padding="18" Spacing="4">
+                        <Label Text="{Binding Card.DisplayTitle}" Style="{StaticResource Display}" FontSize="22" />
+                        <Label Text="{Binding Card.Year}" Style="{StaticResource Muted}" />
+                        <Label Text="{Binding Card.AverageScore, StringFormat='★ {0}%'}" TextColor="{StaticResource Yellow}" FontAttributes="Bold"
+                               IsVisible="{Binding Card.AverageScore, Converter={StaticResource HasValue}}" />
+                        <Label Text="Toque para ver detalhes" FontSize="11" TextColor="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                    <!-- Selos que aparecem ao arrastar -->
+                    <Border x:Name="WantStamp" Opacity="0" Rotation="-12" Stroke="{StaticResource StatusCompleted}" StrokeThickness="3" StrokeShape="RoundRectangle 10"
+                            Padding="10,4" HorizontalOptions="Start" VerticalOptions="Start" Margin="20">
+                        <Label Text="QUERO VER" TextColor="{StaticResource StatusCompleted}" FontAttributes="Bold" FontSize="20" />
+                    </Border>
+                    <Border x:Name="SkipStamp" Opacity="0" Rotation="12" Stroke="{StaticResource Danger}" StrokeThickness="3" StrokeShape="RoundRectangle 10"
+                            Padding="10,4" HorizontalOptions="End" VerticalOptions="Start" Margin="20">
+                        <Label Text="PULAR" TextColor="{StaticResource Danger}" FontAttributes="Bold" FontSize="20" />
+                    </Border>
+                </Grid>
+            </Border>
+            <VerticalStackLayout VerticalOptions="Center" Spacing="10" IsVisible="{Binding HasCard, Converter={StaticResource Not}}">
+                <ActivityIndicator IsRunning="{Binding IsLoading}" Color="{StaticResource Pink}" />
+                <Label Text="Acabaram as cartas desta fonte. Escolha outra lá em cima." Style="{StaticResource Muted}" HorizontalTextAlignment="Center"
+                       IsVisible="{Binding IsLoading, Converter={StaticResource Not}}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Botões -->
+        <HorizontalStackLayout Grid.Row="3" HorizontalOptions="Center" Spacing="18" IsVisible="{Binding HasCard}">
+            <Button Text="✕" Command="{Binding SkipCommand}" WidthRequest="64" HeightRequest="64" CornerRadius="32" FontSize="24"
+                    BackgroundColor="{StaticResource Panel}" TextColor="{StaticResource Danger}" BorderColor="{StaticResource Danger}" BorderWidth="2" />
+            <Button Text="Já vi" Command="{Binding SeenCommand}" HeightRequest="52" CornerRadius="26" Padding="18,0" VerticalOptions="Center"
+                    BackgroundColor="{StaticResource Panel}" TextColor="{StaticResource Yellow}" BorderColor="{StaticResource Yellow}" BorderWidth="2" />
+            <Button Text="✓" Command="{Binding WantCommand}" WidthRequest="64" HeightRequest="64" CornerRadius="32" FontSize="24"
+                    BackgroundColor="{StaticResource StatusCompleted}" TextColor="{StaticResource OnPink}" />
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<!-- Estilos próprios do Shiori (cartões, títulos, botões). As cores vêm de Colors.xaml. -->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:conv="clr-namespace:ShioriApp.Converters">
+
+    <conv:InvertBoolConverter x:Key="Not" />
+    <conv:StatusColorConverter x:Key="StatusColor" />
+    <conv:NotNullConverter x:Key="HasValue" />
+
+    <!-- Título grande (fonte de destaque do site) -->
+    <Style x:Key="Display" TargetType="Label">
+        <Setter Property="FontFamily" Value="Display" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontSize" Value="24" />
+    </Style>
+
+    <Style x:Key="SectionTitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="Display" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontSize" Value="18" />
+    </Style>
+
+    <!-- Texto pequeno em caixa alta (rótulos de campos) -->
+    <Style x:Key="Caption" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Muted}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="CharacterSpacing" Value="1.2" />
+    </Style>
+
+    <Style x:Key="Muted" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Muted}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- Cartão: painel com borda fina, como os do site -->
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Panel}" />
+        <Setter Property="Stroke" Value="{StaticResource Line}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+    </Style>
+
+    <!-- Etiqueta arredondada (gêneros, status) -->
+    <Style x:Key="Chip" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Line}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 999" />
+        <Setter Property="Padding" Value="10,4" />
+    </Style>
+
+    <!-- Botão sem fundo (links) -->
+    <Style x:Key="Ghost" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource Pink}" />
+        <Setter Property="BorderWidth" Value="0" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <!-- Botão quadradinho (+1, −1) -->
+    <Style x:Key="Square" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource Line}" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="WidthRequest" Value="44" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+    </Style>
+    <!-- Atalho arredondado (topo do Início) -->
+    <Style x:Key="QuickLink" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource Panel}" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="BorderColor" Value="{StaticResource Line}" />
+        <Setter Property="BorderWidth" Value="2" />
+        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+</ResourceDictionary>

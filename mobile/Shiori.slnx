@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Shiori.Core.Tests/Shiori.Core.Tests.csproj" />
+  <Project Path="Shiori.Core/Shiori.Core.csproj" />
+  <Project Path="ShioriApp/ShioriApp.csproj" />
+</Solution>
