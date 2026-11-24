@@ -65,6 +65,10 @@ public partial class HomeViewModel : BaseViewModel
     [RelayCommand]
     private Task OpenMediaAsync(int id) => Navigation.OpenDetailAsync(id);
 
+    /// <summary>Atalhos do topo do Início (calendar, explore, swipe, roulette, foryou).</summary>
+    [RelayCommand]
+    private Task OpenNativeAsync(string route) => Navigation.OpenNativeAsync(route);
+
     /// <summary>+1 episódio direto do Início.</summary>
     [RelayCommand]
     private Task IncrementAsync(ListEntryView entry) => RunAsync(() =>

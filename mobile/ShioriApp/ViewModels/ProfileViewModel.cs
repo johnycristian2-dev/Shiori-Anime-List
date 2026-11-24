@@ -46,7 +46,7 @@ public partial class ProfileViewModel(AuthService auth, ProfileService profiles,
     private Task RefreshAsync() => RunAsync(LoadAsync);
 
     [RelayCommand]
-    private Task OpenFullProfileAsync() => Navigation.OpenWebAsync($"/u/{Profile?.Username}", Name);
+    private Task OpenFullProfileAsync() => Profile is { } p ? Navigation.OpenUserAsync(p.Username) : Task.CompletedTask;
 
     [RelayCommand]
     private Task EditProfileAsync() => Navigation.OpenWebAsync("/perfil/editar", "Editar perfil");

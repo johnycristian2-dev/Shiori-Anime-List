@@ -71,4 +71,14 @@
         <Setter Property="HeightRequest" Value="40" />
         <Setter Property="MinimumWidthRequest" Value="44" />
     </Style>
+    <!-- Atalho arredondado (topo do Início) -->
+    <Style x:Key="QuickLink" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource Panel}" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="BorderColor" Value="{StaticResource Line}" />
+        <Setter Property="BorderWidth" Value="2" />
+        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
 </ResourceDictionary>

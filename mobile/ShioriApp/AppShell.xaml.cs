@@ -18,5 +18,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("swipe", typeof(SwipePage));
         Routing.RegisterRoute("roulette", typeof(RoulettePage));
         Routing.RegisterRoute("foryou", typeof(ForYouPage));
+        Routing.RegisterRoute("user", typeof(PublicProfilePage));
     }
 }

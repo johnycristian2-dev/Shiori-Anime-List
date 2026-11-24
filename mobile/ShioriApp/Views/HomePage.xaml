@@ -20,6 +20,17 @@
                     <Label Text="SHIORI" Style="{StaticResource Display}" VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
+                <!-- Atalhos para as telas de descoberta -->
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Padding="16,0">
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="📅 Calendário" Command="{Binding OpenNativeCommand}" CommandParameter="calendar" Style="{StaticResource QuickLink}" />
+                        <Button Text="✨ Pra você" Command="{Binding OpenNativeCommand}" CommandParameter="foryou" Style="{StaticResource QuickLink}" />
+                        <Button Text="💫 Swipe" Command="{Binding OpenNativeCommand}" CommandParameter="swipe" Style="{StaticResource QuickLink}" />
+                        <Button Text="🧭 Explorar" Command="{Binding OpenNativeCommand}" CommandParameter="explore" Style="{StaticResource QuickLink}" />
+                        <Button Text="🎲 Roleta" Command="{Binding OpenNativeCommand}" CommandParameter="roulette" Style="{StaticResource QuickLink}" />
+                    </HorizontalStackLayout>
+                </ScrollView>
+
                 <controls:ErrorView />
 
                 <!-- Continuar assistindo -->
