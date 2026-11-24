@@ -2,6 +2,7 @@
 using Shiori.Core.AniList;
 using Shiori.Core.Auth;
 using Shiori.Core.List;
+using Shiori.Core.Profile;
 using ShioriApp.Services;
 using ShioriApp.ViewModels;
 using ShioriApp.Views;
@@ -33,13 +34,15 @@ public static class MauiProgram
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<ListService>();
         builder.Services.AddSingleton<AniListClient>();
+        builder.Services.AddSingleton<ProfileService>();
 
         // Telas + ViewModels
         builder.Services.AddTransient<LoginPage>().AddTransient<LoginViewModel>();
         builder.Services.AddTransient<HomePage>().AddTransient<HomeViewModel>();
         builder.Services.AddTransient<SearchPage>().AddTransient<SearchViewModel>();
         builder.Services.AddTransient<DetailPage>().AddTransient<DetailViewModel>();
-        builder.Services.AddTransient<MyListPage>().AddTransient<ProfilePage>();
+        builder.Services.AddTransient<MyListPage>().AddTransient<MyListViewModel>();
+        builder.Services.AddTransient<ProfilePage>().AddTransient<ProfileViewModel>();
         builder.Services.AddTransient<MorePage>().AddTransient<MoreViewModel>();
         builder.Services.AddTransient<WebPage>();
 
