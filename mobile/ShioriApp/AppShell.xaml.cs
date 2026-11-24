@@ -15,5 +15,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("studio", typeof(StudioPage));
         Routing.RegisterRoute("calendar", typeof(CalendarPage));
         Routing.RegisterRoute("explore", typeof(ExplorePage));
+        Routing.RegisterRoute("swipe", typeof(SwipePage));
+        Routing.RegisterRoute("roulette", typeof(RoulettePage));
+        Routing.RegisterRoute("foryou", typeof(ForYouPage));
     }
 }

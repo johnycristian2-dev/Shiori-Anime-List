@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ShioriApp.ViewModels"
+             xmlns:controls="clr-namespace:ShioriApp.Views.Controls"
+             x:Class="ShioriApp.Views.ForYouPage"
+             x:DataType="vm:ForYouViewModel"
+             x:Name="Page"
+             Title="Pra você"
+             BackgroundColor="{StaticResource Bg}">
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsLoading}" RefreshColor="{StaticResource Pink}">
+        <CollectionView ItemsSource="{Binding Items}" SelectionMode="None" Margin="16,0">
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="0,12,0,12" Spacing="6">
+                    <Label Text="Recomendações da comunidade do AniList a partir do que você mais curtiu." Style="{StaticResource Muted}" />
+                    <Label Text="{Binding SeedsText}" TextColor="{StaticResource Ink}" FontSize="13" />
+                    <controls:ErrorView />
+                    <Label Text="Dê notas ou complete alguns títulos na sua lista para receber recomendações." Style="{StaticResource Muted}"
+                           IsVisible="{Binding IsEmpty}" HorizontalTextAlignment="Center" Margin="0,24" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:SuggestionRow">
+                    <Border Style="{StaticResource Card}" Padding="8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenCommand, Source={x:Reference Page}, x:DataType=vm:ForYouViewModel}" CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="12">
+                            <Border StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="92">
+                                <Image Source="{Binding Media.Cover}" Aspect="AspectFill" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                                <Label Text="{Binding Media.DisplayTitle}" TextColor="{StaticResource Ink}" FontAttributes="Bold" MaxLines="2" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Because}" FontSize="12" TextColor="{StaticResource Cyan}" MaxLines="2" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Media.AverageScore, StringFormat='★ {0}%'}" FontSize="12" TextColor="{StaticResource Yellow}"
+                                       IsVisible="{Binding Media.AverageScore, Converter={StaticResource HasValue}}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="2" Text="+" Style="{StaticResource Square}" VerticalOptions="Center"
+                                    Command="{Binding AddCommand, Source={x:Reference Page}, x:DataType=vm:ForYouViewModel}" CommandParameter="{Binding .}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>
