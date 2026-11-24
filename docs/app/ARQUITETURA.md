@@ -2,19 +2,19 @@
 
 ## Visão geral
 
-O app é **misto**: as telas principais são **nativas** (XAML + C#) e o resto do site abre **dentro do app**, já logado, num `WebView`.
+O app é **misto**: **16 telas são nativas** (XAML + C#) e o resto do site (jogos, chat, watch party, amigos, liga, moderação, apoiar…) abre **dentro do app**, já logado, num `WebView`.
 
 ```
 ┌──────────────────────────────── App MAUI (ShioriApp) ────────────────────────────────┐
 │  Shell (abas):  Início │ Buscar │ Minha lista │ Perfil │ Mais                          │
 │                                                                                        │
 │  Views (XAML)  ──binding──▶  ViewModels (C#, MVVM)  ──chama──▶  Shiori.Core (serviços)  │
-│  HomePage                    HomeViewModel                       AuthService           │
-│  SearchPage                  SearchViewModel                     ListService           │
-│  DetailPage                  DetailViewModel                     AniListClient         │
-│  MyListPage                  MyListViewModel                     ProfileService        │
-│  ProfilePage                 ProfileViewModel                    WebBridge             │
-│  LoginPage / MorePage        LoginViewModel / MoreViewModel                            │
+│  Login, Início, Busca,       um ViewModel por tela               AuthService           │
+│  Detalhe, Minha lista,                                           ListService           │
+│  Perfil, Mais, Calendário,                                       AniListClient         │
+│  Explorar, Swipe, Roleta,                                        ProfileService        │
+│  Pra você, Personagem,                                           Discover (regras)     │
+│  Dublador, Estúdio, Perfil público                               WebBridge             │
 │  WebPage (site no WebView) ──────────────── sessão compartilhada ─────┘               │
 └────────────────────────────────────────────────────────────────────────────────────────┘
             │ HTTPS                                    │ HTTPS
@@ -58,8 +58,11 @@ Atalhos em `Services/Navigation.cs`: `Navigation.OpenDetailAsync(id)` e `Navigat
 O site guarda a sessão no `localStorage`, na chave `sb-ahtalxodwxzmjltbxmaz-auth-token`. O app usa **o mesmo formato** (é a resposta crua do Supabase Auth), então:
 
 1. `WebPage` abre `https://shiori-anime-list.vercel.app/robots.txt` (página leve do mesmo domínio);
-2. roda `WebBridge.BuildInjectScript(...)`: grava a sessão no `localStorage` e vai para a rota pedida → o site já abre logado;
-3. ao sair da página, roda `WebBridge.ReadSessionScript` e `AuthService.AdoptIfNewerAsync(...)`: se o site renovou o token enquanto estava aberto, o app passa a usar o novo (o Supabase invalida o token antigo a cada renovação).
+2. **lê primeiro** o que o site já tem (`WebBridge.ReadSessionScript` + `AuthService.AdoptIfNewerAsync`):
+   - mesma conta e token mais novo (o site renovou) → o app passa a usar o do site;
+   - outra conta ou nenhuma → os dados do site são apagados antes (não mistura a lista de uma pessoa com a de outra);
+3. roda `WebBridge.BuildInjectScript(...)`: grava a sessão (a mais nova) no `localStorage` e vai para a rota pedida → o site já abre logado;
+4. a cada página carregada e ao sair, lê a sessão de volta — o Supabase invalida o token antigo a cada renovação, então o app precisa sempre ficar com o mais novo.
 
 ## A lista sem perder dados
 
@@ -71,4 +74,4 @@ A lista do usuário é **um documento JSON** na tabela `user_data` (coluna `doc`
 
 ## Testes
 
-`mobile/Shiori.Core.Tests` (xUnit, 73 testes) cobre o Core sem rede: um servidor falso (`FakeHandler`) responde e guarda o que o app enviou. Exemplos: senha errada vira "E-mail ou senha incorretos.", token vencido é renovado, a lista nunca apaga o que veio do site, a sinopse do AniList perde o HTML.
+`mobile/Shiori.Core.Tests` (xUnit, 103 testes) cobre o Core sem rede: um servidor falso (`FakeHandler`) responde e guarda o que o app enviou. Exemplos: senha errada vira "E-mail ou senha incorretos.", token vencido é renovado, a lista nunca apaga o que veio do site, a sinopse do AniList perde o HTML.

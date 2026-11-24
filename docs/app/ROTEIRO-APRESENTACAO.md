@@ -13,21 +13,23 @@
 2. **Buscar:** digitar "frieren" (busca espera você parar de digitar), alternar Anime/Mangá.
 3. **Detalhe:** mudar status, dar +1, nota, favoritar. Explicar as automações iguais às do site (+1 em "Quero ver" vira "Assistindo").
 4. **Prova de sincronização:** abrir o site no computador e mostrar a mesma mudança lá.
-5. **Minha lista** e **Perfil:** abas por status com as cores do site, números da lista.
+5. **Minha lista** e **Perfil:** abas por status com as cores do site, números da lista; "Ver perfil completo" abre o perfil público nativo.
+6. **Descobrir (atalhos no Início):** Swipe (arrastar a carta para os lados), Roleta (girar), Calendário (episódios da semana no seu horário), Explorar (filtros) e Pra você (recomendações com "porque você curtiu…").
+7. No Detalhe, tocar num personagem → dublador → outro personagem: tudo nativo.
 
 ## 4. Todas as funções do site (2 min)
-- Aba **Mais** → Calendário, Jogos, Watch party, Chat: abrem dentro do app **já logado**, sem pedir senha de novo.
+- Aba **Mais**: as marcadas NATIVO abrem telas do app; Jogos, Watch party e Chat abrem dentro do app **já logado**, sem pedir senha de novo.
 - Explicar em uma frase como: o app grava a sessão no `localStorage` do site antes de abrir a página.
 
 ## 5. Por dentro (2 min)
 - Desenho das camadas (View → ViewModel → Core → APIs) de `ARQUITETURA.md`.
 - MVVM com CommunityToolkit, injeção de dependências em `MauiProgram.cs`, navegação com Shell.
-- Rodar `dotnet test` ao vivo: 73 testes passando.
+- Rodar `dotnet test` ao vivo: 103 testes passando.
 
 ## Perguntas prováveis
 
 **"Isso não é só um site dentro do app?"**
-Não: Login, Início, Busca, Detalhe, Minha lista e Perfil são XAML nativo com ViewModels em C# chamando as APIs direto. O WebView só entra para as funções menos usadas, para o app ter tudo sem reescrever 40 telas.
+Não: 16 telas são XAML nativo com ViewModels em C# chamando as APIs direto (Início, Busca, Detalhe, Minha lista, Perfil, Calendário, Explorar, Swipe, Roleta, Pra você, Personagem, Dublador, Estúdio, Perfil público, Mais, Login). O WebView só entra para jogos, chat, watch party, amigos, moderação e pagamentos — que dependem de regras do servidor e tempo real.
 
 **"Como o app e o site não brigam pela lista?"**
 A lista é um documento JSON. O app relê antes de gravar e só mexe no item alterado, com `updatedAt` novo; o site junta pela regra "vence o mais novo". Tem teste para isso (`Update_RefetchesBeforeWrite`).

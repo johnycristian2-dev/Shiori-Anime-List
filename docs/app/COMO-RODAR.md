@@ -16,7 +16,7 @@
 ## Pela linha de comando (pasta `mobile/`)
 
 ```bash
-dotnet test Shiori.Core.Tests                                   # 73 testes das regras do app
+dotnet test Shiori.Core.Tests                                   # 103 testes das regras do app
 dotnet build ShioriApp -f net10.0-windows10.0.19041.0 -t:Run    # abre no Windows
 dotnet build ShioriApp -f net10.0-android -t:Run                # instala e abre no Android conectado
 dotnet publish ShioriApp -f net10.0-android -c Release          # gera o APK
@@ -33,6 +33,7 @@ Só no modo Debug: a variável de ambiente `SHIORI_START` abre o app direto numa
 $env:SHIORI_START = "//home"                 # Início
 $env:SHIORI_START = "detail?id=154587"       # Detalhe do Frieren
 $env:SHIORI_START = "//more"                 # aba Mais
+$env:SHIORI_START = "calendar"               # Calendário (também: explore, swipe, roulette, foryou)
 ```
 
 As telas que dependem da conta (Minha lista, Perfil) mostram "Entre na sua conta para continuar" nesse modo.

@@ -8,8 +8,8 @@ public sealed record SiteSection(string Group, string Title, string Description,
 }
 
 /// <summary>
-/// Todas as telas do site que não são nativas no app. As nativas são:
-/// Início, Busca, Detalhe (anime/mangá), Minha lista e Perfil.
+/// Seções do site listadas na aba "Mais". As que têm <see cref="SiteSection.NativeRoute"/> abrem a tela
+/// nativa do app; as demais abrem o site na parte web, já logado.
 /// </summary>
 public static class SiteSections
 {

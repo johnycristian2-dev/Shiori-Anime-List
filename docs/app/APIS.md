@@ -26,7 +26,7 @@ Erros tratados: `invalid_credentials` → "E-mail ou senha incorretos."; `email_
 POST /auth/v1/token?grant_type=refresh_token
 { "refresh_token": "abc123" }
 ```
-Se o servidor recusar, a sessão acabou: o app limpa tudo e volta ao Login ("Sua sessão expirou. Entre de novo.").
+Se o servidor **recusar** (400/401/403), a sessão acabou: o app limpa tudo e volta ao Login mostrando "Sua sessão expirou. Entre de novo.". Se for erro passageiro (5xx ou 429), a sessão é mantida e a tela mostra "O servidor está com problema. Tente de novo em instantes.".
 
 ### Sair
 ```http
@@ -63,6 +63,12 @@ Prefer: resolution=merge-duplicates,return=minimal
 GET /rest/v1/profiles?select=user_id,username,display_name,avatar_url&user_id=eq.<uuid>
 ```
 
+### Perfil público — `ProfileService.GetPublicAsync`
+```http
+GET /rest/v1/profiles?select=user_id,username,display_name,avatar_url,snapshot&username=eq.<apelido>
+```
+O apelido é validado antes (`^[a-z0-9_]{3,20}$`, mesma regra do site). O `snapshot` é o resumo público que o site publica (`rank`, `stats`, `entries` com nomes curtos: `t` título, `c` capa, `s` status, `sc` nota, `p` progresso, `f` favorito).
+
 ## 3. AniList GraphQL — `Shiori.Core/AniList/AniListClient.cs`
 
 Endpoint único: `POST https://graphql.anilist.co` com `{ "query": "…", "variables": { … } }`. Não precisa de login. As consultas estão em `AniList/Queries.cs` (mesmos campos do site).
@@ -73,6 +79,13 @@ Endpoint único: `POST https://graphql.anilist.co` com `{ "query": "…", "varia
 | `SeasonAsync(year, season)` | `season: FALL`, `year: 2026` | `POPULARITY_DESC` |
 | `SearchAsync(text, type)` | `search`, `type` | `SEARCH_MATCH` |
 | `DetailAsync(id)` | `id` | — (traz sinopse, estúdios, personagens, próximo episódio) |
+| `BrowseAsync(filtro, página)` | `type`, `sort`, `genres`, `season`, `seasonYear`, `formats`, `country` (só os escolhidos) | o escolhido |
+| `GenresAsync()` | — | lista `GenreCollection` (sem o gênero adulto) |
+| `AiringAsync(de, até)` | `from`, `to` (segundos Unix), `page` | `TIME` — segue até 8 páginas de 50 |
+| `CharacterAsync(id)` | `id` | animes do personagem por `POPULARITY_DESC`, com dublador japonês |
+| `StaffAsync(id, página)` | `id`, `page` | personagens feitos, por popularidade |
+| `StudioAsync(id, página)` | `id`, `page` | obras principais por popularidade |
+| `RecommendationsAsync(ids)` | — (ids no texto da consulta, um apelido `m0…` por título) | `RATING_DESC` |
 
 Exemplo de resposta (resumida):
 ```json

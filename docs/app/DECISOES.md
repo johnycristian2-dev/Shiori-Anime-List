@@ -7,7 +7,8 @@
 
 ## 2. Modelo misto: telas principais nativas + resto do site dentro do app
 - O site tem ~40 telas. Refazer todas em XAML levaria meses; o app precisava ter **todas as funções** e ser **app de verdade**.
-- Solução: as telas mais usadas no celular (Login, Início, Busca, Detalhe, Minha lista, Perfil) são **nativas**; as demais (jogos, chat, party, calendário…) abrem o **site publicado dentro do app**, já logado.
+- Solução: **16 telas nativas** — Login, Início, Busca, Detalhe, Minha lista, Perfil, Mais, Calendário, Explorar, Swipe, Roleta, Pra você, Personagem, Dublador, Estúdio e Perfil público. As demais abrem o **site publicado dentro do app**, já logado.
+- Ficaram na parte web as que dependem de regras do servidor ou tempo real: **Jogos e Liga** (respostas validadas no servidor contra trapaça), **Chat e Watch party** (tempo real), **Amigos**, **Moderação** (papéis checados no servidor) e **Apoiar** (pagamento). Refazer essas telas não traria nada novo e arriscaria quebrar regras de segurança.
 - Descartados: **só WebView** (pareceria "site dentro de app" e quase não teria MAUI) e **só nativo** (não daria para ter tudo).
 
 ## 3. Site ao vivo no WebView, e não uma cópia empacotada (HybridWebView)
@@ -20,7 +21,7 @@
 
 ## 5. Mesma sessão no app e na parte web
 - O app guarda a resposta do login no **SecureStorage** e escreve a **mesma** resposta no `localStorage` do site, no formato que o site já entende.
-- Cuidado tratado: o Supabase troca o *refresh token* a cada renovação. Se o site renovar enquanto está aberto, o app pega a sessão mais nova ao sair da página (`AdoptIfNewerAsync`); sem isso, o app seria deslogado depois.
+- Cuidado tratado: o Supabase troca o *refresh token* a cada renovação. Por isso o app **lê a sessão do site antes de gravar a sua** e de novo a cada página carregada (`AdoptIfNewerAsync`), ficando sempre com a mais nova; se a parte web tiver outra conta, os dados do site são apagados antes. Isso foi corrigido depois da revisão de código (antes só lia ao sair, e o app podia sobrescrever um token mais novo do site).
 
 ## 6. Lista: reler antes de gravar e mexer só no que mudou
 - A lista é um documento JSON único (tabela `user_data`). Gravar o documento antigo por cima apagaria o que foi feito no site.
@@ -37,6 +38,7 @@
 - **Play Store:** gerado APK para instalar direto; publicar exige conta de desenvolvedor e regras de pagamento da loja (o Shiori Plus usa Mercado Pago).
 
 ## 9. Qualidade
-- Regras sem tela ficam no `Shiori.Core` e têm **73 testes** automáticos (xUnit).
+- Regras sem tela ficam no `Shiori.Core` e têm **103 testes** automáticos (xUnit).
+- Uma revisão independente do código encontrou 1 problema crítico e 4 importantes (sessão da parte web, erro passageiro deslogando, mensagem de sessão expirada, +1 desfazendo progresso do site, troca de conta misturando listas). Todos foram corrigidos com um teste que reproduz o problema antes da correção.
 - Mensagens de erro sempre em português e com "tentar de novo"; nada de travar sem internet.
 - Visual tirado do site (mesmas cores e cores de status) e centralizado em `Resources/Styles` para a direção de arte ajustar.
